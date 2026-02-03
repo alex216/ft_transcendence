@@ -10,10 +10,11 @@ import { defineConfig } from "eslint/config";
 // [config-inspector](https://eslint.org/blog/2024/04/eslint-config-inspector/) experience.
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 
+export const LINT_TARGET_FILES = ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 // 各サブプロジェクトで継承可能
 export default defineConfig([
 	{
-		files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+		files: LINT_TARGET_FILES,
 		plugins: { js },
 		extends: ["js/recommended"],
 		languageOptions: { globals: globals.browser },
