@@ -1,0 +1,11 @@
+{
+	// Format on save settings
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	// Files to exclude from explorer
+	"files.exclude": {
+		"**/.git": true,
+		"**/.DS_Store": true,
+		"**/node_modules": true
+	}
+}
