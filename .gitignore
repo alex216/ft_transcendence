@@ -29,5 +29,8 @@ shared/*.map
 # Database
 *.sqlite
 
+# User uploads
+backend/uploads/
+
 # others
 en.subject.pdf

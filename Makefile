@@ -40,7 +40,7 @@ clean:
 fclean: down
 	docker-compose down -v
 	docker-compose rm -f
-	rm -rf backend/dist backend/node_modules
+	rm -rf backend/dist backend/node_modules backend/uploads
 	rm -rf frontend/build frontend/node_modules  # build/は通常存在しない
 	rm -f shared/*.js shared/*.d.ts shared/*.map
 	docker system prune -f
