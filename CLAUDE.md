@@ -48,7 +48,6 @@ When working with this developer:
 
 <詳細説明（必須）>
 - このコミットで何が変わったか（差分の説明）
-- C/C++開発者がこの変更を理解するためのTips
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
