@@ -15,7 +15,7 @@ const FriendRequests: React.FC = () => {
 	const [message, setMessage] = useState("");
 	const [processing, setProcessing] = useState<number | null>(null);
 
-	const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 	useEffect(() => {
 		loadRequests();

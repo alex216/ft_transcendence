@@ -83,7 +83,6 @@ function App() {
 					<div className="home">
 						<h2>ようこそ、{user.username}さん！</h2>
 						<p>ユーザーID: {user.id}</p>
-						<p>左のメニューから機能を選択してください。</p>
 					</div>
 				);
 			case "profile":

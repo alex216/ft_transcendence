@@ -52,7 +52,7 @@ services:
     container_name: trans_frontend
     restart: unless-stopped
     environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      VITE_API_URL: ${VITE_API_URL}
       PORT: ${FRONTEND_PORT}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
@@ -64,7 +64,7 @@ services:
       - backend
     networks:
       - trans_network
-    command: npm start
+    command: npm run dev
 
 volumes:
   postgres_data:
