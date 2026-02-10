@@ -16,15 +16,9 @@
 		"jiti": "^2.6.1",
 		"lint-staged": "^16.2.7",
 		"prettier": "3.8.1",
-		"typescript-eslint": "^8.54.0"
+		"typescript-eslint": "^8.54.0",
 	},
 	"scripts": {
-		"dev": "docker-compose up",
-		"dev:build": "docker-compose up --build",
-		"dev:frontend": "cd frontend && npm run dev",
-		"dev:backend": "cd backend && npm run start:dev",
-		"build:frontend": "cd frontend && npm run build",
-		"build:backend": "cd backend && npm run build",
-		"prepare": "husky"
-	}
+		"prepare": "husky", // Huskyのセットアップ（.husky/内のGit hooksを有効化）
+	},
 }
