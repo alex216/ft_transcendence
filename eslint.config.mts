@@ -22,6 +22,8 @@ export default defineConfig([
 			"**/package-lock.json",
 			"**/.vscode/**",
 			"eslint.config.mts", // 型定義の問題により除外
+			"**/tsconfig*.json", // TypeScriptコンパイラ設定ファイルを除外
+			"**/tsconfig*.jsonc", // TypeScriptコンパイラ設定ファイルを除外
 		],
 	},
 	{

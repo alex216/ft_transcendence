@@ -10,5 +10,21 @@
 		"**/.git": true,
 		"**/.DS_Store": true,
 		"**/node_modules": true
+	},
+	// Prettier for all major file types
+	"[typescript][typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript][javascriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json][jsonc]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[html][css]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[markdown][yaml]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }
