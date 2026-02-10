@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { register, login, getCurrentUser, logout } from "./api.ts";
-import Profile from "./components/Profile.tsx";
-import ProfileEdit from "./components/ProfileEdit.tsx";
-import FriendList from "./components/FriendList.tsx";
-import FriendRequests from "./components/FriendRequests.tsx";
+import { register, login, getCurrentUser, logout } from "./api";
+import { GetMeResponse } from "/shared";
+import Profile from "./components/Profile";
+import ProfileEdit from "./components/ProfileEdit";
+import FriendList from "./components/FriendList";
+import FriendRequests from "./components/FriendRequests";
 import "./App.css";
 
 type Page = "home" | "profile" | "profile-edit" | "friends" | "friend-requests";
 
 function App() {
 	// 状態管理
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState<GetMeResponse | null>(null);
 	const [currentPage, setCurrentPage] = useState<Page>("home");
 	const [isLogin, setIsLogin] = useState(true);
 	const [username, setUsername] = useState("");
@@ -77,6 +78,9 @@ function App() {
 
 	// ページコンテンツをレンダリング
 	const renderContent = () => {
+		// TypeScript の型絞り込みは関数の境界を越えられないため、null チェックが必要
+		if (!user) return null;
+
 		switch (currentPage) {
 			case "home":
 				return (

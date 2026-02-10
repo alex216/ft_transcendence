@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getFriends, removeFriend, sendFriendRequest } from "../api.ts";
+import { getFriends, removeFriend, sendFriendRequest } from "../api";
 import type { GetFriendsResponse } from "/shared";
 
 const FriendList: React.FC = () => {

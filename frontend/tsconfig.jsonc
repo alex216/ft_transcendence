@@ -24,9 +24,9 @@
 		"baseUrl": ".",
 		"paths": {
 			"/shared": ["../shared/index.ts"],
-			"/shared/*": ["../shared/*"]
-		}
+			"/shared/*": ["../shared/*"],
+		},
 	},
 	"include": ["src"],
-	"references": [{ "path": "./tsconfig.node.json" }]
+	"references": [{ "path": "./tsconfig.node.json" }],
 }

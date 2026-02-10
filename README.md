@@ -32,7 +32,7 @@ make build
 
 ## プロジェクト構造
 
-```
+```text
 .
 ├── backend/              # NestJSバックエンド
 │   ├── src/

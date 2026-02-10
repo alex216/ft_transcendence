@@ -14,6 +14,15 @@ export const LINT_TARGET_FILES = ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 // 各サブプロジェクトで継承可能
 export default defineConfig([
 	{
+		// ビルド結果やnode_modulesを無視
+		ignores: [
+			"**/dist/**",
+			"**/node_modules/**",
+			"**/build/**",
+			"**/package-lock.json",
+		],
+	},
+	{
 		files: LINT_TARGET_FILES,
 		plugins: { js },
 		extends: ["js/recommended"],
@@ -43,6 +52,11 @@ export default defineConfig([
 		plugins: { css },
 		language: "css/css",
 		extends: ["css/recommended"],
+		rules: {
+			// resize, font-family等のモダンブラウザでサポートされているプロパティを許可
+			"css/use-baseline": "off",
+			"css/font-family-fallbacks": "off",
+		},
 	},
 	eslintConfigPrettier,
 ]);

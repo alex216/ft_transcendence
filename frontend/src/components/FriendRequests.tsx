@@ -3,7 +3,7 @@ import {
 	getFriendRequests,
 	acceptFriendRequest,
 	rejectFriendRequest,
-} from "../api.ts";
+} from "../api";
 import type { GetFriendRequestsResponse } from "/shared";
 
 const FriendRequests: React.FC = () => {

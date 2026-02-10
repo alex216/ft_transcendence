@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getMyProfile, uploadAvatar, deleteAvatar } from "../api.ts";
+import { getMyProfile, uploadAvatar, deleteAvatar } from "../api";
 import type { GetProfileResponse } from "/shared";
 
 interface ProfileProps {

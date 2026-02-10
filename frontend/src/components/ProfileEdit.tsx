@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getMyProfile, updateProfile } from "../api.ts";
+import { getMyProfile, updateProfile } from "../api";
 
 interface ProfileEditProps {
 	onCancel: () => void;
