@@ -18,9 +18,12 @@ function App() {
 	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
 
-	// 初回ロード時にログイン状態を確認
+	// 初回ロード時にログイン状態を確認（以前ログインしたことがある場合のみ）
 	useEffect(() => {
-		checkLoginStatus();
+		const hasLoggedInBefore = localStorage.getItem("hasLoggedIn") === "true";
+		if (hasLoggedInBefore) {
+			checkLoginStatus();
+		}
 	}, []);
 
 	// ログイン状態確認
@@ -58,6 +61,8 @@ function App() {
 			setUsername("");
 			setPassword("");
 			setCurrentPage("home");
+			// ログイン成功時にフラグを保存（次回リロード時にログイン状態を確認するため）
+			localStorage.setItem("hasLoggedIn", "true");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
 			setMessage(error.response?.data?.message || "ログイン失敗");
@@ -71,6 +76,8 @@ function App() {
 			setUser(null);
 			setCurrentPage("home");
 			setMessage("ログアウトしました");
+			// ログアウト時にフラグを削除
+			localStorage.removeItem("hasLoggedIn");
 		} catch {
 			setMessage("ログアウト失敗");
 		}
