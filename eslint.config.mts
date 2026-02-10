@@ -20,6 +20,8 @@ export default defineConfig([
 			"**/node_modules/**",
 			"**/build/**",
 			"**/package-lock.json",
+			"**/.vscode/**",
+			"eslint.config.mts", // 型定義の問題により除外
 		],
 	},
 	{
@@ -31,12 +33,14 @@ export default defineConfig([
 	tseslint.configs.recommended,
 	{
 		files: ["**/*.json"],
+		// @ts-expect-error - Plugin type mismatch with @eslint/json
 		plugins: { json },
 		language: "json/json",
 		extends: ["json/recommended"],
 	},
 	{
 		files: ["**/*.jsonc"],
+		// @ts-expect-error - Plugin type mismatch with @eslint/json
 		plugins: { json },
 		language: "json/jsonc",
 		extends: ["json/recommended"],
