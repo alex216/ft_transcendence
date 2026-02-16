@@ -42,8 +42,8 @@ services:
       - postgres
     networks:
       - trans_network
-    command: npm run start:dev
-
+    command: sh -c "npm run build && npx prisma migrate deploy && npm run start:prod"
+  
   # Reactフロントエンド
   frontend:
     build:
