@@ -1,135 +1,651 @@
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	min-height: 100vh;
 }
 
 .App {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	padding: 20px;
+	transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.container {
-  background: white;
-  border-radius: 10px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 100%;
+/* ============================================ */
+/* 統合コンテナ：ログイン前後で変化 */
+/* ============================================ */
+
+.unified-container {
+	background: white;
+	border-radius: 15px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	overflow: hidden;
+	transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	display: flex;
+	position: relative;
+}
+
+/* ログイン前の状態 */
+.unified-container.logged-out {
+	max-width: 400px;
+	width: 100%;
+	height: auto;
+	padding: 40px;
+	flex-direction: column;
+}
+
+/* ログイン後の状態 */
+.unified-container.logged-in {
+	max-width: 1400px;
+	width: 100%;
+	height: 90vh;
+	padding: 0;
+	flex-direction: row;
+}
+
+/* ログイン前のコンテンツ */
+.auth-content {
+	width: 100%;
+	opacity: 1;
+	transition: opacity 0.4s ease;
+}
+
+.unified-container.logged-in .auth-content {
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* ログイン後のコンテンツ（サイドバー・メインコンテンツ）*/
+.unified-container.logged-out .sidebar,
+.unified-container.logged-out .main-content {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.unified-container.logged-in .sidebar,
+.unified-container.logged-in .main-content {
+	opacity: 1;
+	transition: opacity 0.6s ease 0.3s;
 }
 
 h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
+	text-align: center;
+	color: #333;
+	margin-bottom: 30px;
 }
 
 h2 {
-  text-align: center;
-  color: #555;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+	text-align: center;
+	color: #555;
+	margin-bottom: 20px;
+	font-size: 1.5rem;
 }
 
 .tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
 }
 
 .tabs button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #f0f0f0;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: all 0.3s;
+	flex: 1;
+	padding: 10px;
+	border: none;
+	background: #f0f0f0;
+	cursor: pointer;
+	border-radius: 5px;
+	font-size: 1rem;
+	transition: all 0.3s;
 }
 
 .tabs button.active {
-  background: #667eea;
-  color: white;
+	background: #667eea;
+	color: white;
 }
 
 .auth-form form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
 }
 
 input {
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+	padding: 12px;
+	border: 2px solid #e0e0e0;
+	border-radius: 5px;
+	font-size: 1rem;
+	transition: border-color 0.3s;
 }
 
 input:focus {
-  outline: none;
-  border-color: #667eea;
+	outline: none;
+	border-color: #667eea;
 }
 
 button[type="submit"] {
-  padding: 12px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
+	padding: 12px;
+	background: #667eea;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background 0.3s;
 }
 
 button[type="submit"]:hover {
-  background: #5568d3;
+	background: #5568d3;
 }
 
 .message {
-  margin-top: 15px;
-  padding: 10px;
-  background: #f0f0f0;
-  border-radius: 5px;
-  text-align: center;
-  color: #555;
+	margin-top: 15px;
+	padding: 10px;
+	background: #f0f0f0;
+	border-radius: 5px;
+	text-align: center;
+	color: #555;
 }
 
 .user-info {
-  text-align: center;
+	text-align: center;
 }
 
 .user-info h2 {
-  color: #667eea;
-  margin-bottom: 10px;
+	color: #667eea;
+	margin-bottom: 10px;
 }
 
 .user-info p {
-  margin-bottom: 20px;
-  color: #666;
+	margin-bottom: 20px;
+	color: #666;
 }
 
 .user-info button {
-  padding: 10px 30px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
+	padding: 10px 30px;
+	background: #e74c3c;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background 0.3s;
 }
 
 .user-info button:hover {
-  background: #c0392b;
+	background: #c0392b;
+}
+
+/* ============================================ */
+/* ログイン後のレイアウト（マイルストーン#3） */
+/* ============================================ */
+
+/* サイドバーナビゲーション */
+.sidebar {
+	width: 250px;
+	min-width: 250px;
+	background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	padding: 30px 20px;
+	display: flex;
+	flex-direction: column;
+	transition: opacity 0.6s ease 0.3s;
+}
+
+.sidebar h1 {
+	color: white;
+	font-size: 1.5rem;
+	margin-bottom: 40px;
+}
+
+.nav-menu {
+	list-style: none;
+	flex: 1;
+}
+
+.nav-menu li {
+	margin-bottom: 10px;
+}
+
+.nav-menu button {
+	width: 100%;
+	padding: 12px 20px;
+	background: rgba(255, 255, 255, 0.1);
+	border: none;
+	color: white;
+	text-align: left;
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: all 0.3s;
+}
+
+.nav-menu button:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-menu button.active {
+	background: rgba(255, 255, 255, 0.3);
+	font-weight: bold;
+}
+
+.sidebar-footer {
+	margin-top: auto;
+}
+
+.btn-logout {
+	width: 100%;
+	padding: 12px;
+	background: rgba(231, 76, 60, 0.8);
+	border: none;
+	color: white;
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: all 0.3s;
+}
+
+.btn-logout:hover {
+	background: rgba(231, 76, 60, 1);
+}
+
+/* メインコンテンツエリア */
+.main-content {
+	flex: 1;
+	padding: 40px;
+	overflow-y: auto;
+	background: #f8f9fa;
+	transition: opacity 0.6s ease 0.3s;
+}
+
+/* ページコンテンツのフェードイン */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.main-content > * {
+	animation: fadeIn 0.3s ease-out;
+}
+
+.home {
+	text-align: center;
+	padding: 40px;
+}
+
+.home h2 {
+	color: #667eea;
+	margin-bottom: 20px;
+}
+
+/* ============================================ */
+/* プロフィールページ */
+/* ============================================ */
+
+.profile {
+	max-width: 800px;
+}
+
+.profile h2 {
+	color: #333;
+	margin-bottom: 30px;
+}
+
+.profile-content {
+	display: flex;
+	gap: 40px;
+	background: white;
+	padding: 30px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+}
+
+.avatar-large {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 4px solid #667eea;
+}
+
+.avatar-placeholder {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	background: #667eea;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 5rem;
+	color: white;
+	font-weight: bold;
+}
+
+.avatar-actions {
+	display: flex;
+	gap: 10px;
+}
+
+.profile-info {
+	flex: 1;
+}
+
+.info-row {
+	margin-bottom: 20px;
+}
+
+.info-row .label {
+	display: block;
+	font-weight: bold;
+	color: #666;
+	margin-bottom: 5px;
+}
+
+.info-row .value {
+	display: block;
+	color: #333;
+	font-size: 1.1rem;
+}
+
+.info-row .value.bio {
+	white-space: pre-wrap;
+	line-height: 1.6;
+}
+
+/* ============================================ */
+/* プロフィール編集フォーム */
+/* ============================================ */
+
+.profile-edit {
+	max-width: 600px;
+	background: white;
+	padding: 30px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-edit h2 {
+	margin-bottom: 30px;
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+.form-group label {
+	display: block;
+	font-weight: bold;
+	color: #555;
+	margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+	width: 100%;
+	padding: 10px;
+	border: 2px solid #e0e0e0;
+	border-radius: 5px;
+	font-size: 1rem;
+	font-family: inherit;
+}
+
+.form-group textarea {
+	resize: vertical;
+	min-height: 100px;
+}
+
+.form-group small {
+	display: block;
+	margin-top: 5px;
+	color: #999;
+	font-size: 0.85rem;
+}
+
+.form-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 30px;
+}
+
+/* ============================================ */
+/* ボタンスタイル */
+/* ============================================ */
+
+.btn-primary {
+	padding: 12px 24px;
+	background: #667eea;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: background 0.3s;
+}
+
+.btn-primary:hover {
+	background: #5568d3;
+}
+
+.btn-primary:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+.btn-secondary {
+	padding: 12px 24px;
+	background: #6c757d;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+	background: #5a6268;
+}
+
+.btn-danger {
+	padding: 10px 20px;
+	background: #e74c3c;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	transition: background 0.3s;
+}
+
+.btn-danger:hover {
+	background: #c0392b;
+}
+
+.btn-primary-small,
+.btn-danger-small {
+	padding: 8px 16px;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	transition: all 0.3s;
+}
+
+.btn-primary-small {
+	background: #667eea;
+	color: white;
+}
+
+.btn-primary-small:hover {
+	background: #5568d3;
+}
+
+.btn-danger-small {
+	background: #e74c3c;
+	color: white;
+}
+
+.btn-danger-small:hover {
+	background: #c0392b;
+}
+
+/* ============================================ */
+/* フレンドリスト */
+/* ============================================ */
+
+.friend-list h2 {
+	color: #333;
+	margin-bottom: 20px;
+}
+
+.add-friend-form {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 30px;
+	background: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.add-friend-form input {
+	flex: 1;
+}
+
+.friends-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.friend-card {
+	background: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+}
+
+.avatar {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 3px solid #667eea;
+}
+
+.friend-info {
+	text-align: center;
+	flex: 1;
+}
+
+.friend-info h3 {
+	color: #333;
+	margin-bottom: 5px;
+}
+
+.username {
+	color: #667eea;
+	font-size: 0.9rem;
+	margin-bottom: 10px;
+}
+
+.bio {
+	color: #666;
+	font-size: 0.85rem;
+	line-height: 1.4;
+}
+
+.empty-state {
+	text-align: center;
+	color: #999;
+	padding: 40px;
+	background: white;
+	border-radius: 10px;
+}
+
+/* ============================================ */
+/* フレンドリクエスト */
+/* ============================================ */
+
+.friend-requests h2 {
+	color: #333;
+	margin-bottom: 30px;
+}
+
+.friend-requests h3 {
+	color: #555;
+	margin-bottom: 15px;
+	margin-top: 30px;
+}
+
+.friend-requests h3:first-of-type {
+	margin-top: 0;
+}
+
+.request-list {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.request-card {
+	background: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.request-info {
+	flex: 1;
+}
+
+.request-info h4 {
+	color: #333;
+	margin-bottom: 5px;
+}
+
+.request-actions {
+	display: flex;
+	gap: 10px;
+}
+
+.request-status {
+	padding: 8px 16px;
+}
+
+.status-badge {
+	padding: 6px 12px;
+	background: #e3f2fd;
+	color: #1976d2;
+	border-radius: 15px;
+	font-size: 0.85rem;
+	font-weight: bold;
 }

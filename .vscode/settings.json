@@ -2,10 +2,29 @@
 	// Format on save settings
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	// Tab settings
+	"editor.tabSize": 2, // タブの表示幅を2スペース相当に設定
+	"editor.detectIndentation": false, // 自動検出を無効化（誤検出を防ぐ）
 	// Files to exclude from explorer
 	"files.exclude": {
 		"**/.git": true,
 		"**/.DS_Store": true,
 		"**/node_modules": true
+	},
+	// Prettier for all major file types
+	"[typescript][typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript][javascriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json][jsonc]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[html][css]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[markdown][yaml]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }

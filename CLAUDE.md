@@ -43,12 +43,11 @@ When working with this developer:
 
 ### 基本形式
 
-```
+```text
 <接頭辞>: <変更内容の要約>
 
 <詳細説明（必須）>
 - このコミットで何が変わったか（差分の説明）
-- C/C++開発者がこの変更を理解するためのTips
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
@@ -68,7 +67,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **例：**
 
-```
+```text
 feat: JWT認証をパスワード認証に追加
 
 - auth.service.tsにJWT生成・検証ロジックを追加
