@@ -18,7 +18,7 @@ setup:
 
 # コンテナを起動
 up:
-	docker-compose up -d
+	docker-compose up
 
 # コンテナを停止
 down:
@@ -26,7 +26,7 @@ down:
 
 # コンテナを再ビルドして起動
 build:
-	docker-compose up -d --build
+	docker-compose up --build
 
 # コンパイル生成物を削除（コンテナは残す）
 clean:
