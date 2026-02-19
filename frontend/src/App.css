@@ -649,3 +649,59 @@ button[type="submit"]:hover {
 	font-size: 0.85rem;
 	font-weight: bold;
 }
+
+.game-page { 
+	display: flex; 
+	flex-direction: column;
+	gap: 16px; 
+}
+.game-header { 
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: flex-start;
+}
+
+.game-subtitle {
+	margin: 6px 0 0;
+	opacity: 0.8;
+}
+
+.game-layout { 
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: 16px;
+	align-items: start;
+}
+
+.game-canvas-card {
+	border-radius: 16px;
+	padding: 16px;
+	min-height: 420px;
+}
+
+.game-side-panel {
+	border-radius: 16px;
+	padding: 16px;
+}
+
+@media (max-width: 960px) {
+	.game-layout { grid-template-columns: 1fr;
+} }
+/* Game settings slider layout */
+.game-side-panel label.slider-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 11px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.game-side-panel .slider-label {
+  white-space: nowrap; /* ここで変な改行を止める */
+  font-weight: 600;
+}
+
+.game-side-panel .slider-input {
+  width: 100%;
+}

@@ -5,18 +5,40 @@ import Profile from "./components/Profile";
 import ProfileEdit from "./components/ProfileEdit";
 import FriendList from "./components/FriendList";
 import FriendRequests from "./components/FriendRequests";
+import GamePage from "./components/GamePage";
+import HistoryPage from "./components/HistoryPage";
+import LeaderboardPage from "./components/LeaderboardPage";
+import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
 import "./App.css";
 
-type Page = "home" | "profile" | "profile-edit" | "friends" | "friend-requests";
+type Page =
+	| "home"
+	| "profile"
+	| "profile-edit"
+	| "friends"
+	| "friend-requests"
+	| "game"
+	| "history"
+	| "leaderboard"
+	| "online";
 
 function App() {
 	// 状態管理
 	const [user, setUser] = useState<GetMeResponse | null>(null);
 	const [currentPage, setCurrentPage] = useState<Page>("home");
+
+	// Auth UI
 	const [isLogin, setIsLogin] = useState(true);
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
+
+	// Game context（OnlinePage → GamePage 連携用）
+	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
+	const [gameRoomId, setGameRoomId] = useState<string | null>(null);
+	const [gameOpponent, setGameOpponent] = useState<
+		OnlineStartPayload["opponent"] | null
+	>(null);
 
 	// 初回ロード時にログイン状態を確認（以前ログインしたことがある場合のみ）
 	useEffect(() => {
@@ -96,8 +118,10 @@ function App() {
 						<p>ユーザーID: {user.id}</p>
 					</div>
 				);
+
 			case "profile":
 				return <Profile onEdit={() => setCurrentPage("profile-edit")} />;
+
 			case "profile-edit":
 				return (
 					<ProfileEdit
@@ -105,10 +129,42 @@ function App() {
 						onSuccess={() => setCurrentPage("profile")}
 					/>
 				);
+
 			case "friends":
 				return <FriendList />;
+
 			case "friend-requests":
 				return <FriendRequests />;
+
+			case "game":
+				// GamePage 側で props を受け取れるようにしておく（UI表示のため）
+				return (
+					<GamePage
+						mode={gameMode}
+						roomId={gameRoomId ?? undefined}
+						opponent={gameOpponent}
+						onBack={gameMode === "online" ? () => setCurrentPage("online") : undefined}
+					/>
+				);
+
+			case "history":
+				return <HistoryPage />;
+
+			case "leaderboard":
+				return <LeaderboardPage />;
+
+			case "online":
+				return (
+					<OnlinePage
+						onStart={({ roomId, opponent }) => {
+							setGameMode("online");
+							setGameRoomId(roomId);
+							setGameOpponent(opponent);
+							setCurrentPage("game");
+						}}
+					/>
+				);
+
 			default:
 				return null;
 		}
@@ -132,16 +188,16 @@ function App() {
 										ホーム
 									</button>
 								</li>
+
 								<li>
 									<button
-										className={
-											currentPage.startsWith("profile") ? "active" : ""
-										}
+										className={currentPage.startsWith("profile") ? "active" : ""}
 										onClick={() => setCurrentPage("profile")}
 									>
 										プロフィール
 									</button>
 								</li>
+
 								<li>
 									<button
 										className={currentPage === "friends" ? "active" : ""}
@@ -150,17 +206,62 @@ function App() {
 										フレンド
 									</button>
 								</li>
+
 								<li>
 									<button
-										className={
-											currentPage === "friend-requests" ? "active" : ""
-										}
+										className={currentPage === "friend-requests" ? "active" : ""}
 										onClick={() => setCurrentPage("friend-requests")}
 									>
 										リクエスト
 									</button>
 								</li>
+
+								<li>
+									<button
+										className={currentPage === "game" ? "active" : ""}
+										onClick={() => {
+											setGameMode("ai");
+											setGameRoomId(null);
+											setGameOpponent(null);
+											setCurrentPage("game");
+										}}
+									>
+										ゲーム
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "history" ? "active" : ""}
+										onClick={() => setCurrentPage("history")}
+									>
+										戦績
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "leaderboard" ? "active" : ""}
+										onClick={() => setCurrentPage("leaderboard")}
+									>
+										ランキング
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "online" ? "active" : ""}
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											setCurrentPage("online");
+										}}
+									>
+										オンライン
+									</button>
+								</li>
 							</ul>
+
 							<div className="sidebar-footer">
 								<button onClick={handleLogout} className="btn-logout">
 									ログアウト
