@@ -26,7 +26,6 @@ export class ChatGateway
 	constructor(private readonly chatService: ChatService) {}
 
 	// 初期化時
-	// _serverは「今は使わないけど、引数として受け取るルール（定義）だから置いておくよ」という意思表示
 	afterInit() {
 		this.logger.log("WebSocket Gateway Initialized");
 	}
