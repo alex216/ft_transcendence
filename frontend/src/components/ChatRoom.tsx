@@ -13,6 +13,7 @@ import type { ChatMessage as ChatMessageType } from "/shared/chat.interface";
 type ChatRoomProps = {
 	roomId: string;
 	username: string;
+	displayName?: string; // ヘッダーに表示する名前（DMの場合は相手のユーザー名）
 };
 
 /**
@@ -21,7 +22,11 @@ type ChatRoomProps = {
  * - メッセージ入力・送信
  * - WebSocket接続管理
  */
-export default function ChatRoom({ roomId, username }: ChatRoomProps) {
+export default function ChatRoom({
+	roomId,
+	username,
+	displayName,
+}: ChatRoomProps) {
 	const [messages, setMessages] = useState<ChatMessageType[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [isConnected, setIsConnected] = useState(false);
@@ -120,7 +125,7 @@ export default function ChatRoom({ roomId, username }: ChatRoomProps) {
 	return (
 		<div className="chat-room">
 			<div className="chat-room-header">
-				<h3>#{roomId}</h3>
+				<h3>{displayName ? `@ ${displayName}` : `# ${roomId}`}</h3>
 				<span className={`chat-status ${isConnected ? "connected" : ""}`}>
 					{isConnected ? "● 接続中" : "○ 未接続"}
 				</span>

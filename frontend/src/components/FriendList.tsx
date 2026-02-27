@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
 import type { GetFriendsResponse } from "/shared";
 
-const FriendList: React.FC = () => {
+type FriendListProps = {
+	onStartDM?: (friendId: number, friendUsername: string) => void;
+};
+
+const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 	const [friends, setFriends] = useState<GetFriendsResponse["friends"]>([]);
 	const [loading, setLoading] = useState(true);
 	const [message, setMessage] = useState("");
@@ -114,17 +118,29 @@ const FriendList: React.FC = () => {
 									<p className="bio">{friendItem.friend.bio}</p>
 								)}
 							</div>
-							<button
-								onClick={() =>
-									handleRemoveFriend(
-										friendItem.friendId,
-										friendItem.friend.username,
-									)
-								}
-								className="btn-danger-small"
-							>
-								削除
-							</button>
+							<div className="friend-actions">
+								{onStartDM && (
+									<button
+										onClick={() =>
+											onStartDM(friendItem.friendId, friendItem.friend.username)
+										}
+										className="btn-primary-small"
+									>
+										DM
+									</button>
+								)}
+								<button
+									onClick={() =>
+										handleRemoveFriend(
+											friendItem.friendId,
+											friendItem.friend.username,
+										)
+									}
+									className="btn-danger-small"
+								>
+									削除
+								</button>
+							</div>
 						</div>
 					))}
 				</div>

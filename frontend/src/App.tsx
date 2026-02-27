@@ -42,6 +42,18 @@ function App() {
 		OnlineStartPayload["opponent"] | null
 	>(null);
 
+	// DM context（FriendList → ChatPage 連携用）
+	const [dmTarget, setDmTarget] = useState<{
+		odersId: number;
+		username: string;
+	} | null>(null);
+
+	// DM開始ハンドラ
+	const handleStartDM = (friendId: number, friendUsername: string) => {
+		setDmTarget({ odersId: friendId, username: friendUsername });
+		setCurrentPage("chat");
+	};
+
 	// 初回ロード時にログイン状態を確認（以前ログインしたことがある場合のみ）
 	useEffect(() => {
 		const hasLoggedInBefore = localStorage.getItem("hasLoggedIn") === "true";
@@ -133,7 +145,7 @@ function App() {
 				);
 
 			case "friends":
-				return <FriendList />;
+				return <FriendList onStartDM={handleStartDM} />;
 
 			case "friend-requests":
 				return <FriendRequests />;
@@ -170,7 +182,14 @@ function App() {
 				);
 
 			case "chat":
-				return <ChatPage username={user.username} />;
+				return (
+					<ChatPage
+						username={user.username}
+						currentUserId={user.id}
+						dmTarget={dmTarget}
+						onClearDmTarget={() => setDmTarget(null)}
+					/>
+				);
 
 			default:
 				return null;
