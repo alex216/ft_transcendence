@@ -2,8 +2,10 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import type { GameState } from "/shared/game.interface";
 
 // バックエンドと同じ定数（game.service.ts参照）
+// 座標系は固定のまま、CSSスケーリングでレスポンシブ対応
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
+const MAX_DISPLAY_WIDTH = 640; // 表示上の最大幅
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const BALL_RADIUS = 10;
@@ -29,9 +31,44 @@ export default function PongCanvas({
 	isPlayer1,
 }: PongCanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const paddleYRef = useRef<number>(250); // 自分のパドルY座標（送信用）
 	const keysPressed = useRef<Set<string>>(new Set()); // 押されているキーを追跡
 	const [isFocused, setIsFocused] = useState(false);
+	const [scale, setScale] = useState(1);
+
+	// コンテナサイズに基づいてスケールを計算
+	useEffect(() => {
+		const updateScale = () => {
+			const container = containerRef.current;
+			if (!container) return;
+
+			// 親要素の幅とMAX_DISPLAY_WIDTHの小さい方を使用
+			const availableWidth = Math.min(
+				container.parentElement?.clientWidth ?? MAX_DISPLAY_WIDTH,
+				MAX_DISPLAY_WIDTH,
+			);
+			const newScale = Math.min(1, availableWidth / CANVAS_WIDTH);
+			setScale(newScale);
+		};
+
+		updateScale();
+		window.addEventListener("resize", updateScale);
+		return () => window.removeEventListener("resize", updateScale);
+	}, []);
+
+	// Canvasがフォーカスを持っているとき、ページスクロールを防止
+	// (React合成イベントはCanvas要素にフォーカスがないと発火しないため、windowレベルで監視)
+	useEffect(() => {
+		const preventScroll = (e: KeyboardEvent) => {
+			if (isFocused && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+				e.preventDefault();
+			}
+		};
+
+		window.addEventListener("keydown", preventScroll);
+		return () => window.removeEventListener("keydown", preventScroll);
+	}, [isFocused]);
 
 	// キー押下時: キーをSetに追加（リピートイベントは無視）
 	const handleKeyDown = useCallback(
@@ -164,8 +201,20 @@ export default function PongCanvas({
 		}
 	}, [gameState, isPlayer1]);
 
+	// スケーリング後の表示サイズを計算
+	const displayWidth = CANVAS_WIDTH * scale;
+	const displayHeight = CANVAS_HEIGHT * scale;
+
 	return (
-		<div style={{ position: "relative" }}>
+		<div
+			ref={containerRef}
+			style={{
+				position: "relative",
+				width: displayWidth,
+				height: displayHeight,
+				overflow: "hidden",
+			}}
+		>
 			<canvas
 				ref={canvasRef}
 				width={CANVAS_WIDTH}
@@ -177,6 +226,8 @@ export default function PongCanvas({
 					background: "#1a1a2e",
 					outline: "none",
 					cursor: "pointer",
+					transformOrigin: "top left",
+					transform: `scale(${scale})`,
 				}}
 				tabIndex={0}
 				onKeyDown={handleKeyDown}
@@ -190,14 +241,14 @@ export default function PongCanvas({
 				<div
 					style={{
 						position: "absolute",
-						bottom: 10,
+						bottom: 10 * scale,
 						left: "50%",
 						transform: "translateX(-50%)",
 						background: "rgba(0,0,0,0.7)",
 						color: "#aaa",
 						padding: "4px 12px",
 						borderRadius: "4px",
-						fontSize: "14px",
+						fontSize: `${14 * scale}px`,
 						pointerEvents: "none",
 					}}
 				>
