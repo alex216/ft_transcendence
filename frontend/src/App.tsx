@@ -9,6 +9,7 @@ import GamePage from "./components/GamePage";
 import HistoryPage from "./components/HistoryPage";
 import LeaderboardPage from "./components/LeaderboardPage";
 import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
+import ChatPage from "./components/ChatPage";
 import "./App.css";
 
 type Page =
@@ -20,7 +21,8 @@ type Page =
 	| "game"
 	| "history"
 	| "leaderboard"
-	| "online";
+	| "online"
+	| "chat";
 
 function App() {
 	// 状態管理
@@ -143,7 +145,9 @@ function App() {
 						mode={gameMode}
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={gameMode === "online" ? () => setCurrentPage("online") : undefined}
+						onBack={
+							gameMode === "online" ? () => setCurrentPage("online") : undefined
+						}
 					/>
 				);
 
@@ -164,6 +168,9 @@ function App() {
 						}}
 					/>
 				);
+
+			case "chat":
+				return <ChatPage username={user.username} />;
 
 			default:
 				return null;
@@ -191,7 +198,9 @@ function App() {
 
 								<li>
 									<button
-										className={currentPage.startsWith("profile") ? "active" : ""}
+										className={
+											currentPage.startsWith("profile") ? "active" : ""
+										}
 										onClick={() => setCurrentPage("profile")}
 									>
 										プロフィール
@@ -209,7 +218,9 @@ function App() {
 
 								<li>
 									<button
-										className={currentPage === "friend-requests" ? "active" : ""}
+										className={
+											currentPage === "friend-requests" ? "active" : ""
+										}
 										onClick={() => setCurrentPage("friend-requests")}
 									>
 										リクエスト
@@ -258,6 +269,15 @@ function App() {
 										}}
 									>
 										オンライン
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "chat" ? "active" : ""}
+										onClick={() => setCurrentPage("chat")}
+									>
+										チャット
 									</button>
 								</li>
 							</ul>
