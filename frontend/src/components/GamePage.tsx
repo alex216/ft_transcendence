@@ -156,13 +156,21 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 				</div>
 
 				<div style={{ display: "flex", gap: 8 }}>
-					{mode === "online" && onBack && (
-						<button type="button" onClick={handleBackToOnline}>
-							Back
+					{onBack && (
+						<button
+							type="button"
+							className="btn-secondary"
+							onClick={mode === "online" ? handleBackToOnline : onBack}
+						>
+							← Back
 						</button>
 					)}
 					{mode === "ai" && (
-						<button type="button" onClick={() => setS(DEFAULTS)}>
+						<button
+							type="button"
+							className="btn-primary"
+							onClick={() => setS(DEFAULTS)}
+						>
 							Reset
 						</button>
 					)}

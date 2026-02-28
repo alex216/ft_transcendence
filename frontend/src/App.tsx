@@ -157,8 +157,8 @@ function App() {
 						mode={gameMode}
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={
-							gameMode === "online" ? () => setCurrentPage("online") : undefined
+						onBack={() =>
+							setCurrentPage(gameMode === "online" ? "online" : "home")
 						}
 					/>
 				);
