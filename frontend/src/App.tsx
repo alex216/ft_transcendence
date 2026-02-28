@@ -36,7 +36,6 @@ function App() {
 	const [message, setMessage] = useState("");
 
 	// Game context（OnlinePage → GamePage 連携用）
-	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
 	const [gameRoomId, setGameRoomId] = useState<string | null>(null);
 	const [gameOpponent, setGameOpponent] = useState<
 		OnlineStartPayload["opponent"] | null
@@ -170,13 +169,26 @@ function App() {
 				return <LeaderboardPage />;
 
 			case "online":
+				// gameRoomIdがある場合はゲーム画面を表示
+				if (gameRoomId) {
+					return (
+						<GamePage
+							mode="online"
+							roomId={gameRoomId}
+							opponent={gameOpponent}
+							onBack={() => {
+								setGameRoomId(null);
+								setGameOpponent(null);
+							}}
+						/>
+					);
+				}
+				// マッチング待機画面
 				return (
 					<OnlinePage
 						onStart={({ roomId, opponent }) => {
-							setGameMode("online");
 							setGameRoomId(roomId);
 							setGameOpponent(opponent);
-							setCurrentPage("game");
 						}}
 					/>
 				);
