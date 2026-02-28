@@ -18,6 +18,7 @@ type PongCanvasProps = {
 	gameState: GameState | null;
 	onPaddleMove: (y: number) => void;
 	isPlayer1: boolean | null; // true: 左パドル, false: 右パドル, null: 未確定（両方白）
+	autoFocus?: boolean; // ゲーム開始時に自動フォーカス
 };
 
 /**
@@ -29,11 +30,13 @@ export default function PongCanvas({
 	gameState,
 	onPaddleMove,
 	isPlayer1,
+	autoFocus = false,
 }: PongCanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const paddleYRef = useRef<number>(250); // 自分のパドルY座標（送信用）
 	const keysPressed = useRef<Set<string>>(new Set()); // 押されているキーを追跡
+	const hasAutoFocused = useRef(false); // 自動フォーカス済みかどうか
 	const [isFocused, setIsFocused] = useState(false);
 	const [scale, setScale] = useState(1);
 
@@ -56,6 +59,19 @@ export default function PongCanvas({
 		window.addEventListener("resize", updateScale);
 		return () => window.removeEventListener("resize", updateScale);
 	}, []);
+
+	// autoFocusが有効でgameStateが最初に設定されたらCanvasに自動フォーカス（1回のみ）
+	useEffect(() => {
+		if (
+			autoFocus &&
+			gameState &&
+			canvasRef.current &&
+			!hasAutoFocused.current
+		) {
+			canvasRef.current.focus();
+			hasAutoFocused.current = true;
+		}
+	}, [autoFocus, gameState]);
 
 	// Canvasがフォーカスを持っているとき、ページスクロールを防止
 	// (React合成イベントはCanvas要素にフォーカスがないと発火しないため、windowレベルで監視)

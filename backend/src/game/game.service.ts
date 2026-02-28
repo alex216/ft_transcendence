@@ -114,6 +114,12 @@ export class GameService {
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
 			const loserScore = Math.min(game.leftScore, game.rightScore);
 
+			// 最終スコアを送信（11点を反映）
+			/* eslint-disable @typescript-eslint/no-unused-vars */
+			const { dx, dy, p1Id, p2Id, ...finalState } = game;
+			/* eslint-enable @typescript-eslint/no-unused-vars */
+			server.to(roomId).emit("updateState", finalState);
+
 			// フロントエンドに終了を通知
 			server.to(roomId).emit("gameOver", { winner: winnerId });
 

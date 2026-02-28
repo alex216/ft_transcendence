@@ -217,6 +217,60 @@ function App() {
 
 								<li>
 									<button
+										className={currentPage === "online" ? "active" : ""}
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											setCurrentPage("online");
+										}}
+									>
+										オンラインモード
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "game" ? "active" : ""}
+										onClick={() => {
+											setGameMode("ai");
+											setGameRoomId(null);
+											setGameOpponent(null);
+											setCurrentPage("game");
+										}}
+									>
+										AIモード
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "history" ? "active" : ""}
+										onClick={() => setCurrentPage("history")}
+									>
+										戦績
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "leaderboard" ? "active" : ""}
+										onClick={() => setCurrentPage("leaderboard")}
+									>
+										ランキング
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "chat" ? "active" : ""}
+										onClick={() => setCurrentPage("chat")}
+									>
+										チャット
+									</button>
+								</li>
+
+								<li>
+									<button
 										className={
 											currentPage.startsWith("profile") ? "active" : ""
 										}
@@ -243,60 +297,6 @@ function App() {
 										onClick={() => setCurrentPage("friend-requests")}
 									>
 										リクエスト
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "game" ? "active" : ""}
-										onClick={() => {
-											setGameMode("ai");
-											setGameRoomId(null);
-											setGameOpponent(null);
-											setCurrentPage("game");
-										}}
-									>
-										ゲーム
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "history" ? "active" : ""}
-										onClick={() => setCurrentPage("history")}
-									>
-										戦績
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "leaderboard" ? "active" : ""}
-										onClick={() => setCurrentPage("leaderboard")}
-									>
-										ランキング
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "online" ? "active" : ""}
-										onClick={() => {
-											setGameRoomId(null);
-											setGameOpponent(null);
-											setCurrentPage("online");
-										}}
-									>
-										オンライン
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "chat" ? "active" : ""}
-										onClick={() => setCurrentPage("chat")}
-									>
-										チャット
 									</button>
 								</li>
 							</ul>

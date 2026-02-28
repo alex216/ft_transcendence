@@ -51,7 +51,7 @@ function clamp(n: number, min: number, max: number) {
 	return Math.max(min, Math.min(max, n));
 }
 
-function GamePage({ mode, roomId, opponent, onBack }: GamePageProps) {
+function GamePage({ mode, roomId, onBack }: GamePageProps) {
 	const [s, setS] = useState<PongSettings>(DEFAULTS);
 
 	// オンラインモード用の状態
@@ -145,33 +145,20 @@ function GamePage({ mode, roomId, opponent, onBack }: GamePageProps) {
 	};
 
 	const title = mode === "online" ? "Online Match" : "Pong";
-	const subtitle =
-		mode === "online"
-			? `対戦中 - ${isPlayer1 === null ? "判定中..." : isPlayer1 ? "左" : "右"}パドルを操作`
-			: "Practice (AI) / UIはここで調整できます";
+	const subtitle = mode === "ai" ? "Practice (AI)" : "";
 
 	return (
 		<div className="game-page">
 			<header className="game-header">
 				<div>
 					<h2>{title}</h2>
-					<p className="game-subtitle">{subtitle}</p>
-
-					{mode === "online" && (
-						<div style={{ marginTop: 8, opacity: 0.8 }}>
-							<div>Room: {roomId ?? "-"}</div>
-							<div>
-								Opponent: {opponent?.username ?? "-"}{" "}
-								{opponent?.pingMs != null ? `(${opponent.pingMs}ms)` : ""}
-							</div>
-						</div>
-					)}
+					{subtitle && <p className="game-subtitle">{subtitle}</p>}
 				</div>
 
 				<div style={{ display: "flex", gap: 8 }}>
 					{mode === "online" && onBack && (
 						<button type="button" onClick={handleBackToOnline}>
-							Back to Online
+							Back
 						</button>
 					)}
 					{mode === "ai" && (
@@ -191,6 +178,7 @@ function GamePage({ mode, roomId, opponent, onBack }: GamePageProps) {
 								gameState={gameState}
 								onPaddleMove={handlePaddleMove}
 								isPlayer1={isPlayer1}
+								autoFocus
 							/>
 
 							{/* ゲーム結果表示 */}
@@ -236,7 +224,7 @@ function GamePage({ mode, roomId, opponent, onBack }: GamePageProps) {
 				</section>
 
 				<aside className="game-side-panel">
-					{mode === "ai" ? (
+					{mode === "ai" && (
 						<>
 							<h3>Settings</h3>
 
@@ -343,33 +331,12 @@ function GamePage({ mode, roomId, opponent, onBack }: GamePageProps) {
 							</label>
 
 							<hr />
-						</>
-					) : (
-						<>
-							<h3>Online Match</h3>
-							<p style={{ marginTop: 0, opacity: 0.8 }}>
-								{isPlayer1 === null
-									? "パドルを動かして判定中..."
-									: `${isPlayer1 ? "左" : "右"}パドルを操作中`}
-							</p>
-							<p style={{ marginTop: 8 }}>
-								<strong>操作方法:</strong>
-								<br />
-								↑ / W: 上に移動
-								<br />↓ / S: 下に移動
-							</p>
-							<hr />
-						</>
-					)}
 
-					<h3>Controls</h3>
-					<p style={{ marginTop: 0 }}>
-						Up: <code>↑ / W</code> / Down: <code>↓ / S</code>
-					</p>
-					{mode === "online" && gameState && (
-						<p style={{ marginBottom: 0, color: "#888" }}>
-							先に11点取った方が勝ち
-						</p>
+							<h3>Controls</h3>
+							<p style={{ marginTop: 0 }}>
+								<code>↑ W</code> / <code>↓ S</code>
+							</p>
+						</>
 					)}
 				</aside>
 			</div>

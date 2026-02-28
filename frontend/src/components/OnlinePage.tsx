@@ -93,53 +93,57 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 
 	return (
 		<div className="online-page">
-			<header className="online-header">
-				<div>
-					<h2>Online Match</h2>
-					<p className="online-subtitle">リアルタイムで他のプレイヤーと対戦</p>
-				</div>
-			</header>
-
 			<div className="online-layout">
 				<section className="online-card">
 					<h3>Status</h3>
 
 					<div className="online-status-row">
-						<span className="online-pill">{status.toUpperCase()}</span>
-						<span className="online-muted">
-							WS: {isConnected ? "接続中" : "未接続"}
+						<span className={`online-pill ${status}`}>
+							{status.toUpperCase()}
 						</span>
-					</div>
-
-					<div className="online-desc">
-						{status === "idle" && (
-							<p>「Find Match」を押して対戦相手を探します。</p>
-						)}
-						{status === "matching" && (
-							<p>マッチング中…相手が見つかると自動的にゲームが始まります。</p>
-						)}
-						{status === "error" && (
-							<p>エラーが発生しました。Retryしてください。</p>
-						)}
+						<div className="online-connection-status">
+							<span
+								className={`online-connection-dot ${isConnected ? "connected" : "disconnected"}`}
+							/>
+							<span className="online-muted">
+								{isConnected ? "接続中" : "未接続"}
+							</span>
+						</div>
 					</div>
 
 					<div className="online-actions">
 						{status === "idle" && (
-							<button type="button" onClick={startMatching}>
+							<button
+								type="button"
+								className="btn-primary"
+								onClick={startMatching}
+							>
 								Find Match
 							</button>
 						)}
 						{status === "matching" && (
-							<button type="button" onClick={cancelMatching}>
+							<button
+								type="button"
+								className="btn-secondary"
+								onClick={cancelMatching}
+							>
 								Cancel
 							</button>
 						)}
 						{status === "error" && (
 							<>
-								<button type="button" onClick={startMatching}>
+								<button
+									type="button"
+									className="btn-primary"
+									onClick={startMatching}
+								>
 									Retry
 								</button>
-								<button type="button" onClick={cancelMatching}>
+								<button
+									type="button"
+									className="btn-secondary"
+									onClick={cancelMatching}
+								>
 									Back
 								</button>
 							</>
@@ -148,22 +152,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 
 					{message && <p className="online-message">{message}</p>}
 				</section>
-
-				<aside className="online-card online-opponent-card">
-					<h3>Opponent</h3>
-					<div className="online-muted">
-						{status === "matching"
-							? "対戦相手を探しています..."
-							: "マッチング開始後に相手が表示されます"}
-					</div>
-				</aside>
 			</div>
-
-			<hr className="online-hr" />
-
-			<p className="online-muted">
-				WebSocket接続: {isConnected ? "✓ 接続済み" : "✗ 未接続"}
-			</p>
 		</div>
 	);
 }
