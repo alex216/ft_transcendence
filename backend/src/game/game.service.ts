@@ -11,6 +11,7 @@ interface GameInternalState extends GameState {
 	dy: number;
 	p1Id: string;
 	p2Id: string;
+	interval: NodeJS.Timeout;
 }
 
 @Injectable()
@@ -29,6 +30,7 @@ export class GameService {
 
 		if (this.queue.find((s) => s.id === client.id)) return;
 		this.queue.push(client);
+		console.log("Queue:", this.queue.map(s => s.id));
 
 		if (this.queue.length >= 2) {
 			console.log(`[Game] Match found! Starting game...`);
@@ -44,28 +46,31 @@ export class GameService {
 	}
 
 	// ゲームの初期化
-	initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
-		const initialState: GameInternalState = {
-			ball: { x: 400, y: 300 },
-			leftPaddleY: 250,
-			rightPaddleY: 250,
-			leftScore: 0,
-			rightScore: 0,
-			isPaused: false,
-			dx: 5,
-			dy: 5,
-			p1Id: p1Id,
-			p2Id: p2Id,
-		};
+initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
+  const initialState: GameInternalState = {
+    ball: { x: 400, y: 300 },
+    leftPaddleY: 250,
+    rightPaddleY: 250,
+    leftScore: 0,
+    rightScore: 0,
+    isPaused: false,
+    dx: 5,
+    dy: 5,
+    p1Id,
+    p2Id,
+    interval: null as unknown as NodeJS.Timeout, // placeholder
+  };
 
-		this.games.set(roomId, initialState);
+  const interval = setInterval(() => {
+    this.gameLoop(roomId, server);
+  }, 1000 / 60);
 
-		const interval = setInterval(() => {
-			this.gameLoop(roomId, server, interval);
-		}, 1000 / 60);
-	}
+  initialState.interval = interval;
 
-	private gameLoop(roomId: string, server: Server, interval: NodeJS.Timeout) {
+  this.games.set(roomId, initialState);
+}
+
+private gameLoop(roomId: string, server: Server) {
 		const game = this.games.get(roomId);
 		if (!game) return;
 
@@ -107,7 +112,7 @@ export class GameService {
 
 		// 5. 終了判定とDB保存
 		if (game.leftScore >= 11 || game.rightScore >= 11) {
-			clearInterval(interval);
+			clearInterval(game.interval);
 
 			const winnerId = game.leftScore >= 11 ? game.p1Id : game.p2Id;
 			const loserId = game.leftScore >= 11 ? game.p2Id : game.p1Id;
@@ -166,6 +171,41 @@ export class GameService {
 				break;
 			} else if (game.p2Id === playerId) {
 				game.rightPaddleY = y;
+				break;
+			}
+		}
+	}
+
+	handleDisconnect(client: Socket, server: Server) {
+		console.log(`[GameService] Handling disconnect: ${client.id}`);
+
+		// disconnected人をQueueから消す
+		this.queue = this.queue.filter((s) => s.id !== client.id);
+		console.log("Queue:", this.queue.map(s => s.id));
+
+		// 試合中だったら。。。
+		for (const [roomId, game] of this.games.entries()) {
+			if (game.p1Id === client.id || game.p2Id === client.id) {
+
+				console.log(`[GameService] Player left match ${roomId}`);
+
+				// 試合をストップ
+				clearInterval(game.interval);
+
+				const isP1 = game.p1Id === client.id;
+				const winnerId = isP1 ? game.p2Id : game.p1Id;
+				const loserId = client.id;
+
+				// 試合終了の知らせ
+				server.to(roomId).emit("gameOver", {
+					winner: winnerId,
+					reason: "disconnect",
+				});
+
+				// DBにセーブ
+				this.saveMatchResult(winnerId, loserId, 11, 0);
+
+				this.games.delete(roomId);
 				break;
 			}
 		}
