@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
 import { GameState } from "../../../shared/game.interface";
+import { FIELD_WIDTH, FIELD_HEIGHT, FIELD_CENTER, PAD_LENGTH, LEFTPAD_LEFTMOST, LEFTPAD_RIGHTMOST, RIGHTPAD_LEFTMOST, RIGHTPAD_RIGHTMOST, STARTING_POSITION, UPPER_LIMIT, SPEED_BASE, SPEED_CHANGE, MAX_SCORE, ANGLE_CHANGE} from "./game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
@@ -48,14 +49,14 @@ export class GameService {
 	// ゲームの初期化
 initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
   const initialState: GameInternalState = {
-    ball: { x: 400, y: 300 },
-    leftPaddleY: 250,
-    rightPaddleY: 250,
+    ball: { ...FIELD_CENTER},
+    leftPaddleY: STARTING_POSITION,
+    rightPaddleY: STARTING_POSITION,
     leftScore: 0,
     rightScore: 0,
     isPaused: false,
-    dx: 5,
-    dy: 5,
+    dx: SPEED_BASE,
+    dy: SPEED_BASE,
     p1Id,
     p2Id,
     interval: null as unknown as NodeJS.Timeout, // placeholder
@@ -79,43 +80,50 @@ private gameLoop(roomId: string, server: Server) {
 		game.ball.y += game.dy;
 
 		// 2. 壁での跳ね返り（上下）
-		if (game.ball.y <= 0 || game.ball.y >= 600) {
+		if (game.ball.y <= 0 || game.ball.y >= FIELD_HEIGHT) {
 			game.dy *= -1;
 		}
 
 		// 3. パドルとの衝突判定
-		if (game.ball.x <= 60 && game.ball.x >= 40) {
+		if (game.ball.x <= LEFTPAD_RIGHTMOST && game.ball.x >= LEFTPAD_LEFTMOST) {
 			if (
 				game.ball.y >= game.leftPaddleY &&
-				game.ball.y <= game.leftPaddleY + 100
+				game.ball.y <= game.leftPaddleY + PAD_LENGTH
 			) {
-				game.dx *= -1.1;
+				// ヒットの所によって斜めの事も変わるように
+				const hitPos = (game.ball.y - game.leftPaddleY) / PAD_LENGTH;
+        game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dx *= SPEED_CHANGE;
 			}
 		}
-		if (game.ball.x >= 740 && game.ball.x <= 760) {
+		if (game.ball.x >= RIGHTPAD_LEFTMOST && game.ball.x <= RIGHTPAD_RIGHTMOST) {
 			if (
 				game.ball.y >= game.rightPaddleY &&
-				game.ball.y <= game.rightPaddleY + 100
+				game.ball.y <= game.rightPaddleY + PAD_LENGTH
 			) {
-				game.dx *= -1.1;
+				// ヒットの所によって斜めの事も変わるように
+				const hitPos = (game.ball.y - game.rightPaddleY) / PAD_LENGTH;
+        game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dx *= SPEED_CHANGE;
 			}
 		}
 
 		// 4. スコア判定
-		if (game.ball.x <= 0 || game.ball.x >= 800) {
+		if (game.ball.x <= 0 || game.ball.x >= FIELD_WIDTH) {
 			if (game.ball.x <= 0) game.rightScore++;
 			else game.leftScore++;
 
-			game.ball = { x: 400, y: 300 };
-			game.dx = game.dx > 0 ? -5 : 5;
+			game.ball = { ...FIELD_CENTER};
+			game.dx = game.dx > 0 ? -SPEED_BASE : SPEED_BASE;
+			game.dy = SPEED_BASE;
 		}
 
 		// 5. 終了判定とDB保存
-		if (game.leftScore >= 11 || game.rightScore >= 11) {
+		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
 			clearInterval(game.interval);
 
-			const winnerId = game.leftScore >= 11 ? game.p1Id : game.p2Id;
-			const loserId = game.leftScore >= 11 ? game.p2Id : game.p1Id;
+			const winnerId = game.leftScore >= MAX_SCORE ? game.p1Id : game.p2Id;
+			const loserId = game.leftScore >= MAX_SCORE ? game.p2Id : game.p1Id;
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
 			const loserScore = Math.min(game.leftScore, game.rightScore);
 
@@ -137,7 +145,7 @@ private gameLoop(roomId: string, server: Server) {
 
 		// 6. 状態配信
 		/* eslint-disable @typescript-eslint/no-unused-vars */
-		const { dx, dy, p1Id, p2Id, ...publicState } = game;
+		const { dx, dy, p1Id, p2Id, interval, ...publicState } = game;
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 		server.to(roomId).emit("updateState", publicState);
 	}
@@ -164,6 +172,14 @@ private gameLoop(roomId: string, server: Server) {
 	}
 
 	updatePaddle(playerId: string, y: number) {
+		//managing bad y
+		if (y < 0 || y > UPPER_LIMIT) {
+			console.error("[Game]怪しいｙが気まあしてアレンジします。");
+			if (y < 0)
+				y = 0;
+			else
+				y = UPPER_LIMIT;
+		}
 		for (const [, game] of this.games.entries()) {
 			// ★ roomId を消して「,」だけにする
 			if (game.p1Id === playerId) {
