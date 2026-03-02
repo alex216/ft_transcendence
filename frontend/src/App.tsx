@@ -9,6 +9,7 @@ import GamePage from "./components/GamePage";
 import HistoryPage from "./components/HistoryPage";
 import LeaderboardPage from "./components/LeaderboardPage";
 import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
+import ChatPage from "./components/ChatPage";
 import "./App.css";
 
 type Page =
@@ -20,7 +21,8 @@ type Page =
 	| "game"
 	| "history"
 	| "leaderboard"
-	| "online";
+	| "online"
+	| "chat";
 
 function App() {
 	// 状態管理
@@ -34,11 +36,22 @@ function App() {
 	const [message, setMessage] = useState("");
 
 	// Game context（OnlinePage → GamePage 連携用）
-	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
 	const [gameRoomId, setGameRoomId] = useState<string | null>(null);
 	const [gameOpponent, setGameOpponent] = useState<
 		OnlineStartPayload["opponent"] | null
 	>(null);
+
+	// DM context（FriendList → ChatPage 連携用）
+	const [dmTarget, setDmTarget] = useState<{
+		odersId: number;
+		username: string;
+	} | null>(null);
+
+	// DM開始ハンドラ
+	const handleStartDM = (friendId: number, friendUsername: string) => {
+		setDmTarget({ odersId: friendId, username: friendUsername });
+		setCurrentPage("chat");
+	};
 
 	// 初回ロード時にログイン状態を確認（以前ログインしたことがある場合のみ）
 	useEffect(() => {
@@ -131,7 +144,7 @@ function App() {
 				);
 
 			case "friends":
-				return <FriendList />;
+				return <FriendList onStartDM={handleStartDM} />;
 
 			case "friend-requests":
 				return <FriendRequests />;
@@ -143,7 +156,9 @@ function App() {
 						mode={gameMode}
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={gameMode === "online" ? () => setCurrentPage("online") : undefined}
+						onBack={() =>
+							setCurrentPage(gameMode === "online" ? "online" : "home")
+						}
 					/>
 				);
 
@@ -154,14 +169,37 @@ function App() {
 				return <LeaderboardPage />;
 
 			case "online":
+				// gameRoomIdがある場合はゲーム画面を表示
+				if (gameRoomId) {
+					return (
+						<GamePage
+							mode="online"
+							roomId={gameRoomId}
+							opponent={gameOpponent}
+							onBack={() => {
+								setGameRoomId(null);
+								setGameOpponent(null);
+							}}
+						/>
+					);
+				}
+				// マッチング待機画面
 				return (
 					<OnlinePage
 						onStart={({ roomId, opponent }) => {
-							setGameMode("online");
 							setGameRoomId(roomId);
 							setGameOpponent(opponent);
-							setCurrentPage("game");
 						}}
+					/>
+				);
+
+			case "chat":
+				return (
+					<ChatPage
+						username={user.username}
+						currentUserId={user.id}
+						dmTarget={dmTarget}
+						onClearDmTarget={() => setDmTarget(null)}
 					/>
 				);
 
@@ -191,28 +229,14 @@ function App() {
 
 								<li>
 									<button
-										className={currentPage.startsWith("profile") ? "active" : ""}
-										onClick={() => setCurrentPage("profile")}
+										className={currentPage === "online" ? "active" : ""}
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											setCurrentPage("online");
+										}}
 									>
-										プロフィール
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "friends" ? "active" : ""}
-										onClick={() => setCurrentPage("friends")}
-									>
-										フレンド
-									</button>
-								</li>
-
-								<li>
-									<button
-										className={currentPage === "friend-requests" ? "active" : ""}
-										onClick={() => setCurrentPage("friend-requests")}
-									>
-										リクエスト
+										オンラインモード
 									</button>
 								</li>
 
@@ -226,7 +250,7 @@ function App() {
 											setCurrentPage("game");
 										}}
 									>
-										ゲーム
+										AIモード
 									</button>
 								</li>
 
@@ -250,14 +274,41 @@ function App() {
 
 								<li>
 									<button
-										className={currentPage === "online" ? "active" : ""}
-										onClick={() => {
-											setGameRoomId(null);
-											setGameOpponent(null);
-											setCurrentPage("online");
-										}}
+										className={currentPage === "chat" ? "active" : ""}
+										onClick={() => setCurrentPage("chat")}
 									>
-										オンライン
+										チャット
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={
+											currentPage.startsWith("profile") ? "active" : ""
+										}
+										onClick={() => setCurrentPage("profile")}
+									>
+										プロフィール
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "friends" ? "active" : ""}
+										onClick={() => setCurrentPage("friends")}
+									>
+										フレンド
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={
+											currentPage === "friend-requests" ? "active" : ""
+										}
+										onClick={() => setCurrentPage("friend-requests")}
+									>
+										リクエスト
 									</button>
 								</li>
 							</ul>
