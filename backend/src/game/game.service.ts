@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
 import { GameState } from "../../../shared/game.interface";
-import { FIELD_WIDTH, FIELD_HEIGHT, FIELD_CENTER, PAD_LENGTH, LEFTPAD_LEFTMOST, LEFTPAD_RIGHTMOST, RIGHTPAD_LEFTMOST, RIGHTPAD_RIGHTMOST, STARTING_POSITION, UPPER_LIMIT, SPEED_BASE, SPEED_CHANGE, MAX_SCORE, ANGLE_CHANGE} from "./game.constants";
+import { FIELD_WIDTH, FIELD_HEIGHT, FIELD_CENTER, PAD_LENGTH, LEFTPAD_LEFTMOST, LEFTPAD_RIGHTMOST, RIGHTPAD_LEFTMOST, RIGHTPAD_RIGHTMOST, STARTING_POSITION, UPPER_LIMIT, SPEED_BASE, SPEED_CHANGE, MAX_SCORE, ANGLE_CHANGE, PAD_SPEED} from "./game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
@@ -183,9 +183,17 @@ private gameLoop(roomId: string, server: Server) {
 		for (const [, game] of this.games.entries()) {
 			// ★ roomId を消して「,」だけにする
 			if (game.p1Id === playerId) {
+				if (Math.abs(game.leftPaddleY - y) > PAD_SPEED) {
+					console.log('[GameService] WARNING: Pad早すぎてcheatかも。無視にします');
+					return;
+				}
 				game.leftPaddleY = y;
 				break;
 			} else if (game.p2Id === playerId) {
+				if (Math.abs(game.rightPaddleY - y) > PAD_SPEED) {
+					console.log('[GameService] WARNING: Pad早すぎてcheatかも。無視にします');
+					return;
+				}
 				game.rightPaddleY = y;
 				break;
 			}
