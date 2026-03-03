@@ -129,7 +129,7 @@ private gameLoop(roomId: string, server: Server) {
 
 			// 最終スコアを送信（11点を反映）
 			/* eslint-disable @typescript-eslint/no-unused-vars */
-			const { dx, dy, p1Id, p2Id, ...finalState } = game;
+			const { dx, dy, p1Id, p2Id, interval, ...finalState } = game;
 			/* eslint-enable @typescript-eslint/no-unused-vars */
 			server.to(roomId).emit("updateState", finalState);
 
