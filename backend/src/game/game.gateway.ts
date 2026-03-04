@@ -4,7 +4,6 @@ import {
 	MessageBody,
 	ConnectedSocket,
 	WebSocketServer,
-	OnGatewayDisconnect,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { GameService } from "./game.service";
@@ -40,7 +39,7 @@ export class GameGateway {
 
 	// 3. Disconnection
 	handleDisconnect(client: Socket) {
-    console.log(`[Gateway] Disconnected: ${client.id}`);
-    this.gameService.handleDisconnect(client, this.server);
+		console.log(`[Gateway] Disconnected: ${client.id}`);
+		this.gameService.handleDisconnect(client, this.server);
 	}
 }

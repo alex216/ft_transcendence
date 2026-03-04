@@ -4,7 +4,23 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
 import { GameState } from "../../../shared/game.interface";
-import { FIELD_WIDTH, FIELD_HEIGHT, FIELD_CENTER, PAD_LENGTH, LEFTPAD_LEFTMOST, LEFTPAD_RIGHTMOST, RIGHTPAD_LEFTMOST, RIGHTPAD_RIGHTMOST, STARTING_POSITION, UPPER_LIMIT, SPEED_BASE, SPEED_CHANGE, MAX_SCORE, ANGLE_CHANGE, PAD_SPEED} from "./game.constants";
+import {
+	FIELD_WIDTH,
+	FIELD_HEIGHT,
+	FIELD_CENTER,
+	PAD_LENGTH,
+	LEFTPAD_LEFTMOST,
+	LEFTPAD_RIGHTMOST,
+	RIGHTPAD_LEFTMOST,
+	RIGHTPAD_RIGHTMOST,
+	STARTING_POSITION,
+	UPPER_LIMIT,
+	SPEED_BASE,
+	SPEED_CHANGE,
+	MAX_SCORE,
+	ANGLE_CHANGE,
+	PAD_SPEED,
+} from "./game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
@@ -31,7 +47,10 @@ export class GameService {
 
 		if (this.queue.find((s) => s.id === client.id)) return;
 		this.queue.push(client);
-		console.log("Queue:", this.queue.map(s => s.id));
+		console.log(
+			"Queue:",
+			this.queue.map((s) => s.id),
+		);
 
 		if (this.queue.length >= 2) {
 			console.log(`[Game] Match found! Starting game...`);
@@ -47,31 +66,31 @@ export class GameService {
 	}
 
 	// ゲームの初期化
-initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
-  const initialState: GameInternalState = {
-    ball: { ...FIELD_CENTER},
-    leftPaddleY: STARTING_POSITION,
-    rightPaddleY: STARTING_POSITION,
-    leftScore: 0,
-    rightScore: 0,
-    isPaused: false,
-    dx: SPEED_BASE,
-    dy: SPEED_BASE,
-    p1Id,
-    p2Id,
-    interval: null as unknown as NodeJS.Timeout, // placeholder
-  };
+	initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
+		const initialState: GameInternalState = {
+			ball: { ...FIELD_CENTER },
+			leftPaddleY: STARTING_POSITION,
+			rightPaddleY: STARTING_POSITION,
+			leftScore: 0,
+			rightScore: 0,
+			isPaused: false,
+			dx: SPEED_BASE,
+			dy: SPEED_BASE,
+			p1Id,
+			p2Id,
+			interval: null as unknown as NodeJS.Timeout, // placeholder
+		};
 
-  const interval = setInterval(() => {
-    this.gameLoop(roomId, server);
-  }, 1000 / 60);
+		const interval = setInterval(() => {
+			this.gameLoop(roomId, server);
+		}, 1000 / 60);
 
-  initialState.interval = interval;
+		initialState.interval = interval;
 
-  this.games.set(roomId, initialState);
-}
+		this.games.set(roomId, initialState);
+	}
 
-private gameLoop(roomId: string, server: Server) {
+	private gameLoop(roomId: string, server: Server) {
 		const game = this.games.get(roomId);
 		if (!game) return;
 
@@ -92,7 +111,7 @@ private gameLoop(roomId: string, server: Server) {
 			) {
 				// ヒットの所によって斜めの事も変わるように
 				const hitPos = (game.ball.y - game.leftPaddleY) / PAD_LENGTH;
-        game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
 				game.dx *= SPEED_CHANGE;
 			}
 		}
@@ -103,7 +122,7 @@ private gameLoop(roomId: string, server: Server) {
 			) {
 				// ヒットの所によって斜めの事も変わるように
 				const hitPos = (game.ball.y - game.rightPaddleY) / PAD_LENGTH;
-        game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
 				game.dx *= SPEED_CHANGE;
 			}
 		}
@@ -113,7 +132,7 @@ private gameLoop(roomId: string, server: Server) {
 			if (game.ball.x <= 0) game.rightScore++;
 			else game.leftScore++;
 
-			game.ball = { ...FIELD_CENTER};
+			game.ball = { ...FIELD_CENTER };
 			game.dx = game.dx > 0 ? -SPEED_BASE : SPEED_BASE;
 			game.dy = SPEED_BASE;
 		}
@@ -175,23 +194,25 @@ private gameLoop(roomId: string, server: Server) {
 		//managing bad y
 		if (y < 0 || y > UPPER_LIMIT) {
 			console.error("[Game]怪しいｙが気まあしてアレンジします。");
-			if (y < 0)
-				y = 0;
-			else
-				y = UPPER_LIMIT;
+			if (y < 0) y = 0;
+			else y = UPPER_LIMIT;
 		}
 		for (const [, game] of this.games.entries()) {
 			// ★ roomId を消して「,」だけにする
 			if (game.p1Id === playerId) {
 				if (Math.abs(game.leftPaddleY - y) > PAD_SPEED) {
-					console.log('[GameService] WARNING: Pad早すぎてcheatかも。無視にします');
+					console.log(
+						"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
+					);
 					return;
 				}
 				game.leftPaddleY = y;
 				break;
 			} else if (game.p2Id === playerId) {
 				if (Math.abs(game.rightPaddleY - y) > PAD_SPEED) {
-					console.log('[GameService] WARNING: Pad早すぎてcheatかも。無視にします');
+					console.log(
+						"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
+					);
 					return;
 				}
 				game.rightPaddleY = y;
@@ -205,12 +226,14 @@ private gameLoop(roomId: string, server: Server) {
 
 		// disconnected人をQueueから消す
 		this.queue = this.queue.filter((s) => s.id !== client.id);
-		console.log("Queue:", this.queue.map(s => s.id));
+		console.log(
+			"Queue:",
+			this.queue.map((s) => s.id),
+		);
 
 		// 試合中だったら。。。
 		for (const [roomId, game] of this.games.entries()) {
 			if (game.p1Id === client.id || game.p2Id === client.id) {
-
 				console.log(`[GameService] Player left match ${roomId}`);
 
 				// 試合をストップ
