@@ -99,12 +99,19 @@ export class GameService {
 		game.ball.y += game.dy;
 
 		// 2. 壁での跳ね返り（上下）
-		if (game.ball.y <= 0 || game.ball.y >= FIELD_HEIGHT) {
+		if (
+			(game.dy < 0 && game.ball.y <= 0) ||
+			(game.dy > 0 && game.ball.y >= FIELD_HEIGHT)
+		) {
 			game.dy *= -1;
 		}
 
 		// 3. パドルとの衝突判定
-		if (game.ball.x <= LEFTPAD_RIGHTMOST && game.ball.x >= LEFTPAD_LEFTMOST) {
+		if (
+			game.dx < 0 &&
+			game.ball.x <= LEFTPAD_RIGHTMOST &&
+			game.ball.x >= LEFTPAD_LEFTMOST
+		) {
 			if (
 				game.ball.y >= game.leftPaddleY &&
 				game.ball.y <= game.leftPaddleY + PAD_LENGTH
@@ -115,7 +122,11 @@ export class GameService {
 				game.dx *= SPEED_CHANGE;
 			}
 		}
-		if (game.ball.x >= RIGHTPAD_LEFTMOST && game.ball.x <= RIGHTPAD_RIGHTMOST) {
+		if (
+			game.dx > 0 &&
+			game.ball.x >= RIGHTPAD_LEFTMOST &&
+			game.ball.x <= RIGHTPAD_RIGHTMOST
+		) {
 			if (
 				game.ball.y >= game.rightPaddleY &&
 				game.ball.y <= game.rightPaddleY + PAD_LENGTH
