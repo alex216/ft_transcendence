@@ -28,7 +28,7 @@ interface GameInternalState extends GameState {
 	dy: number;
 	p1Id: string;
 	p2Id: string;
-	interval: NodeJS.Timeout;
+	interval: NodeJS.Timeout | null;
 }
 
 @Injectable()
@@ -78,7 +78,7 @@ export class GameService {
 			dy: SPEED_BASE,
 			p1Id,
 			p2Id,
-			interval: null as unknown as NodeJS.Timeout, // placeholder
+			interval: null,
 		};
 
 		const interval = setInterval(() => {
@@ -261,7 +261,9 @@ export class GameService {
 				});
 
 				// DBにセーブ
-				this.saveMatchResult(winnerId, loserId, 11, 0);
+				const winnerScore = MAX_SCORE;
+				const loserScore = isP1 ? game.leftScore : game.rightScore;
+				this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
 
 				this.games.delete(roomId);
 				break;
