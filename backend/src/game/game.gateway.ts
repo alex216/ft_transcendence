@@ -36,4 +36,10 @@ export class GameGateway {
 		// どの部屋の、どのプレイヤーが動いたかをServiceに伝える
 		this.gameService.updatePaddle(client.id, data.y);
 	}
+
+	// 3. Disconnection
+	handleDisconnect(client: Socket) {
+		console.log(`[Gateway] Disconnected: ${client.id}`);
+		this.gameService.handleDisconnect(client, this.server);
+	}
 }
