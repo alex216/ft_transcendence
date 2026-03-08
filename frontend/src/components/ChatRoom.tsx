@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	getChatSocket,
 	joinRoom,
@@ -27,6 +28,7 @@ export default function ChatRoom({
 	username,
 	displayName,
 }: ChatRoomProps) {
+	const { t } = useTranslation();
 	const [messages, setMessages] = useState<ChatMessageType[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [isConnected, setIsConnected] = useState(false);
@@ -127,13 +129,15 @@ export default function ChatRoom({
 			<div className="chat-room-header">
 				<h3>{displayName ? `@ ${displayName}` : `# ${roomId}`}</h3>
 				<span className={`chat-status ${isConnected ? "connected" : ""}`}>
-					{isConnected ? "● 接続中" : "○ 未接続"}
+					{isConnected
+						? `● ${t("chat.connected")}`
+						: `○ ${t("chat.disconnected")}`}
 				</span>
 			</div>
 
 			<div className="chat-messages">
 				{messages.length === 0 ? (
-					<p className="chat-empty">メッセージはまだありません</p>
+					<p className="chat-empty">{t("chat.noMessages")}</p>
 				) : (
 					messages.map((msg, index) => (
 						<ChatMessage
@@ -150,7 +154,9 @@ export default function ChatRoom({
 				<input
 					type="text"
 					className="chat-input"
-					placeholder={isConnected ? "メッセージを入力..." : "接続中..."}
+					placeholder={
+						isConnected ? t("chat.inputPlaceholder") : t("chat.connecting")
+					}
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
@@ -162,7 +168,7 @@ export default function ChatRoom({
 					onClick={handleSend}
 					disabled={!isConnected || !inputValue.trim()}
 				>
-					送信
+					{t("chat.send")}
 				</button>
 			</div>
 		</div>

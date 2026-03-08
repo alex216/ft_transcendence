@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { GameState } from "/shared/game.interface";
 
 // バックエンドと同じ定数（game.service.ts参照）
@@ -32,6 +33,7 @@ export default function PongCanvas({
 	isPlayer1,
 	autoFocus = false,
 }: PongCanvasProps) {
+	const { t } = useTranslation();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const paddleYRef = useRef<number>(250); // 自分のパドルY座標（送信用）
@@ -160,7 +162,7 @@ export default function PongCanvas({
 			ctx.font = "24px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText(
-				"ゲーム開始を待っています...",
+				t("game.waitingForGame"),
 				CANVAS_WIDTH / 2,
 				CANVAS_HEIGHT / 2,
 			);
@@ -268,7 +270,7 @@ export default function PongCanvas({
 						pointerEvents: "none",
 					}}
 				>
-					クリックして操作を開始
+					{t("game.clickToStart")}
 				</div>
 			)}
 		</div>

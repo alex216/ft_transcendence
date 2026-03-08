@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Pong from "@alexium216/react-pong";
 import PongCanvas from "./PongCanvas";
 import {
@@ -52,6 +53,7 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function GamePage({ mode, roomId, onBack }: GamePageProps) {
+	const { t } = useTranslation();
 	const [s, setS] = useState<PongSettings>(DEFAULTS);
 
 	// オンラインモード用の状態
@@ -144,8 +146,8 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 		onBack?.();
 	};
 
-	const title = mode === "online" ? "Online Match" : "Pong";
-	const subtitle = mode === "ai" ? "Practice (AI)" : "";
+	const title = mode === "online" ? t("game.onlineMatch") : t("game.pong");
+	const subtitle = mode === "ai" ? t("game.practiceAI") : "";
 
 	return (
 		<div className="game-page">
@@ -162,7 +164,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 							className="btn-secondary"
 							onClick={mode === "online" ? handleBackToOnline : onBack}
 						>
-							← Back
+							{t("game.back")}
 						</button>
 					)}
 					{mode === "ai" && (
@@ -171,7 +173,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 							className="btn-primary"
 							onClick={() => setS(DEFAULTS)}
 						>
-							Reset
+							{t("game.reset")}
 						</button>
 					)}
 				</div>
@@ -210,7 +212,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 											margin: 0,
 										}}
 									>
-										{gameResult.isWinner ? "YOU WIN!" : "YOU LOSE"}
+										{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
 									</h2>
 									<p style={{ color: "#aaa", marginTop: 8 }}>
 										{gameState?.leftScore} - {gameState?.rightScore}
@@ -220,7 +222,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 										onClick={handleBackToOnline}
 										style={{ marginTop: 16 }}
 									>
-										Back to Online
+										{t("game.backToOnline")}
 									</button>
 								</div>
 							)}
@@ -234,10 +236,12 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 				<aside className="game-side-panel">
 					{mode === "ai" && (
 						<>
-							<h3>Settings</h3>
+							<h3>{t("game.settings")}</h3>
 
 							<label className="slider-row">
-								<div className="slider-label">Width: {s.width}</div>
+								<div className="slider-label">
+									{t("game.width")}: {s.width}
+								</div>
 								<input
 									className="slider-input"
 									type="range"
@@ -252,7 +256,9 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 							</label>
 
 							<label className="slider-row">
-								<div className="slider-label">Height: {s.height}</div>
+								<div className="slider-label">
+									{t("game.height")}: {s.height}
+								</div>
 								<input
 									className="slider-input"
 									type="range"
@@ -267,7 +273,9 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 							</label>
 
 							<label className="slider-row">
-								<div className="slider-label">Ball size: {s.ballSize}</div>
+								<div className="slider-label">
+									{t("game.ballSize")}: {s.ballSize}
+								</div>
 								<input
 									className="slider-input"
 									type="range"
@@ -283,7 +291,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 
 							<label className="slider-row">
 								<div className="slider-label">
-									Paddle height: {s.paddleHeight}
+									{t("game.paddleHeight")}: {s.paddleHeight}
 								</div>
 								<input
 									className="slider-input"
@@ -303,7 +311,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 
 							<label className="slider-row">
 								<div className="slider-label">
-									Paddle width: {s.paddleWidth}
+									{t("game.paddleWidth")}: {s.paddleWidth}
 								</div>
 								<input
 									className="slider-input"
@@ -320,7 +328,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 
 							<label className="slider-row">
 								<div className="slider-label">
-									Paddle speed: {s.paddleSpeed}
+									{t("game.paddleSpeed")}: {s.paddleSpeed}
 								</div>
 								<input
 									className="slider-input"
@@ -340,7 +348,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 
 							<hr />
 
-							<h3>Controls</h3>
+							<h3>{t("game.controls")}</h3>
 							<p style={{ marginTop: 0 }}>
 								<code>↑ W</code> / <code>↓ S</code>
 							</p>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { cycleLanguage, LANGUAGE_LABELS } from "./i18n";
 import { register, login, getCurrentUser, logout } from "./api";
 import { GetMeResponse } from "/shared";
 import Profile from "./components/Profile";
@@ -25,6 +27,8 @@ type Page =
 	| "chat";
 
 function App() {
+	const { t, i18n } = useTranslation();
+
 	// 状態管理
 	const [user, setUser] = useState<GetMeResponse | null>(null);
 	const [currentPage, setCurrentPage] = useState<Page>("home");
@@ -76,13 +80,13 @@ function App() {
 		e.preventDefault();
 		try {
 			await register(username, password);
-			setMessage("登録成功！ログインしてください。");
+			setMessage(t("auth.registerSuccess"));
 			setIsLogin(true);
 			setUsername("");
 			setPassword("");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "登録失敗");
+			setMessage(error.response?.data?.message || t("auth.registerFailed"));
 		}
 	};
 
@@ -92,7 +96,7 @@ function App() {
 		try {
 			const data = await login(username, password);
 			setUser(data.user);
-			setMessage("ログイン成功！");
+			setMessage(t("auth.loginSuccess"));
 			setUsername("");
 			setPassword("");
 			setCurrentPage("home");
@@ -100,7 +104,7 @@ function App() {
 			localStorage.setItem("hasLoggedIn", "true");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "ログイン失敗");
+			setMessage(error.response?.data?.message || t("auth.loginFailed"));
 		}
 	};
 
@@ -110,11 +114,11 @@ function App() {
 			await logout();
 			setUser(null);
 			setCurrentPage("home");
-			setMessage("ログアウトしました");
+			setMessage(t("auth.logoutSuccess"));
 			// ログアウト時にフラグを削除
 			localStorage.removeItem("hasLoggedIn");
 		} catch {
-			setMessage("ログアウト失敗");
+			setMessage(t("auth.logoutFailed"));
 		}
 	};
 
@@ -127,8 +131,10 @@ function App() {
 			case "home":
 				return (
 					<div className="home">
-						<h2>ようこそ、{user.username}さん！</h2>
-						<p>ユーザーID: {user.id}</p>
+						<h2>{t("home.welcome", { username: user.username })}</h2>
+						<p>
+							{t("home.userId")}: {user.id}
+						</p>
 					</div>
 				);
 
@@ -216,14 +222,19 @@ function App() {
 					<>
 						{/* ログイン後：サイドバー + メインコンテンツ */}
 						<nav className="sidebar">
-							<h1>ft_transcendence</h1>
+							<div className="sidebar-header">
+								<h1>ft_transcendence</h1>
+								<button className="lang-toggle" onClick={cycleLanguage}>
+									{LANGUAGE_LABELS[i18n.language] || "EN"}
+								</button>
+							</div>
 							<ul className="nav-menu">
 								<li>
 									<button
 										className={currentPage === "home" ? "active" : ""}
 										onClick={() => setCurrentPage("home")}
 									>
-										ホーム
+										{t("nav.home")}
 									</button>
 								</li>
 
@@ -236,7 +247,7 @@ function App() {
 											setCurrentPage("online");
 										}}
 									>
-										オンラインモード
+										{t("nav.online")}
 									</button>
 								</li>
 
@@ -250,7 +261,7 @@ function App() {
 											setCurrentPage("game");
 										}}
 									>
-										AIモード
+										{t("nav.ai")}
 									</button>
 								</li>
 
@@ -259,7 +270,7 @@ function App() {
 										className={currentPage === "history" ? "active" : ""}
 										onClick={() => setCurrentPage("history")}
 									>
-										戦績
+										{t("nav.history")}
 									</button>
 								</li>
 
@@ -268,7 +279,7 @@ function App() {
 										className={currentPage === "leaderboard" ? "active" : ""}
 										onClick={() => setCurrentPage("leaderboard")}
 									>
-										ランキング
+										{t("nav.leaderboard")}
 									</button>
 								</li>
 
@@ -277,7 +288,7 @@ function App() {
 										className={currentPage === "chat" ? "active" : ""}
 										onClick={() => setCurrentPage("chat")}
 									>
-										チャット
+										{t("nav.chat")}
 									</button>
 								</li>
 
@@ -288,7 +299,7 @@ function App() {
 										}
 										onClick={() => setCurrentPage("profile")}
 									>
-										プロフィール
+										{t("nav.profile")}
 									</button>
 								</li>
 
@@ -297,7 +308,7 @@ function App() {
 										className={currentPage === "friends" ? "active" : ""}
 										onClick={() => setCurrentPage("friends")}
 									>
-										フレンド
+										{t("nav.friends")}
 									</button>
 								</li>
 
@@ -308,14 +319,14 @@ function App() {
 										}
 										onClick={() => setCurrentPage("friend-requests")}
 									>
-										リクエスト
+										{t("nav.requests")}
 									</button>
 								</li>
 							</ul>
 
 							<div className="sidebar-footer">
 								<button onClick={handleLogout} className="btn-logout">
-									ログアウト
+									{t("nav.logout")}
 								</button>
 							</div>
 						</nav>
@@ -326,7 +337,12 @@ function App() {
 					<>
 						{/* ログイン前：認証フォーム */}
 						<div className="auth-content">
-							<h1>ft_transcendence</h1>
+							<div className="auth-header">
+								<h1>ft_transcendence</h1>
+								<button className="lang-toggle" onClick={cycleLanguage}>
+									{LANGUAGE_LABELS[i18n.language] || "EN"}
+								</button>
+							</div>
 
 							<div className="auth-form">
 								<div className="tabs">
@@ -334,22 +350,24 @@ function App() {
 										className={isLogin ? "active" : ""}
 										onClick={() => setIsLogin(true)}
 									>
-										ログイン
+										{t("auth.login")}
 									</button>
 									<button
 										className={!isLogin ? "active" : ""}
 										onClick={() => setIsLogin(false)}
 									>
-										登録
+										{t("auth.register")}
 									</button>
 								</div>
 
 								<form onSubmit={isLogin ? handleLogin : handleRegister}>
-									<h2>{isLogin ? "ログイン" : "ユーザー登録"}</h2>
+									<h2>
+										{isLogin ? t("auth.login") : t("auth.userRegistration")}
+									</h2>
 
 									<input
 										type="text"
-										placeholder="ユーザー名"
+										placeholder={t("auth.username")}
 										value={username}
 										onChange={(e) => setUsername(e.target.value)}
 										required
@@ -357,13 +375,15 @@ function App() {
 
 									<input
 										type="password"
-										placeholder="パスワード"
+										placeholder={t("auth.password")}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										required
 									/>
 
-									<button type="submit">{isLogin ? "ログイン" : "登録"}</button>
+									<button type="submit">
+										{isLogin ? t("auth.login") : t("auth.register")}
+									</button>
 								</form>
 
 								{message && <p className="message">{message}</p>}

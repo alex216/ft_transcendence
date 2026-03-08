@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ChatRoom from "./ChatRoom";
 
 type DmTarget = {
@@ -37,6 +38,7 @@ export default function ChatPage({
 	dmTarget,
 	onClearDmTarget,
 }: ChatPageProps) {
+	const { t } = useTranslation();
 	const [currentRoomId, setCurrentRoomId] = useState<string>("world");
 	const [dmRooms, setDmRooms] = useState<DmRoom[]>([]);
 
@@ -68,7 +70,7 @@ export default function ChatPage({
 	return (
 		<div className="chat-page">
 			<div className="chat-sidebar">
-				<h3>Rooms</h3>
+				<h3>{t("chat.rooms")}</h3>
 				<ul className="chat-room-list">
 					{rooms.map((room) => (
 						<li key={room}>
@@ -83,7 +85,7 @@ export default function ChatPage({
 					))}
 				</ul>
 
-				<h3 className="chat-section-title">DMs</h3>
+				<h3 className="chat-section-title">{t("chat.dms")}</h3>
 				<ul className="chat-room-list">
 					{dmRooms.length > 0 ? (
 						dmRooms.map((dm) => (
@@ -98,7 +100,7 @@ export default function ChatPage({
 							</li>
 						))
 					) : (
-						<li className="chat-empty-hint">フレンドからDMを開始</li>
+						<li className="chat-empty-hint">{t("chat.startDmHint")}</li>
 					)}
 				</ul>
 			</div>
@@ -114,7 +116,7 @@ export default function ChatPage({
 					/>
 				) : (
 					<div className="chat-placeholder">
-						<p>← ルームを選択してください</p>
+						<p>{t("chat.selectRoom")}</p>
 					</div>
 				)}
 			</div>
