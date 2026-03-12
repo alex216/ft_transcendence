@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 import type { GetFriendsResponse } from "/shared";
 
 type FriendListProps = {
@@ -43,11 +44,14 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			const response = await sendFriendRequest({
 				username: newFriendUsername.trim(),
 			});
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			setNewFriendUsername("");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || t("friends.sendFailed"));
+			setMessage(
+				translateMessage(error.response?.data?.message) ||
+					t("friends.sendFailed"),
+			);
 		} finally {
 			setSending(false);
 		}
@@ -58,12 +62,15 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 		try {
 			const response = await removeFriend(friendId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadFriends();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || t("friends.deleteFailed"));
+			setMessage(
+				translateMessage(error.response?.data?.message) ||
+					t("friends.deleteFailed"),
+			);
 		}
 	};
 

@@ -5,6 +5,7 @@ import {
 	acceptFriendRequest,
 	rejectFriendRequest,
 } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 import type { GetFriendRequestsResponse } from "/shared";
 
 const FriendRequests: React.FC = () => {
@@ -40,13 +41,14 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await acceptFriendRequest(requestId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
 			setMessage(
-				error.response?.data?.message || t("friendRequests.acceptFailed"),
+				translateMessage(error.response?.data?.message) ||
+					t("friendRequests.acceptFailed"),
 			);
 		} finally {
 			setProcessing(null);
@@ -59,13 +61,14 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await rejectFriendRequest(requestId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
 			setMessage(
-				error.response?.data?.message || t("friendRequests.rejectFailed"),
+				translateMessage(error.response?.data?.message) ||
+					t("friendRequests.rejectFailed"),
 			);
 		} finally {
 			setProcessing(null);

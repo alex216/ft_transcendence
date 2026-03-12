@@ -158,5 +158,31 @@
 		"delete": "削除",
 		"edit": "編集",
 		"close": "閉じる"
+	},
+	"errors": {
+		"auth": {
+			"loginRequired": "ログインが必要です"
+		},
+		"friend": {
+			"userNotFound": "ユーザーが見つかりません",
+			"selfRequest": "自分自身にリクエストを送れません",
+			"alreadyFriends": "既にフレンドです",
+			"requestExists": "既にリクエストが存在します",
+			"requestNotFound": "リクエストが見つかりません",
+			"noPermissionAccept": "このリクエストを承認する権限がありません",
+			"alreadyProcessed": "このリクエストは既に処理されています",
+			"noPermissionReject": "このリクエストを拒否する権限がありません",
+			"receiverRequired": "ユーザー名またはユーザーIDが必要です",
+			"invalidRequestId": "無効なリクエストIDです",
+			"invalidUserId": "無効なユーザーIDです"
+		}
+	},
+	"success": {
+		"friend": {
+			"requestSent": "フレンドリクエストを送信しました",
+			"requestAccepted": "フレンドリクエストを承認しました",
+			"requestRejected": "フレンドリクエストを拒否しました",
+			"friendRemoved": "フレンドを削除しました"
+		}
 	}
 }

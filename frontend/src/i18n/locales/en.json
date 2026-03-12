@@ -158,5 +158,31 @@
 		"delete": "Delete",
 		"edit": "Edit",
 		"close": "Close"
+	},
+	"errors": {
+		"auth": {
+			"loginRequired": "Login required"
+		},
+		"friend": {
+			"userNotFound": "User not found",
+			"selfRequest": "Cannot send request to yourself",
+			"alreadyFriends": "Already friends",
+			"requestExists": "Request already exists",
+			"requestNotFound": "Request not found",
+			"noPermissionAccept": "No permission to accept this request",
+			"alreadyProcessed": "This request has already been processed",
+			"noPermissionReject": "No permission to reject this request",
+			"receiverRequired": "Username or user ID is required",
+			"invalidRequestId": "Invalid request ID",
+			"invalidUserId": "Invalid user ID"
+		}
+	},
+	"success": {
+		"friend": {
+			"requestSent": "Friend request sent",
+			"requestAccepted": "Friend request accepted",
+			"requestRejected": "Friend request rejected",
+			"friendRemoved": "Friend removed"
+		}
 	}
 }

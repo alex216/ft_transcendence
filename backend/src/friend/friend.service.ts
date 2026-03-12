@@ -42,7 +42,7 @@ export class FriendService {
 				where: { username: receiverIdOrUsername },
 			});
 			if (!receiver) {
-				throw new NotFoundException("ユーザーが見つかりません");
+				throw new NotFoundException("errors.friend.userNotFound");
 			}
 			receiverId = receiver.id;
 		} else {
@@ -51,7 +51,7 @@ export class FriendService {
 
 		// 自分自身にリクエストを送れないようにする
 		if (senderId === receiverId) {
-			throw new BadRequestException("自分自身にリクエストを送れません");
+			throw new BadRequestException("errors.friend.selfRequest");
 		}
 
 		// 既にフレンドかチェック
@@ -59,7 +59,7 @@ export class FriendService {
 			where: { userId: senderId, friendId: receiverId },
 		});
 		if (existingFriend) {
-			throw new ConflictException("既にフレンドです");
+			throw new ConflictException("errors.friend.alreadyFriends");
 		}
 
 		// 既にリクエストが存在するかチェック
@@ -74,7 +74,7 @@ export class FriendService {
 			],
 		});
 		if (existingRequest) {
-			throw new ConflictException("既にリクエストが存在します");
+			throw new ConflictException("errors.friend.requestExists");
 		}
 
 		// リクエストを作成
@@ -94,16 +94,16 @@ export class FriendService {
 		});
 
 		if (!request) {
-			throw new NotFoundException("リクエストが見つかりません");
+			throw new NotFoundException("errors.friend.requestNotFound");
 		}
 
 		// 受信者のみが承認できる
 		if (request.receiverId !== userId) {
-			throw new BadRequestException("このリクエストを承認する権限がありません");
+			throw new BadRequestException("errors.friend.noPermissionAccept");
 		}
 
 		if (request.status !== FriendRequestStatus.PENDING) {
-			throw new BadRequestException("このリクエストは既に処理されています");
+			throw new BadRequestException("errors.friend.alreadyProcessed");
 		}
 
 		// リクエストのステータスを更新
@@ -130,16 +130,16 @@ export class FriendService {
 		});
 
 		if (!request) {
-			throw new NotFoundException("リクエストが見つかりません");
+			throw new NotFoundException("errors.friend.requestNotFound");
 		}
 
 		// 受信者のみが拒否できる
 		if (request.receiverId !== userId) {
-			throw new BadRequestException("このリクエストを拒否する権限がありません");
+			throw new BadRequestException("errors.friend.noPermissionReject");
 		}
 
 		if (request.status !== FriendRequestStatus.PENDING) {
-			throw new BadRequestException("このリクエストは既に処理されています");
+			throw new BadRequestException("errors.friend.alreadyProcessed");
 		}
 
 		// リクエストのステータスを更新

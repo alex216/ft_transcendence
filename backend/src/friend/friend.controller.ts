@@ -36,12 +36,12 @@ export class FriendController {
 		@Body() body: SendFriendRequestRequest,
 	): Promise<SendFriendRequestResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		const receiverIdOrUsername = body.receiverId || body.username;
 		if (!receiverIdOrUsername) {
-			throw new BadRequestException("receiverId または username が必要です");
+			throw new BadRequestException("errors.friend.receiverRequired");
 		}
 
 		const request = await this.friendService.sendFriendRequest(
@@ -51,7 +51,7 @@ export class FriendController {
 
 		return {
 			success: true,
-			message: "フレンドリクエストを送信しました",
+			message: "success.friend.requestSent",
 			friendRequest: {
 				id: request.id,
 				senderId: request.senderId,
@@ -69,19 +69,19 @@ export class FriendController {
 		@Param("requestId") requestId: string,
 	): Promise<AcceptFriendRequestResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なリクエストIDです");
+			throw new BadRequestException("errors.friend.invalidRequestId");
 		}
 
 		await this.friendService.acceptFriendRequest(id, session.userId);
 
 		return {
 			success: true,
-			message: "フレンドリクエストを承認しました",
+			message: "success.friend.requestAccepted",
 		};
 	}
 
@@ -92,19 +92,19 @@ export class FriendController {
 		@Param("requestId") requestId: string,
 	): Promise<RejectFriendRequestResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なリクエストIDです");
+			throw new BadRequestException("errors.friend.invalidRequestId");
 		}
 
 		await this.friendService.rejectFriendRequest(id, session.userId);
 
 		return {
 			success: true,
-			message: "フレンドリクエストを拒否しました",
+			message: "success.friend.requestRejected",
 		};
 	}
 
@@ -115,19 +115,19 @@ export class FriendController {
 		@Param("friendId") friendId: string,
 	): Promise<RemoveFriendResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		const id = parseInt(friendId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なユーザーIDです");
+			throw new BadRequestException("errors.friend.invalidUserId");
 		}
 
 		await this.friendService.removeFriend(session.userId, id);
 
 		return {
 			success: true,
-			message: "フレンドを削除しました",
+			message: "success.friend.friendRemoved",
 		};
 	}
 
@@ -137,7 +137,7 @@ export class FriendController {
 		@Session() session: SessionData,
 	): Promise<GetFriendsResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		return this.friendService.getFriends(session.userId);
@@ -149,7 +149,7 @@ export class FriendController {
 		@Session() session: SessionData,
 	): Promise<GetFriendRequestsResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		return this.friendService.getFriendRequests(session.userId);
@@ -162,12 +162,12 @@ export class FriendController {
 		@Param("userId") userId: string,
 	): Promise<GetFriendStatusResponse> {
 		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
+			throw new UnauthorizedException("errors.auth.loginRequired");
 		}
 
 		const targetUserId = parseInt(userId, 10);
 		if (isNaN(targetUserId)) {
-			throw new BadRequestException("無効なユーザーIDです");
+			throw new BadRequestException("errors.friend.invalidUserId");
 		}
 
 		return this.friendService.getFriendStatus(session.userId, targetUserId);

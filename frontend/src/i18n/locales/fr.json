@@ -158,5 +158,31 @@
 		"delete": "Supprimer",
 		"edit": "Modifier",
 		"close": "Fermer"
+	},
+	"errors": {
+		"auth": {
+			"loginRequired": "Connexion requise"
+		},
+		"friend": {
+			"userNotFound": "Utilisateur introuvable",
+			"selfRequest": "Impossible de vous envoyer une demande",
+			"alreadyFriends": "Déjà amis",
+			"requestExists": "Demande déjà existante",
+			"requestNotFound": "Demande introuvable",
+			"noPermissionAccept": "Pas la permission d'accepter cette demande",
+			"alreadyProcessed": "Cette demande a déjà été traitée",
+			"noPermissionReject": "Pas la permission de refuser cette demande",
+			"receiverRequired": "Nom d'utilisateur ou ID requis",
+			"invalidRequestId": "ID de demande invalide",
+			"invalidUserId": "ID utilisateur invalide"
+		}
+	},
+	"success": {
+		"friend": {
+			"requestSent": "Demande d'ami envoyée",
+			"requestAccepted": "Demande d'ami acceptée",
+			"requestRejected": "Demande d'ami refusée",
+			"friendRemoved": "Ami supprimé"
+		}
 	}
 }
