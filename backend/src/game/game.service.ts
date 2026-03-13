@@ -20,7 +20,7 @@ import {
 	MAX_SCORE,
 	ANGLE_CHANGE,
 	PAD_SPEED,
-} from "./game.constants";
+} from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
