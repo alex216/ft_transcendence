@@ -42,4 +42,19 @@ export class GameGateway {
 		console.log(`[Gateway] Disconnected: ${client.id}`);
 		this.gameService.handleDisconnect(client, this.server);
 	}
+
+	// 4. Reconnection
+	@SubscribeMessage("reconnectGame")
+	handleReconnect(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { roomId: string },
+	) {
+		this.gameService.handleReconnect(client, data.roomId, this.server);
+	}
+
+	// 5. Resignation
+	@SubscribeMessage("surrender")
+	handleSurrender(@ConnectedSocket() client: Socket) {
+		this.gameService.handleSurrender(client, this.server);
+	}
 }

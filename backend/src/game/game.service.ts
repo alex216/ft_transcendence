@@ -29,6 +29,8 @@ interface GameInternalState extends GameState {
 	p1Id: string;
 	p2Id: string;
 	interval: NodeJS.Timeout | null;
+	disconnectTimer?: NodeJS.Timeout | null;
+	disconnectedPlayerId?: string;
 }
 
 @Injectable()
@@ -92,7 +94,7 @@ export class GameService {
 
 	private gameLoop(roomId: string, server: Server) {
 		const game = this.games.get(roomId);
-		if (!game) return;
+		if (!game || game.isPaused) return;
 
 		// 1. ボールの移動
 		game.ball.x += game.dx;
@@ -245,24 +247,113 @@ export class GameService {
 		// 試合中だったら。。。
 		for (const [roomId, game] of this.games.entries()) {
 			if (game.p1Id === client.id || game.p2Id === client.id) {
-				console.log(`[GameService] Player left match ${roomId}`);
+				console.log(
+					`[GameService] Player left match ${roomId}, waiting reconnection`,
+				);
 
-				// 試合をストップ
+				// set up waiting time
+				game.isPaused = true;
+				game.disconnectedPlayerId = client.id;
+
+				// notify other player
+				const otherId = game.p1Id === client.id ? game.p2Id : game.p1Id;
+				server.to(roomId).emit("playerDisconnected", { playerId: client.id });
+
+				// get rid of old timer, if any
+				if (game.disconnectTimer) {
+					clearTimeout(game.disconnectTimer);
+				}
+
+				game.disconnectTimer = setTimeout(() => {
+					console.log(
+						`[GameService] Grace period expired, ending match ${roomId}`,
+					);
+
+					clearInterval(game.interval);
+					game.interval = null;
+
+					const winnerId = otherId;
+					const loserId = client.id;
+
+					server.to(roomId).emit("gameOver", {
+						winner: winnerId,
+						reason: "disconnect",
+					});
+
+					// DBにセーブ
+					const winnerScore = MAX_SCORE;
+					const loserScore =
+						game.p1Id === client.id ? game.leftScore : game.rightScore;
+					this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+
+					this.games.delete(roomId);
+				}, 15000);
+				break;
+			}
+		}
+	}
+
+	handleReconnect(client: Socket, roomId: string, server: Server) {
+		const game = this.games.get(roomId);
+		if (!game || game.disconnectedPlayerId !== client.id) return;
+
+		console.log(`[GameService] Player reconnected: ${client.id} in ${roomId}`);
+
+		if (game.disconnectTimer) {
+			clearTimeout(game.disconnectTimer); // delete timer
+			game.disconnectTimer = null;
+		}
+
+		game.isPaused = false;
+		game.disconnectedPlayerId = undefined;
+
+		server.to(roomId).emit("playerReconnected", { playerId: client.id });
+
+		// send state to reconnected player
+		const {
+			dx,
+			dy,
+			p1Id,
+			p2Id,
+			interval,
+			disconnectTimer,
+			disconnectedPlayerId,
+			...publicState
+		} = game;
+		client.emit("updateState", publicState);
+
+		if (!game.interval) {
+			game.interval = setInterval(
+				() => this.gameLoop(roomId, server),
+				1000 / 60,
+			);
+		}
+	}
+
+	handleSurrender(client: Socket, server: Server) {
+		console.log(`[GameService] Player surrendered: ${client.id}`);
+
+		for (const [roomId, game] of this.games.entries()) {
+			if (game.p1Id === client.id || game.p2Id === client.id) {
+				if (game.disconnectTimer) {
+					clearTimeout(game.disconnectTimer);
+					game.disconnectTimer = null;
+				}
+
 				clearInterval(game.interval);
 
 				const isP1 = game.p1Id === client.id;
 				const winnerId = isP1 ? game.p2Id : game.p1Id;
 				const loserId = client.id;
 
-				// 試合終了の知らせ
 				server.to(roomId).emit("gameOver", {
 					winner: winnerId,
-					reason: "disconnect",
+					reason: "surrender",
 				});
 
-				// DBにセーブ
 				const winnerScore = MAX_SCORE;
 				const loserScore = isP1 ? game.leftScore : game.rightScore;
+
 				this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
 
 				this.games.delete(roomId);
