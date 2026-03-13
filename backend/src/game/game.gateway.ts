@@ -23,18 +23,33 @@ export class GameGateway {
 
 	// 1. マッチメイキング待ち列に参加
 	@SubscribeMessage("joinQueue")
-	handleJoinQueue(@ConnectedSocket() client: Socket) {
-		this.gameService.addToQueue(client, this.server);
+	handleJoinQueue(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { playerId: string },
+	) {
+		this.gameService.addToQueue(client, data.playerId, this.server);
 	}
 
 	// 2. プレイヤーのパドル操作を受信
-	@SubscribeMessage("movePaddle")
-	handleMove(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: PaddleMoveDto,
-	) {
-		// どの部屋の、どのプレイヤーが動いたかをServiceに伝える
-		this.gameService.updatePaddle(client.id, data.y);
+	// @SubscribeMessage("movePaddle")
+	// handleMove(
+	// 	@ConnectedSocket() client: Socket,
+	// 	@MessageBody() data: PaddleMoveDto,
+	// ) {
+	// 	// どの部屋の、どのプレイヤーが動いたかをServiceに伝える
+	// 	this.gameService.updatePaddle(client.id, data.y);
+	// }
+
+	//2.1 UP
+	@SubscribeMessage("moveUp")
+	handleMoveUp(@MessageBody() data: { playerId: string }) {
+		this.gameService.movePaddleUp(data.playerId);
+	}
+
+	//2.2 DOWN
+	@SubscribeMessage("moveDown")
+	handleMoveDown(@MessageBody() data: { playerId: string }) {
+		this.gameService.movePaddleDown(data.playerId);
 	}
 
 	// 3. Disconnection
@@ -47,14 +62,22 @@ export class GameGateway {
 	@SubscribeMessage("reconnectGame")
 	handleReconnect(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { roomId: string },
+		@MessageBody() data: { roomId: string; playerId: string },
 	) {
-		this.gameService.handleReconnect(client, data.roomId, this.server);
+		this.gameService.handleReconnect(
+			client,
+			data.roomId,
+			this.server,
+			data.playerId,
+		);
 	}
 
 	// 5. Resignation
 	@SubscribeMessage("surrender")
-	handleSurrender(@ConnectedSocket() client: Socket) {
-		this.gameService.handleSurrender(client, this.server);
+	handleSurrender(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { playerId: string },
+	) {
+		this.gameService.handleSurrender(client, this.server, data.playerId);
 	}
 }

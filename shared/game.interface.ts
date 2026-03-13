@@ -22,6 +22,16 @@ export interface GameState {
 }
 
 // フロントエンドから送られてくる操作データ（パドルの移動指令）
+// old version
 export interface PaddleMoveDto {
 	y: number;
+}
+
+// NEW versions
+export interface PaddleMoveUp {
+	playerId: string;
+}
+
+export interface PaddleMoveDown {
+	playerId: string;
 }
