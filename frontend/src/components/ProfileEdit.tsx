@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getMyProfile, updateProfile } from "../api";
 
 interface ProfileEditProps {
@@ -7,6 +8,7 @@ interface ProfileEditProps {
 }
 
 const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
+	const { t } = useTranslation();
 	const [displayName, setDisplayName] = useState("");
 	const [bio, setBio] = useState("");
 	const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 			setDisplayName(data.displayName || "");
 			setBio(data.bio || "");
 		} catch {
-			setMessage("プロフィールの読み込みに失敗しました");
+			setMessage(t("profile.loadFailed"));
 		} finally {
 			setLoading(false);
 		}
@@ -45,49 +47,53 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 			}, 1000);
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "更新に失敗しました");
+			setMessage(
+				error.response?.data?.message || t("profileEdit.updateFailed"),
+			);
 			setSaving(false);
 		}
 	};
 
 	if (loading) {
-		return <div className="profile-edit">読み込み中...</div>;
+		return <div className="profile-edit">{t("profile.loading")}</div>;
 	}
 
 	return (
 		<div className="profile-edit">
-			<h2>プロフィール編集</h2>
+			<h2>{t("profileEdit.title")}</h2>
 
 			<form onSubmit={handleSubmit}>
 				<div className="form-group">
-					<label htmlFor="displayName">表示名（最大50文字）</label>
+					<label htmlFor="displayName">
+						{t("profileEdit.displayNameLabel")}
+					</label>
 					<input
 						id="displayName"
 						type="text"
 						value={displayName}
 						onChange={(e) => setDisplayName(e.target.value)}
 						maxLength={50}
-						placeholder="表示名を入力"
+						placeholder={t("profileEdit.displayNamePlaceholder")}
 					/>
 					<small>{displayName.length} / 50</small>
 				</div>
 
 				<div className="form-group">
-					<label htmlFor="bio">自己紹介（最大500文字）</label>
+					<label htmlFor="bio">{t("profileEdit.bioLabel")}</label>
 					<textarea
 						id="bio"
 						value={bio}
 						onChange={(e) => setBio(e.target.value)}
 						maxLength={500}
 						rows={5}
-						placeholder="自己紹介を入力"
+						placeholder={t("profileEdit.bioPlaceholder")}
 					/>
 					<small>{bio.length} / 500</small>
 				</div>
 
 				<div className="form-actions">
 					<button type="submit" className="btn-primary" disabled={saving}>
-						{saving ? "保存中..." : "保存"}
+						{saving ? t("profileEdit.saving") : t("profileEdit.save")}
 					</button>
 					<button
 						type="button"
@@ -95,7 +101,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 						className="btn-secondary"
 						disabled={saving}
 					>
-						キャンセル
+						{t("profileEdit.cancel")}
 					</button>
 				</div>
 			</form>

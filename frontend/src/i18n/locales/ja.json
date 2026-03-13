@@ -1,0 +1,188 @@
+{
+	"nav": {
+		"home": "ホーム",
+		"online": "オンラインモード",
+		"ai": "AIモード",
+		"history": "戦績",
+		"leaderboard": "ランキング",
+		"chat": "チャット",
+		"profile": "プロフィール",
+		"friends": "フレンド",
+		"requests": "リクエスト",
+		"logout": "ログアウト"
+	},
+	"auth": {
+		"login": "ログイン",
+		"register": "登録",
+		"userRegistration": "ユーザー登録",
+		"username": "ユーザー名",
+		"password": "パスワード",
+		"registerSuccess": "登録成功！ログインしてください。",
+		"loginSuccess": "ログイン成功！",
+		"loginFailed": "ログイン失敗",
+		"registerFailed": "登録失敗",
+		"logoutSuccess": "ログアウトしました",
+		"logoutFailed": "ログアウト失敗"
+	},
+	"home": {
+		"welcome": "ようこそ、{{username}}さん！",
+		"userId": "ユーザーID"
+	},
+	"profile": {
+		"title": "プロフィール",
+		"edit": "プロフィール編集",
+		"loadFailed": "プロフィールの読み込みに失敗しました",
+		"notFound": "プロフィールが見つかりません",
+		"loading": "読み込み中...",
+		"username": "ユーザー名",
+		"displayName": "表示名",
+		"bio": "自己紹介",
+		"notSet": "未設定",
+		"avatar": "アバター",
+		"changeAvatar": "アバター変更",
+		"uploading": "アップロード中...",
+		"delete": "削除",
+		"deleteConfirm": "アバターを削除しますか？",
+		"fileSizeError": "ファイルサイズは5MB以下にしてください",
+		"fileTypeError": "画像ファイル（JPG, PNG, GIF）のみアップロード可能です",
+		"uploadFailed": "アップロードに失敗しました",
+		"deleteFailed": "削除に失敗しました"
+	},
+	"profileEdit": {
+		"title": "プロフィール編集",
+		"displayNameLabel": "表示名（最大50文字）",
+		"displayNamePlaceholder": "表示名を入力",
+		"bioLabel": "自己紹介（最大500文字）",
+		"bioPlaceholder": "自己紹介を入力",
+		"save": "保存",
+		"saving": "保存中...",
+		"cancel": "キャンセル",
+		"updateFailed": "更新に失敗しました"
+	},
+	"friends": {
+		"title": "フレンド",
+		"loadFailed": "フレンドリストの読み込みに失敗しました",
+		"loading": "読み込み中...",
+		"usernamePlaceholder": "ユーザー名を入力",
+		"sendRequest": "リクエスト送信",
+		"sending": "送信中...",
+		"sendFailed": "リクエスト送信に失敗しました",
+		"noFriends": "まだフレンドがいません",
+		"dm": "DM",
+		"delete": "削除",
+		"deleteConfirm": "{{username}}をフレンドから削除しますか？",
+		"deleteFailed": "削除に失敗しました"
+	},
+	"friendRequests": {
+		"title": "フレンドリクエスト",
+		"loadFailed": "リクエストの読み込みに失敗しました",
+		"loading": "読み込み中...",
+		"received": "受信したリクエスト",
+		"sent": "送信したリクエスト",
+		"noRequests": "リクエストはありません",
+		"accept": "承認",
+		"reject": "拒否",
+		"sentStatus": "送信済み",
+		"acceptFailed": "承認に失敗しました",
+		"rejectFailed": "拒否に失敗しました"
+	},
+	"game": {
+		"onlineMatch": "オンラインマッチ",
+		"pong": "Pong",
+		"practiceAI": "練習（AI）",
+		"back": "← 戻る",
+		"reset": "リセット",
+		"settings": "設定",
+		"width": "幅",
+		"height": "高さ",
+		"ballSize": "ボールサイズ",
+		"paddleHeight": "パドル高さ",
+		"paddleWidth": "パドル幅",
+		"paddleSpeed": "パドル速度",
+		"controls": "操作方法",
+		"youWin": "勝利！",
+		"youLose": "敗北",
+		"backToOnline": "オンラインに戻る",
+		"waitingForGame": "ゲーム開始を待っています...",
+		"clickToStart": "クリックして操作を開始"
+	},
+	"online": {
+		"status": "ステータス",
+		"connected": "接続中",
+		"disconnected": "未接続",
+		"findMatch": "マッチ検索",
+		"cancel": "キャンセル",
+		"retry": "再試行",
+		"back": "戻る",
+		"notConnected": "サーバーに接続されていません",
+		"cancelled": "マッチメイキングをキャンセルしました"
+	},
+	"chat": {
+		"rooms": "ルーム",
+		"dms": "DM",
+		"startDmHint": "フレンドからDMを開始",
+		"selectRoom": "← ルームを選択してください",
+		"connected": "接続中",
+		"disconnected": "未接続",
+		"noMessages": "メッセージはまだありません",
+		"inputPlaceholder": "メッセージを入力...",
+		"connecting": "接続中...",
+		"send": "送信"
+	},
+	"history": {
+		"title": "戦績",
+		"description": "1v1の対戦履歴（日時・結果・相手）を表示します",
+		"noHistory": "対戦履歴がまだありません",
+		"date": "日時",
+		"opponent": "対戦相手",
+		"result": "結果",
+		"score": "スコア",
+		"win": "勝利",
+		"lose": "敗北"
+	},
+	"leaderboard": {
+		"title": "ランキング",
+		"description": "勝敗/勝率でランキング表示",
+		"rank": "順位",
+		"user": "ユーザー",
+		"wins": "勝利",
+		"losses": "敗北",
+		"winRate": "勝率"
+	},
+	"common": {
+		"loading": "読み込み中...",
+		"error": "エラーが発生しました",
+		"confirm": "確認",
+		"cancel": "キャンセル",
+		"save": "保存",
+		"delete": "削除",
+		"edit": "編集",
+		"close": "閉じる"
+	},
+	"errors": {
+		"auth": {
+			"loginRequired": "ログインが必要です"
+		},
+		"friend": {
+			"userNotFound": "ユーザーが見つかりません",
+			"selfRequest": "自分自身にリクエストを送れません",
+			"alreadyFriends": "既にフレンドです",
+			"requestExists": "既にリクエストが存在します",
+			"requestNotFound": "リクエストが見つかりません",
+			"noPermissionAccept": "このリクエストを承認する権限がありません",
+			"alreadyProcessed": "このリクエストは既に処理されています",
+			"noPermissionReject": "このリクエストを拒否する権限がありません",
+			"receiverRequired": "ユーザー名またはユーザーIDが必要です",
+			"invalidRequestId": "無効なリクエストIDです",
+			"invalidUserId": "無効なユーザーIDです"
+		}
+	},
+	"success": {
+		"friend": {
+			"requestSent": "フレンドリクエストを送信しました",
+			"requestAccepted": "フレンドリクエストを承認しました",
+			"requestRejected": "フレンドリクエストを拒否しました",
+			"friendRemoved": "フレンドを削除しました"
+		}
+	}
+}

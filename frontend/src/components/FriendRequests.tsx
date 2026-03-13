@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	getFriendRequests,
 	acceptFriendRequest,
 	rejectFriendRequest,
 } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 import type { GetFriendRequestsResponse } from "/shared";
 
 const FriendRequests: React.FC = () => {
+	const { t } = useTranslation();
 	const [requests, setRequests] = useState<GetFriendRequestsResponse>({
 		sent: [],
 		received: [],
@@ -26,7 +29,7 @@ const FriendRequests: React.FC = () => {
 			const data = await getFriendRequests();
 			setRequests(data);
 		} catch {
-			setMessage("リクエストの読み込みに失敗しました");
+			setMessage(t("friendRequests.loadFailed"));
 		} finally {
 			setLoading(false);
 		}
@@ -38,12 +41,15 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await acceptFriendRequest(requestId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "承認に失敗しました");
+			setMessage(
+				translateMessage(error.response?.data?.message) ||
+					t("friendRequests.acceptFailed"),
+			);
 		} finally {
 			setProcessing(null);
 		}
@@ -55,32 +61,37 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await rejectFriendRequest(requestId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "拒否に失敗しました");
+			setMessage(
+				translateMessage(error.response?.data?.message) ||
+					t("friendRequests.rejectFailed"),
+			);
 		} finally {
 			setProcessing(null);
 		}
 	};
 
 	if (loading) {
-		return <div className="friend-requests">読み込み中...</div>;
+		return <div className="friend-requests">{t("friendRequests.loading")}</div>;
 	}
 
 	return (
 		<div className="friend-requests">
-			<h2>フレンドリクエスト</h2>
+			<h2>{t("friendRequests.title")}</h2>
 
 			{message && <p className="message">{message}</p>}
 
 			{/* 受信したリクエスト */}
 			<section>
-				<h3>受信したリクエスト ({requests.received.length})</h3>
+				<h3>
+					{t("friendRequests.received")} ({requests.received.length})
+				</h3>
 				{requests.received.length === 0 ? (
-					<p className="empty-state">リクエストはありません</p>
+					<p className="empty-state">{t("friendRequests.noRequests")}</p>
 				) : (
 					<div className="request-list">
 						{requests.received.map((request) => (
@@ -111,14 +122,14 @@ const FriendRequests: React.FC = () => {
 										className="btn-primary-small"
 										disabled={processing === request.id}
 									>
-										承認
+										{t("friendRequests.accept")}
 									</button>
 									<button
 										onClick={() => handleReject(request.id)}
 										className="btn-danger-small"
 										disabled={processing === request.id}
 									>
-										拒否
+										{t("friendRequests.reject")}
 									</button>
 								</div>
 							</div>
@@ -129,9 +140,11 @@ const FriendRequests: React.FC = () => {
 
 			{/* 送信したリクエスト */}
 			<section>
-				<h3>送信したリクエスト ({requests.sent.length})</h3>
+				<h3>
+					{t("friendRequests.sent")} ({requests.sent.length})
+				</h3>
 				{requests.sent.length === 0 ? (
-					<p className="empty-state">リクエストはありません</p>
+					<p className="empty-state">{t("friendRequests.noRequests")}</p>
 				) : (
 					<div className="request-list">
 						{requests.sent.map((request) => (
@@ -157,7 +170,9 @@ const FriendRequests: React.FC = () => {
 									)}
 								</div>
 								<div className="request-status">
-									<span className="status-badge">送信済み</span>
+									<span className="status-badge">
+										{t("friendRequests.sentStatus")}
+									</span>
 								</div>
 							</div>
 						))}

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	getGameSocket,
 	joinQueue,
@@ -24,6 +25,7 @@ type OnlinePageProps = {
 };
 
 export default function OnlinePage({ onStart }: OnlinePageProps) {
+	const { t } = useTranslation();
 	const [status, setStatus] = useState<OnlineStatus>("idle");
 	const [message, setMessage] = useState<string>("");
 	const [isConnected, setIsConnected] = useState(false);
@@ -73,7 +75,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 	// マッチメイキング開始
 	const startMatching = () => {
 		if (!isConnected) {
-			setMessage("サーバーに接続されていません");
+			setMessage(t("online.notConnected"));
 			setStatus("error");
 			return;
 		}
@@ -86,7 +88,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 
 	// マッチメイキングキャンセル
 	const cancelMatching = () => {
-		setMessage("マッチメイキングをキャンセルしました");
+		setMessage(t("online.cancelled"));
 		setStatus("idle");
 		disconnectGameSocket();
 	};
@@ -95,7 +97,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 		<div className="online-page">
 			<div className="online-layout">
 				<section className="online-card">
-					<h3>Status</h3>
+					<h3>{t("online.status")}</h3>
 
 					<div className="online-status-row">
 						<span className={`online-pill ${status}`}>
@@ -106,7 +108,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 								className={`online-connection-dot ${isConnected ? "connected" : "disconnected"}`}
 							/>
 							<span className="online-muted">
-								{isConnected ? "接続中" : "未接続"}
+								{isConnected ? t("online.connected") : t("online.disconnected")}
 							</span>
 						</div>
 					</div>
@@ -118,7 +120,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 								className="btn-primary"
 								onClick={startMatching}
 							>
-								Find Match
+								{t("online.findMatch")}
 							</button>
 						)}
 						{status === "matching" && (
@@ -127,7 +129,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 								className="btn-secondary"
 								onClick={cancelMatching}
 							>
-								Cancel
+								{t("online.cancel")}
 							</button>
 						)}
 						{status === "error" && (
@@ -137,14 +139,14 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 									className="btn-primary"
 									onClick={startMatching}
 								>
-									Retry
+									{t("online.retry")}
 								</button>
 								<button
 									type="button"
 									className="btn-secondary"
 									onClick={cancelMatching}
 								>
-									Back
+									{t("online.back")}
 								</button>
 							</>
 						)}

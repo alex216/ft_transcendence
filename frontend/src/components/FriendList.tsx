@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 import type { GetFriendsResponse } from "/shared";
 
 type FriendListProps = {
@@ -7,6 +9,7 @@ type FriendListProps = {
 };
 
 const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
+	const { t } = useTranslation();
 	const [friends, setFriends] = useState<GetFriendsResponse["friends"]>([]);
 	const [loading, setLoading] = useState(true);
 	const [message, setMessage] = useState("");
@@ -24,7 +27,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			const data = await getFriends();
 			setFriends(data.friends);
 		} catch {
-			setMessage("フレンドリストの読み込みに失敗しました");
+			setMessage(t("friends.loadFailed"));
 		} finally {
 			setLoading(false);
 		}
@@ -41,12 +44,13 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			const response = await sendFriendRequest({
 				username: newFriendUsername.trim(),
 			});
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			setNewFriendUsername("");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
 			setMessage(
-				error.response?.data?.message || "リクエスト送信に失敗しました",
+				translateMessage(error.response?.data?.message) ||
+					t("friends.sendFailed"),
 			);
 		} finally {
 			setSending(false);
@@ -54,26 +58,31 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 	};
 
 	const handleRemoveFriend = async (friendId: number, username: string) => {
-		if (!window.confirm(`${username}をフレンドから削除しますか？`)) return;
+		if (!window.confirm(t("friends.deleteConfirm", { username }))) return;
 
 		try {
 			const response = await removeFriend(friendId);
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadFriends();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || "削除に失敗しました");
+			setMessage(
+				translateMessage(error.response?.data?.message) ||
+					t("friends.deleteFailed"),
+			);
 		}
 	};
 
 	if (loading) {
-		return <div className="friend-list">読み込み中...</div>;
+		return <div className="friend-list">{t("friends.loading")}</div>;
 	}
 
 	return (
 		<div className="friend-list">
-			<h2>フレンド ({friends.length})</h2>
+			<h2>
+				{t("friends.title")} ({friends.length})
+			</h2>
 
 			{/* フレンド追加フォーム */}
 			<form onSubmit={handleSendRequest} className="add-friend-form">
@@ -81,11 +90,11 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 					type="text"
 					value={newFriendUsername}
 					onChange={(e) => setNewFriendUsername(e.target.value)}
-					placeholder="ユーザー名を入力"
+					placeholder={t("friends.usernamePlaceholder")}
 					disabled={sending}
 				/>
 				<button type="submit" className="btn-primary" disabled={sending}>
-					{sending ? "送信中..." : "リクエスト送信"}
+					{sending ? t("friends.sending") : t("friends.sendRequest")}
 				</button>
 			</form>
 
@@ -93,7 +102,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 			{/* フレンドリスト */}
 			{friends.length === 0 ? (
-				<p className="empty-state">まだフレンドがいません</p>
+				<p className="empty-state">{t("friends.noFriends")}</p>
 			) : (
 				<div className="friends-grid">
 					{friends.map((friendItem) => (
@@ -126,7 +135,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 										}
 										className="btn-primary-small"
 									>
-										DM
+										{t("friends.dm")}
 									</button>
 								)}
 								<button
@@ -138,7 +147,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 									}
 									className="btn-danger-small"
 								>
-									削除
+									{t("friends.delete")}
 								</button>
 							</div>
 						</div>
