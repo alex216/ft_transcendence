@@ -22,8 +22,8 @@ interface AuthenticatedRequest extends Request {
 	user: { id: number; username: string };
 }
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 import {
-	UpdateProfileRequest,
 	UpdateProfileResponse,
 	GetProfileResponse,
 	UploadAvatarResponse,
@@ -66,7 +66,7 @@ export class ProfileController {
 	@UseGuards(JwtAuthGuard)
 	async updateProfile(
 		@Req() req: AuthenticatedRequest,
-		@Body() updateData: UpdateProfileRequest,
+		@Body() updateData: UpdateProfileDto,
 	): Promise<UpdateProfileResponse> {
 		const user = req.user;
 		const profile = await this.profileService.updateProfile(
