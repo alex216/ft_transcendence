@@ -89,7 +89,7 @@ export class ProfileController {
 			storage: diskStorage({
 				destination: "./uploads/avatars",
 				filename: (req, file, callback) => {
-					const user = req.user;
+					const user = req.user as { id: number } | undefined;
 					const userId = user?.id || "unknown";
 					const timestamp = Date.now();
 					const ext = extname(file.originalname);
