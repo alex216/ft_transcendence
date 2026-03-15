@@ -1,19 +1,36 @@
 # ft_transcendence Makefile
 # C++の make と同じように使える
 
-.PHONY: all setup up down build clean fclean re logs
+.PHONY: all setup ssl up down build clean fclean re logs
 
 # デフォルト: コンテナを起動
 all: up
 
-# 初回セットアップ (.envファイルを作成)
-setup:
+# 初回セットアップ (.envファイルを作成 + SSL証明書生成)
+setup: ssl
 	@if [ ! -f .env ]; then \
 		echo ".env ファイルを作成しています..."; \
 		cp .env.sample .env; \
 		echo ".env ファイルが作成されました"; \
 	else \
 		echo ".env ファイルは既に存在します"; \
+	fi
+
+# SSL証明書を生成（開発用オレオレ証明書）
+# 使い方: make ssl
+ssl:
+	@mkdir -p nginx/ssl
+	@if [ -f nginx/ssl/server.crt ]; then \
+		echo "✅ SSL証明書は既に存在します (nginx/ssl/server.crt)"; \
+	else \
+		echo "🔐 SSL証明書を生成しています..."; \
+		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+			-keyout nginx/ssl/server.key \
+			-out nginx/ssl/server.crt \
+			-subj "/C=JP/ST=Tokyo/L=Tokyo/O=42Tokyo/CN=localhost"; \
+		echo "✅ SSL証明書を生成しました (nginx/ssl/)"; \
+		echo "⚠️  ブラウザで https://localhost を開くと警告が出ます"; \
+		echo "   「詳細設定」→「localhost にアクセスする（安全でない）」で続行できます"; \
 	fi
 
 # コンテナを起動

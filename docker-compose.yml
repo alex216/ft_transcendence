@@ -1,4 +1,23 @@
 services:
+  # Nginxリバースプロキシ（HTTPS終端）
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: trans_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80" # HTTP → HTTPSリダイレクト用
+      - "443:443" # HTTPS
+    volumes:
+      # SSL証明書をマウント（make ssl で生成）
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - trans_network
+
   # HashiCorp Vault（秘密情報管理）
   vault:
     image: hashicorp/vault:latest
@@ -13,7 +32,6 @@ services:
       - IPC_LOCK
     networks:
       - trans_network
-
 
   # PostgreSQLデータベース
   postgres:
@@ -45,6 +63,7 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_NAME: ${POSTGRES_DB}
       SESSION_SECRET: ${SESSION_SECRET}
+      CSRF_SECRET: ${CSRF_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       PORT: ${BACKEND_PORT}
       NODE_ENV: ${NODE_ENV}
@@ -79,7 +98,7 @@ services:
     container_name: trans_frontend
     restart: unless-stopped
     env_file:
-      - .env  # ★ここを追加
+      - .env # ★ここを追加
     environment:
       VITE_API_URL: ${VITE_API_URL}
       PORT: ${FRONTEND_PORT}
