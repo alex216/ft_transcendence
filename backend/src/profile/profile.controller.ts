@@ -6,8 +6,8 @@ import {
 	Delete,
 	Body,
 	Param,
-	Session,
-	UnauthorizedException,
+	UseGuards,
+	Req,
 	UseInterceptors,
 	UploadedFile,
 	BadRequestException,
@@ -15,7 +15,13 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
+import { Request } from "express";
 import { ProfileService } from "./profile.service";
+
+interface AuthenticatedRequest extends Request {
+	user: { id: number; username: string };
+}
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import {
 	UpdateProfileRequest,
 	UpdateProfileResponse,
@@ -24,18 +30,10 @@ import {
 	DeleteAvatarResponse,
 } from "../../../shared/profile.types";
 
-interface SessionData {
-	userId?: number;
-}
-
 interface UploadedFileData {
 	filename: string;
 	originalname: string;
 	mimetype: string;
-}
-
-interface RequestWithSession {
-	session?: SessionData;
 }
 
 @Controller("profile")
@@ -44,14 +42,12 @@ export class ProfileController {
 
 	// GET /profile/me - 自分のプロフィール取得
 	@Get("me")
+	@UseGuards(JwtAuthGuard)
 	async getMyProfile(
-		@Session() session: SessionData,
+		@Req() req: AuthenticatedRequest,
 	): Promise<GetProfileResponse> {
-		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
-		}
-
-		return this.profileService.getProfileByUserId(session.userId);
+		const user = req.user;
+		return this.profileService.getProfileByUserId(user.id);
 	}
 
 	// GET /profile/:id - 他のユーザーのプロフィール取得
@@ -67,16 +63,14 @@ export class ProfileController {
 
 	// PUT /profile/me - プロフィール更新
 	@Put("me")
+	@UseGuards(JwtAuthGuard)
 	async updateProfile(
-		@Session() session: SessionData,
+		@Req() req: AuthenticatedRequest,
 		@Body() updateData: UpdateProfileRequest,
 	): Promise<UpdateProfileResponse> {
-		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
-		}
-
+		const user = req.user;
 		const profile = await this.profileService.updateProfile(
-			session.userId,
+			user.id,
 			updateData,
 		);
 
@@ -89,22 +83,20 @@ export class ProfileController {
 
 	// POST /profile/avatar - アバターアップロード
 	@Post("avatar")
+	@UseGuards(JwtAuthGuard)
 	@UseInterceptors(
 		FileInterceptor("avatar", {
 			storage: diskStorage({
 				destination: "./uploads/avatars",
 				filename: (req, file, callback) => {
-					// ファイル名: user-{userId}-{timestamp}.{拡張子}
-					const session = (req as RequestWithSession).session;
-					const userId = session?.userId || "unknown";
+					const user = req.user;
+					const userId = user?.id || "unknown";
 					const timestamp = Date.now();
 					const ext = extname(file.originalname);
-					const filename = `user-${userId}-${timestamp}${ext}`;
-					callback(null, filename);
+					callback(null, `user-${userId}-${timestamp}${ext}`);
 				},
 			}),
 			fileFilter: (req, file, callback) => {
-				// 画像ファイルのみ許可
 				if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
 					return callback(
 						new BadRequestException("画像ファイルのみアップロード可能です"),
@@ -113,26 +105,21 @@ export class ProfileController {
 				}
 				callback(null, true);
 			},
-			limits: {
-				fileSize: 5 * 1024 * 1024, // 5MB制限
-			},
+			limits: { fileSize: 5 * 1024 * 1024 },
 		}),
 	)
 	async uploadAvatar(
-		@Session() session: SessionData,
+		@Req() req: AuthenticatedRequest,
 		@UploadedFile() file: UploadedFileData,
 	): Promise<UploadAvatarResponse> {
-		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
-		}
+		const user = req.user;
 
 		if (!file) {
 			throw new BadRequestException("ファイルがアップロードされていません");
 		}
 
-		// ファイルパスをDBに保存（フロントエンドからアクセス可能なURL形式）
 		const avatarUrl = `/uploads/avatars/${file.filename}`;
-		await this.profileService.updateAvatar(session.userId, avatarUrl);
+		await this.profileService.updateAvatar(user.id, avatarUrl);
 
 		return {
 			success: true,
@@ -143,14 +130,12 @@ export class ProfileController {
 
 	// DELETE /profile/avatar - アバター削除
 	@Delete("avatar")
+	@UseGuards(JwtAuthGuard)
 	async deleteAvatar(
-		@Session() session: SessionData,
+		@Req() req: AuthenticatedRequest,
 	): Promise<DeleteAvatarResponse> {
-		if (!session.userId) {
-			throw new UnauthorizedException("ログインが必要です");
-		}
-
-		await this.profileService.deleteAvatar(session.userId);
+		const user = req.user;
+		await this.profileService.deleteAvatar(user.id);
 
 		return {
 			success: true,
