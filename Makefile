@@ -6,7 +6,7 @@
 # デフォルト: コンテナを起動
 all: up
 
-# 初回セットアップ (.envファイルを作成 + SSL証明書生成)
+# 初回セットアップ (.envファイルを作成 + SSL証明書生成 + ディレクトリ準備)
 setup: ssl
 	@if [ ! -f .env ]; then \
 		echo ".env ファイルを作成しています..."; \
@@ -15,6 +15,15 @@ setup: ssl
 	else \
 		echo ".env ファイルは既に存在します"; \
 	fi
+	@$(MAKE) _prepare-dirs
+
+# uploadsディレクトリをホスト側（現在のユーザー権限）で事前作成する
+# 理由: Docker が root 権限でディレクトリを作る前に
+#       ホストユーザーが先に作ることで root 所有になるのを防ぐ
+_prepare-dirs:
+	@mkdir -p backend/uploads/avatars
+	@touch backend/uploads/.gitkeep
+	@echo "✅ backend/uploads/ を準備しました (owner: $$(whoami))"
 
 # SSL証明書を生成（開発用オレオレ証明書）
 # 使い方: make ssl
@@ -34,7 +43,7 @@ ssl:
 	fi
 
 # コンテナを起動
-up:
+up: _prepare-dirs
 	docker-compose up -d
 
 # コンテナを停止
@@ -42,7 +51,7 @@ down:
 	docker-compose down
 
 # コンテナを再ビルドして起動
-build:
+build: _prepare-dirs
 	docker-compose up -d --build
 
 # コンパイル生成物を削除（コンテナは残す）
