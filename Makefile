@@ -16,6 +16,9 @@ setup: ssl
 		echo ".env ファイルは既に存在します"; \
 	fi
 	@$(MAKE) _prepare-dirs
+	@echo "📦 npm install を実行しています（husky / lint-staged のセットアップ）..."
+	npm install
+	@echo "✅ git フック（lint-staged）が有効になりました"
 
 # uploadsディレクトリをホスト側（現在のユーザー権限）で事前作成する
 # 理由: Docker が root 権限でディレクトリを作る前に
