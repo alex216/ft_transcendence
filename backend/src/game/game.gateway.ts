@@ -52,6 +52,9 @@ export class GameGateway {
 	@SubscribeMessage("joinQueue")
 	handleJoinQueue(@ConnectedSocket() client: Socket) {
 		const userId = this.extractUserId(client);
+		console.log(
+			`[GameConnect] User:${userId} connected with Socket:${client.id}`,
+		);
 		this.gameService.addToQueue(client, this.server, userId);
 	}
 

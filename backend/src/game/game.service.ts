@@ -197,6 +197,9 @@ export class GameService {
 			server.to(roomId).emit("gameOver", { winner: winnerId });
 
 			// DBへ試合結果を保存（非同期）
+			console.log(
+				`[MatchSaved] WinnerUser:${winnerUserId} (Socket:${winnerId}) vs LoserUser:${loserUserId}`,
+			);
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
 			this.games.delete(roomId);
