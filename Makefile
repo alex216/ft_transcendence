@@ -24,6 +24,10 @@ setup: ssl
 # 理由: Docker が root 権限でディレクトリを作る前に
 #       ホストユーザーが先に作ることで root 所有になるのを防ぐ
 _prepare-dirs:
+	@if [ -d backend/uploads ] && [ ! -w backend/uploads ]; then \
+		echo "⚠️  backend/uploads/ が root 権限です。削除して再作成します..."; \
+		rm -rf backend/uploads; \
+	fi
 	@mkdir -p backend/uploads/avatars
 	@touch backend/uploads/.gitkeep
 	@echo "✅ backend/uploads/ を準備しました (owner: $$(whoami))"
