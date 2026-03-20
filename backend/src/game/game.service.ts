@@ -28,6 +28,8 @@ interface GameInternalState extends GameState {
 	dy: number;
 	p1Id: string;
 	p2Id: string;
+	p1UserId?: number; // 認証済みユーザーのDB ID（統計用）
+	p2UserId?: number;
 	interval: NodeJS.Timeout | null;
 }
 
@@ -39,34 +41,49 @@ export class GameService {
 	) {}
 
 	private games = new Map<string, GameInternalState>();
-	private queue: Socket[] = [];
+	// キューにユーザーIDも一緒に保持する
+	private queue: { socket: Socket; userId?: number }[] = [];
 
 	// マッチメイキング
-	addToQueue(client: Socket, server: Server) {
-		console.log(`[Game] Player joined queue: ${client.id}`);
+	addToQueue(client: Socket, server: Server, userId?: number) {
+		console.log(`[Game] Player joined queue: ${client.id} (userId: ${userId})`);
 
-		if (this.queue.find((s) => s.id === client.id)) return;
-		this.queue.push(client);
+		if (this.queue.find((q) => q.socket.id === client.id)) return;
+		this.queue.push({ socket: client, userId });
 		console.log(
 			"Queue:",
-			this.queue.map((s) => s.id),
+			this.queue.map((q) => q.socket.id),
 		);
 
 		if (this.queue.length >= 2) {
 			console.log(`[Game] Match found! Starting game...`);
 			const p1 = this.queue.shift()!;
 			const p2 = this.queue.shift()!;
-			const roomId = `room_${p1.id}`;
+			const roomId = `room_${p1.socket.id}`;
 
-			p1.join(roomId);
-			p2.join(roomId);
+			p1.socket.join(roomId);
+			p2.socket.join(roomId);
 
-			this.initGame(roomId, p1.id, p2.id, server);
+			this.initGame(
+				roomId,
+				p1.socket.id,
+				p2.socket.id,
+				server,
+				p1.userId,
+				p2.userId,
+			);
 		}
 	}
 
 	// ゲームの初期化
-	initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
+	initGame(
+		roomId: string,
+		p1Id: string,
+		p2Id: string,
+		server: Server,
+		p1UserId?: number,
+		p2UserId?: number,
+	) {
 		const initialState: GameInternalState = {
 			ball: { ...FIELD_CENTER },
 			leftPaddleY: STARTING_POSITION,
@@ -78,6 +95,8 @@ export class GameService {
 			dy: SPEED_BASE,
 			p1Id,
 			p2Id,
+			p1UserId,
+			p2UserId,
 			interval: null,
 		};
 
@@ -152,14 +171,26 @@ export class GameService {
 		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
 			clearInterval(game.interval);
 
-			const winnerId = game.leftScore >= MAX_SCORE ? game.p1Id : game.p2Id;
-			const loserId = game.leftScore >= MAX_SCORE ? game.p2Id : game.p1Id;
+			const isP1Winner = game.leftScore >= MAX_SCORE;
+			const winnerId = isP1Winner ? game.p1Id : game.p2Id;
+			const loserId = isP1Winner ? game.p2Id : game.p1Id;
+			const winnerUserId = isP1Winner ? game.p1UserId : game.p2UserId;
+			const loserUserId = isP1Winner ? game.p2UserId : game.p1UserId;
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
 			const loserScore = Math.min(game.leftScore, game.rightScore);
 
 			// 最終スコアを送信（11点を反映）
 			/* eslint-disable @typescript-eslint/no-unused-vars */
-			const { dx, dy, p1Id, p2Id, interval, ...finalState } = game;
+			const {
+				dx,
+				dy,
+				p1Id,
+				p2Id,
+				p1UserId,
+				p2UserId,
+				interval,
+				...finalState
+			} = game;
 			/* eslint-enable @typescript-eslint/no-unused-vars */
 			server.to(roomId).emit("updateState", finalState);
 
@@ -167,7 +198,14 @@ export class GameService {
 			server.to(roomId).emit("gameOver", { winner: winnerId });
 
 			// DBへ試合結果を保存（非同期）
-			this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+			this.saveMatchResult(
+				winnerId,
+				loserId,
+				winnerScore,
+				loserScore,
+				winnerUserId,
+				loserUserId,
+			);
 
 			this.games.delete(roomId);
 			return;
@@ -186,11 +224,15 @@ export class GameService {
 		lId: string,
 		wScore: number,
 		lScore: number,
+		wUserId?: number,
+		lUserId?: number,
 	) {
 		try {
 			const history = this.matchHistoryRepository.create({
 				winnerId: wId,
 				loserId: lId,
+				winnerUserId: wUserId,
+				loserUserId: lUserId,
 				winnerScore: wScore,
 				loserScore: lScore,
 			});
@@ -236,10 +278,10 @@ export class GameService {
 		console.log(`[GameService] Handling disconnect: ${client.id}`);
 
 		// disconnected人をQueueから消す
-		this.queue = this.queue.filter((s) => s.id !== client.id);
+		this.queue = this.queue.filter((q) => q.socket.id !== client.id);
 		console.log(
 			"Queue:",
-			this.queue.map((s) => s.id),
+			this.queue.map((q) => q.socket.id),
 		);
 
 		// 試合中だったら。。。
@@ -253,6 +295,8 @@ export class GameService {
 				const isP1 = game.p1Id === client.id;
 				const winnerId = isP1 ? game.p2Id : game.p1Id;
 				const loserId = client.id;
+				const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
+				const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
 
 				// 試合終了の知らせ
 				server.to(roomId).emit("gameOver", {
@@ -263,7 +307,14 @@ export class GameService {
 				// DBにセーブ
 				const winnerScore = MAX_SCORE;
 				const loserScore = isP1 ? game.leftScore : game.rightScore;
-				this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+				this.saveMatchResult(
+					winnerId,
+					loserId,
+					winnerScore,
+					loserScore,
+					winnerUserId,
+					loserUserId,
+				);
 
 				this.games.delete(roomId);
 				break;

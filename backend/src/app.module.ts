@@ -7,6 +7,8 @@ import { ProfileModule } from "./profile/profile.module";
 import { FriendModule } from "./friend/friend.module";
 import { ChatModule } from "./chat/chat.module";
 import { GameModule } from "./game/game.module";
+import { StatsModule } from "./stats/stats.module";
+import { GdprModule } from "./gdpr/gdpr.module";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
@@ -21,6 +23,8 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 		FriendModule, // フレンド機能（マイルストーン#3）
 		ChatModule, // チャット機能（マイルストーン#4）
 		GameModule, // ゲーム機能（マイルストーン#4）
+		StatsModule, // ユーザー統計 API（マイルストーン#8）
+		GdprModule, // GDPR対応 API（マイルストーン#8）
 	],
 	providers: [
 		{
