@@ -11,17 +11,10 @@ export class MatchHistory {
 	id: number;
 
 	@Column()
-	winnerId: string; // 勝者のソケットID（後方互換用）
+	winnerUserId: number;
 
 	@Column()
-	loserId: string; // 敗者のソケットID（後方互換用）
-
-	// ユーザーIDで統計を集計するための列（nullable: 認証なしゲームとの後方互換）
-	@Column({ nullable: true })
-	winnerUserId?: number;
-
-	@Column({ nullable: true })
-	loserUserId?: number;
+	loserUserId: number;
 
 	@Column()
 	winnerScore: number;
@@ -30,5 +23,5 @@ export class MatchHistory {
 	loserScore: number;
 
 	@CreateDateColumn()
-	createdAt: Date; // 試合が行われた日時
+	createdAt: Date;
 }

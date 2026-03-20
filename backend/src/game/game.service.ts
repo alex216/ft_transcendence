@@ -173,7 +173,6 @@ export class GameService {
 
 			const isP1Winner = game.leftScore >= MAX_SCORE;
 			const winnerId = isP1Winner ? game.p1Id : game.p2Id;
-			const loserId = isP1Winner ? game.p2Id : game.p1Id;
 			const winnerUserId = isP1Winner ? game.p1UserId : game.p2UserId;
 			const loserUserId = isP1Winner ? game.p2UserId : game.p1UserId;
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
@@ -198,14 +197,7 @@ export class GameService {
 			server.to(roomId).emit("gameOver", { winner: winnerId });
 
 			// DBへ試合結果を保存（非同期）
-			this.saveMatchResult(
-				winnerId,
-				loserId,
-				winnerScore,
-				loserScore,
-				winnerUserId,
-				loserUserId,
-			);
+			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
 			this.games.delete(roomId);
 			return;
@@ -213,15 +205,14 @@ export class GameService {
 
 		// 6. 状態配信
 		/* eslint-disable @typescript-eslint/no-unused-vars */
-		const { dx, dy, p1Id, p2Id, interval, ...publicState } = game;
+		const { dx, dy, p1Id, p2Id, p1UserId, p2UserId, interval, ...publicState } =
+			game;
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 		server.to(roomId).emit("updateState", publicState);
 	}
 
 	// 試合結果をDBに保存する内部メソッド
 	private async saveMatchResult(
-		wId: string,
-		lId: string,
 		wScore: number,
 		lScore: number,
 		wUserId?: number,
@@ -229,8 +220,6 @@ export class GameService {
 	) {
 		try {
 			const history = this.matchHistoryRepository.create({
-				winnerId: wId,
-				loserId: lId,
 				winnerUserId: wUserId,
 				loserUserId: lUserId,
 				winnerScore: wScore,
@@ -294,7 +283,6 @@ export class GameService {
 
 				const isP1 = game.p1Id === client.id;
 				const winnerId = isP1 ? game.p2Id : game.p1Id;
-				const loserId = client.id;
 				const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
 				const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
 
@@ -308,8 +296,6 @@ export class GameService {
 				const winnerScore = MAX_SCORE;
 				const loserScore = isP1 ? game.leftScore : game.rightScore;
 				this.saveMatchResult(
-					winnerId,
-					loserId,
 					winnerScore,
 					loserScore,
 					winnerUserId,

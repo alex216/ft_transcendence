@@ -15,7 +15,7 @@ export interface MatchHistoryEntry {
 	result: "win" | "loss";
 	myScore: number;
 	opponentScore: number;
-	opponentUserId: number | null;
+	opponentUserId: number;
 	playedAt: Date;
 }
 
@@ -55,9 +55,7 @@ export class StatsService {
 				result: isWin ? "win" : "loss",
 				myScore: isWin ? r.winnerScore : r.loserScore,
 				opponentScore: isWin ? r.loserScore : r.winnerScore,
-				opponentUserId: isWin
-					? (r.loserUserId ?? null)
-					: (r.winnerUserId ?? null),
+				opponentUserId: isWin ? r.loserUserId : r.winnerUserId,
 				playedAt: r.createdAt,
 			};
 		});
