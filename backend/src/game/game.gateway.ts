@@ -63,6 +63,12 @@ export class GameGateway {
 		}
 	}
 
+	@SubscribeMessage("joinAIGame")
+	handleJoinAIGame(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.createAIGame(client, userId, this.server);
+	}
+
 	@SubscribeMessage("joinQueue")
 	handleJoinQueue(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;

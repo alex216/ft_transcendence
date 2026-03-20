@@ -19,6 +19,7 @@ import {
 	MAX_SCORE,
 	ANGLE_CHANGE,
 	PAD_SPEED,
+	AI_ID,
 } from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
@@ -39,10 +40,126 @@ export class GameService {
 		private readonly matchHistoryRepository: Repository<MatchHistory>,
 	) {}
 
+	private AIgames = new Map<string, GameInternalState>();
 	private games = new Map<string, GameInternalState>();
 	private queue: Socket[] = [];
 	// added to track better players reconnecting
 	private socketToPlayer = new Map<string, number>();
+
+	createAIGame(client: Socket, playerId: number, server: Server) {
+		console.log(`[Game] Starting AI game for player ${playerId}`);
+
+		const roomId = `ai_${client.id}`;
+		client.join(roomId);
+
+		const initialState: GameInternalState = {
+			ball: { ...FIELD_CENTER },
+			leftPaddleY: STARTING_POSITION,
+			rightPaddleY: STARTING_POSITION,
+			leftScore: 0,
+			rightScore: 0,
+			isPaused: false,
+			dx: SPEED_BASE,
+			dy: SPEED_BASE,
+			p1Id: playerId,
+			p2Id: AI_ID,
+			interval: null,
+		};
+
+		const interval = setInterval(() => {
+			this.AIgameLoop(roomId, server);
+		}, 1000 / 60);
+
+		initialState.interval = interval;
+		this.AIgames.set(roomId, initialState);
+	}
+
+	private AIgameLoop(roomId: string, server: Server) {
+		const game = this.AIgames.get(roomId);
+		if (!game || game.isPaused) return;
+
+		// 1. ball movement
+		game.ball.x += game.dx;
+		game.ball.y += game.dy;
+
+		// 2. up and down bounce
+		if (
+			(game.dy < 0 && game.ball.y <= 0) ||
+			(game.dy > 0 && game.ball.y >= FIELD_HEIGHT)
+		) {
+			game.dy *= -1;
+		}
+
+		// 3. player paddle collision
+		if (
+			game.dx < 0 &&
+			game.ball.x <= LEFTPAD_RIGHTMOST &&
+			game.ball.x >= LEFTPAD_LEFTMOST
+		) {
+			if (
+				game.ball.y >= game.leftPaddleY &&
+				game.ball.y <= game.leftPaddleY + PAD_LENGTH
+			) {
+				const hitPos = (game.ball.y - game.leftPaddleY) / PAD_LENGTH;
+				game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dx *= SPEED_CHANGE;
+			}
+		}
+
+		// 4. AI paddle movement
+		const aiSpeed = 3; // px per frame
+		if (game.dx > 0) {
+			// muovi il paddle AI verso la palla
+			if (game.ball.y > game.rightPaddleY + PAD_LENGTH / 2) {
+				game.rightPaddleY = Math.min(
+					FIELD_HEIGHT - PAD_LENGTH,
+					game.rightPaddleY + aiSpeed,
+				);
+			} else {
+				game.rightPaddleY = Math.max(0, game.rightPaddleY - aiSpeed);
+			}
+
+			// AI paddle collision
+			if (
+				game.ball.x >= RIGHTPAD_LEFTMOST &&
+				game.ball.x <= RIGHTPAD_RIGHTMOST
+			) {
+				if (
+					game.ball.y >= game.rightPaddleY &&
+					game.ball.y <= game.rightPaddleY + PAD_LENGTH
+				) {
+					const hitPos = (game.ball.y - game.rightPaddleY) / PAD_LENGTH;
+					game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+					game.dx *= SPEED_CHANGE;
+				}
+			}
+		}
+
+		// 5. check for gameover
+		if (game.ball.x <= 0 || game.ball.x >= FIELD_WIDTH) {
+			if (game.ball.x <= 0) game.rightScore++;
+			else game.leftScore++;
+
+			game.ball = { ...FIELD_CENTER };
+			game.dx = game.dx > 0 ? -SPEED_BASE : SPEED_BASE;
+			game.dy = SPEED_BASE;
+		}
+
+		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
+			clearInterval(game.interval);
+			this.AIgames.delete(roomId);
+
+			const winnerId = game.leftScore >= MAX_SCORE ? game.p1Id : game.p2Id;
+			const loserId = game.leftScore >= MAX_SCORE ? game.p2Id : game.p1Id;
+
+			server.to(roomId).emit("gameOver", { winner: winnerId });
+			// not saving result for aiGames
+		}
+
+		// sending status to the client
+		const { dx, dy, p1Id, p2Id, interval, ...publicState } = game;
+		server.to(roomId).emit("updateState", publicState);
+	}
 
 	// マッチメイキング
 	addToQueue(client: Socket, playerId: number, server: Server) {
@@ -312,6 +429,20 @@ export class GameService {
 
 					this.games.delete(roomId);
 				}, 15000);
+				return;
+			}
+		}
+
+		// AI matches
+		for (const [roomId, game] of this.AIgames.entries()) {
+			if (game.p1Id === playerId) {
+				console.log(`[GameService] Player disconnected from AI game ${roomId}`);
+				if (game.interval) clearInterval(game.interval);
+				this.AIgames.delete(roomId);
+				server.to(roomId).emit("gameOver", {
+					winner: 0,
+					reason: "disconnectAI",
+				});
 				break;
 			}
 		}
