@@ -12,6 +12,7 @@ import HistoryPage from "./components/HistoryPage";
 import LeaderboardPage from "./components/LeaderboardPage";
 import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
 import ChatPage from "./components/ChatPage";
+import LegalModal, { LegalType } from "./components/LegalModal";
 import "./App.css";
 
 type Page =
@@ -40,10 +41,14 @@ function App() {
 	const [message, setMessage] = useState("");
 
 	// Game context（OnlinePage → GamePage 連携用）
+	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
 	const [gameRoomId, setGameRoomId] = useState<string | null>(null);
 	const [gameOpponent, setGameOpponent] = useState<
 		OnlineStartPayload["opponent"] | null
 	>(null);
+
+	// Legal modal
+	const [legalModal, setLegalModal] = useState<LegalType | null>(null);
 
 	// DM context（FriendList → ChatPage 連携用）
 	const [dmTarget, setDmTarget] = useState<{
@@ -331,7 +336,20 @@ function App() {
 							</div>
 						</nav>
 
-						<main className="main-content">{renderContent()}</main>
+						<main className="main-content">
+						<div className="main-content-inner">{renderContent()}</div>
+						<footer className="app-footer">
+							<span>{t("legal.footer.rights")}</span>
+							<div className="app-footer-links">
+								<button onClick={() => setLegalModal("privacy")}>
+									{t("legal.footer.privacy")}
+								</button>
+								<button onClick={() => setLegalModal("terms")}>
+									{t("legal.footer.terms")}
+								</button>
+							</div>
+						</footer>
+					</main>
 					</>
 				) : (
 					<>
@@ -388,11 +406,25 @@ function App() {
 
 								{message && <p className="message">{message}</p>}
 							</div>
-						</div>
-					</>
-				)}
-			</div>
+						<footer className="app-footer">
+							<span>{t("legal.footer.rights")}</span>
+							<div className="app-footer-links">
+								<button onClick={() => setLegalModal("privacy")}>
+									{t("legal.footer.privacy")}
+								</button>
+								<button onClick={() => setLegalModal("terms")}>
+									{t("legal.footer.terms")}
+								</button>
+							</div>
+						</footer>
+					</div>
+				</>
+			)}
+			{legalModal && (
+				<LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
+			)}
 		</div>
+	</div>
 	);
 }
 

@@ -184,5 +184,46 @@
 			"requestRejected": "Friend request rejected",
 			"friendRemoved": "Friend removed"
 		}
+	},
+	"legal": {
+		"footer": {
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service",
+			"rights": "© 2026 ft_transcendence. All rights reserved."
+		},
+		"privacy": {
+			"title": "Privacy Policy",
+			"updated": "Last updated: March 17, 2026",
+			"intro": "This Privacy Policy describes how ft_transcendence collects, uses, and protects your personal information.",
+			"s1Title": "1. Information We Collect",
+			"s1Body": "We collect: username and password (encrypted with bcrypt), profile information (display name, bio, avatar), game statistics and match history, friend relationships, and chat messages.",
+			"s2Title": "2. How We Use Your Information",
+			"s2Body": "Your information is used to: provide and improve the service, manage your account and authentication, enable multiplayer features and social interactions, and display leaderboards and match history.",
+			"s3Title": "3. Data Security",
+			"s3Body": "Passwords are stored using bcrypt hashing. Data is transmitted over secure connections. We implement appropriate technical measures to protect your personal data against unauthorized access.",
+			"s4Title": "4. Data Retention",
+			"s4Body": "Your data is retained as long as your account is active. You may request deletion of your account and all associated data by contacting the administrators.",
+			"s5Title": "5. Your Rights (GDPR)",
+			"s5Body": "Under GDPR, you have the right to: access your personal data, correct inaccurate data, request deletion of your data, object to data processing, and request data portability.",
+			"s6Title": "6. Contact",
+			"s6Body": "For privacy-related inquiries, please contact the project administrators through the 42 school platform."
+		},
+		"terms": {
+			"title": "Terms of Service",
+			"updated": "Last updated: March 17, 2026",
+			"intro": "By using ft_transcendence, you agree to these Terms of Service. Please read them carefully before creating an account.",
+			"s1Title": "1. Acceptance of Terms",
+			"s1Body": "By creating an account or using the service, you agree to these Terms of Service and our Privacy Policy. If you do not agree with any part of these terms, please do not use the service.",
+			"s2Title": "2. User Accounts",
+			"s2Body": "You are responsible for maintaining the security of your account credentials. You must not share your password or use another user's account. You must be at least 13 years old to use this service.",
+			"s3Title": "3. Acceptable Use",
+			"s3Body": "You agree not to: use the service for any illegal purpose, harass or abuse other users, attempt to circumvent security measures, reverse engineer or modify the service, or upload harmful content.",
+			"s4Title": "4. User Content",
+			"s4Body": "You retain ownership of content you submit (profile information, chat messages). By submitting content, you grant us a license to use it to operate the service. We reserve the right to remove content that violates these terms.",
+			"s5Title": "5. Disclaimer",
+			"s5Body": "This service is provided as-is for educational purposes as part of the 42 school curriculum. We make no warranties about availability, accuracy, or fitness for any particular purpose.",
+			"s6Title": "6. Changes to Terms",
+			"s6Body": "We may update these terms at any time. Continued use of the service after changes are posted constitutes your acceptance of the revised terms."
+		}
 	}
 }
