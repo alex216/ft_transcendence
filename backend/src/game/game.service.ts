@@ -14,7 +14,6 @@ import {
 	RIGHTPAD_LEFTMOST,
 	RIGHTPAD_RIGHTMOST,
 	STARTING_POSITION,
-	UPPER_LIMIT,
 	SPEED_BASE,
 	SPEED_CHANGE,
 	MAX_SCORE,
@@ -26,11 +25,11 @@ import {
 interface GameInternalState extends GameState {
 	dx: number;
 	dy: number;
-	p1Id: string;
-	p2Id: string;
+	p1Id: number;
+	p2Id: number;
 	interval: NodeJS.Timeout | null;
 	disconnectTimer?: NodeJS.Timeout | null;
-	disconnectedPlayerId?: string;
+	disconnectedPlayerId?: number;
 }
 
 @Injectable()
@@ -43,10 +42,10 @@ export class GameService {
 	private games = new Map<string, GameInternalState>();
 	private queue: Socket[] = [];
 	// added to track better players reconnecting
-	private socketToPlayer = new Map<string, string>();
+	private socketToPlayer = new Map<string, number>();
 
 	// マッチメイキング
-	addToQueue(client: Socket, playerId: string, server: Server) {
+	addToQueue(client: Socket, playerId: number, server: Server) {
 		console.log(`[Game] Player joined queue: ${playerId}`);
 
 		if (this.queue.find((s) => s.id === client.id)) return;
@@ -78,7 +77,7 @@ export class GameService {
 	}
 
 	// ゲームの初期化
-	initGame(roomId: string, p1Id: string, p2Id: string, server: Server) {
+	initGame(roomId: string, p1Id: number, p2Id: number, server: Server) {
 		const initialState: GameInternalState = {
 			ball: { ...FIELD_CENTER },
 			leftPaddleY: STARTING_POSITION,
@@ -163,6 +162,7 @@ export class GameService {
 		// 5. 終了判定とDB保存
 		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
 			clearInterval(game.interval);
+			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
 
 			const winnerId = game.leftScore >= MAX_SCORE ? game.p1Id : game.p2Id;
 			const loserId = game.leftScore >= MAX_SCORE ? game.p2Id : game.p1Id;
@@ -179,7 +179,12 @@ export class GameService {
 			server.to(roomId).emit("gameOver", { winner: winnerId });
 
 			// DBへ試合結果を保存（非同期）
-			this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+			this.saveMatchResult(
+				winnerId.toString(),
+				loserId.toString(),
+				winnerScore,
+				loserScore,
+			);
 
 			this.games.delete(roomId);
 			return;
@@ -213,7 +218,7 @@ export class GameService {
 		}
 	}
 
-	movePaddleUp(playerId: string) {
+	movePaddleUp(playerId: number) {
 		for (const [, game] of this.games.entries()) {
 			if (game.p1Id === playerId) {
 				game.leftPaddleY = Math.max(0, game.leftPaddleY - PAD_SPEED);
@@ -225,7 +230,7 @@ export class GameService {
 		}
 	}
 
-	movePaddleDown(playerId: string) {
+	movePaddleDown(playerId: number) {
 		for (const [, game] of this.games.entries()) {
 			if (game.p1Id === playerId) {
 				game.leftPaddleY = Math.min(
@@ -243,42 +248,12 @@ export class GameService {
 		}
 	}
 
-	// updatePaddle(playerId: string, y: number) {
-	// 	//managing bad y
-	// 	if (y < 0 || y > UPPER_LIMIT) {
-	// 		console.error("[Game]怪しいｙが気まあしてアレンジします。");
-	// 		if (y < 0) y = 0;
-	// 		else y = UPPER_LIMIT;
-	// 	}
-	// 	for (const [, game] of this.games.entries()) {
-	// 		// ★ roomId を消して「,」だけにする
-	// 		if (game.p1Id === playerId) {
-	// 			if (Math.abs(game.leftPaddleY - y) > PAD_SPEED) {
-	// 				console.log(
-	// 					"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
-	// 				);
-	// 				return;
-	// 			}
-	// 			game.leftPaddleY = y;
-	// 			break;
-	// 		} else if (game.p2Id === playerId) {
-	// 			if (Math.abs(game.rightPaddleY - y) > PAD_SPEED) {
-	// 				console.log(
-	// 					"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
-	// 				);
-	// 				return;
-	// 			}
-	// 			game.rightPaddleY = y;
-	// 			break;
-	// 		}
-	// 	}
-	// }
-
 	handleDisconnect(client: Socket, server: Server) {
 		console.log(`[GameService] Handling disconnect: ${client.id}`);
 
 		// clearing the mapping
 		const playerId = this.socketToPlayer.get(client.id);
+		if (playerId === undefined) return;
 		this.socketToPlayer.delete(client.id);
 
 		// disconnected人をQueueから消す
@@ -317,7 +292,7 @@ export class GameService {
 					game.interval = null;
 
 					const winnerId = otherId;
-					const loserId = game.disconnectedPlayerId;
+					const loserId = game.disconnectedPlayerId ?? playerId;
 
 					server.to(roomId).emit("gameOver", {
 						winner: winnerId,
@@ -328,7 +303,12 @@ export class GameService {
 					const winnerScore = MAX_SCORE;
 					const loserScore =
 						game.p1Id === playerId ? game.leftScore : game.rightScore;
-					this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+					this.saveMatchResult(
+						winnerId.toString(),
+						loserId.toString(),
+						winnerScore,
+						loserScore,
+					);
 
 					this.games.delete(roomId);
 				}, 15000);
@@ -341,7 +321,7 @@ export class GameService {
 		client: Socket,
 		roomId: string,
 		server: Server,
-		playerId: string,
+		playerId: number,
 	) {
 		const game = this.games.get(roomId);
 		if (!game || game.disconnectedPlayerId !== playerId) return;
@@ -381,7 +361,7 @@ export class GameService {
 		}
 	}
 
-	handleSurrender(client: Socket, server: Server, playerId: string) {
+	handleSurrender(client: Socket, server: Server, playerId: number) {
 		console.log(`[GameService] Player surrendered: ${playerId}`);
 
 		for (const [roomId, game] of this.games.entries()) {
@@ -405,7 +385,12 @@ export class GameService {
 				const winnerScore = MAX_SCORE;
 				const loserScore = isP1 ? game.leftScore : game.rightScore;
 
-				this.saveMatchResult(winnerId, loserId, winnerScore, loserScore);
+				this.saveMatchResult(
+					winnerId.toString(),
+					loserId.toString(),
+					winnerScore,
+					loserScore,
+				);
 
 				this.games.delete(roomId);
 				break;

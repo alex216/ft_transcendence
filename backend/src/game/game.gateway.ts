@@ -7,77 +7,97 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { GameService } from "./game.service";
-import { PaddleMoveDto } from "../../../shared/game.interface";
+import { AuthService } from "../auth/auth.service";
+import { UnauthorizedException } from "@nestjs/common";
+import * as cookie from "cookie";
+
+interface AuthenticatedSocket extends Socket {
+	data: {
+		user: {
+			id: number;
+			username?: string;
+		};
+	};
+}
 
 @WebSocketGateway({
 	cors: {
-		origin: "*",
+		origin: "https://localhost",
+		credentials: true,
 	},
-	namespace: "game", // ゲーム専用の入り口
+	namespace: "game",
 })
 export class GameGateway {
 	@WebSocketServer()
-	server: Server; // ゲームの状態を一斉送信するために使用します
+	server: Server;
 
-	constructor(private readonly gameService: GameService) {}
+	constructor(
+		private readonly gameService: GameService,
+		private readonly authService: AuthService,
+	) {}
 
-	// 1. マッチメイキング待ち列に参加
+	async handleConnection(client: AuthenticatedSocket) {
+		try {
+			const rawCookie = client.handshake.headers.cookie;
+			if (!rawCookie) throw new UnauthorizedException();
+
+			const cookies = cookie.parse(rawCookie);
+			const token = cookies["access_token"];
+			if (!token) throw new UnauthorizedException();
+
+			let payload: { sub: number };
+
+			if (token) {
+				// TODO: substitute with authService.verifyTokenForSocket when it will be ready
+				payload = { sub: parseInt(token) }; // dummy: using token
+			} else {
+				// Dummy fallback for local testing: random ID
+				payload = { sub: Math.floor(Math.random() * 1000) + 1 };
+			}
+			client.data.user = { id: payload.sub };
+
+			console.log(`[WS] Connected user: ${client.data.user.id}`);
+		} catch (e) {
+			console.log("[WS] Unauthorized connection");
+			client.disconnect();
+		}
+	}
+
 	@SubscribeMessage("joinQueue")
-	handleJoinQueue(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { playerId: string },
-	) {
-		this.gameService.addToQueue(client, data.playerId, this.server);
+	handleJoinQueue(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.addToQueue(client, userId, this.server);
 	}
 
-	// 2. プレイヤーのパドル操作を受信
-	// @SubscribeMessage("movePaddle")
-	// handleMove(
-	// 	@ConnectedSocket() client: Socket,
-	// 	@MessageBody() data: PaddleMoveDto,
-	// ) {
-	// 	// どの部屋の、どのプレイヤーが動いたかをServiceに伝える
-	// 	this.gameService.updatePaddle(client.id, data.y);
-	// }
-
-	//2.1 UP
 	@SubscribeMessage("moveUp")
-	handleMoveUp(@MessageBody() data: { playerId: string }) {
-		this.gameService.movePaddleUp(data.playerId);
+	handleMoveUp(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.movePaddleUp(userId);
 	}
 
-	//2.2 DOWN
 	@SubscribeMessage("moveDown")
-	handleMoveDown(@MessageBody() data: { playerId: string }) {
-		this.gameService.movePaddleDown(data.playerId);
+	handleMoveDown(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.movePaddleDown(userId);
 	}
 
-	// 3. Disconnection
-	handleDisconnect(client: Socket) {
+	handleDisconnect(client: AuthenticatedSocket) {
 		console.log(`[Gateway] Disconnected: ${client.id}`);
 		this.gameService.handleDisconnect(client, this.server);
 	}
 
-	// 4. Reconnection
 	@SubscribeMessage("reconnectGame")
 	handleReconnect(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { roomId: string; playerId: string },
+		@ConnectedSocket() client: AuthenticatedSocket,
+		@MessageBody() data: { roomId: string },
 	) {
-		this.gameService.handleReconnect(
-			client,
-			data.roomId,
-			this.server,
-			data.playerId,
-		);
+		const userId = client.data.user.id;
+		this.gameService.handleReconnect(client, data.roomId, this.server, userId);
 	}
 
-	// 5. Resignation
 	@SubscribeMessage("surrender")
-	handleSurrender(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { playerId: string },
-	) {
-		this.gameService.handleSurrender(client, this.server, data.playerId);
+	handleSurrender(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.handleSurrender(client, this.server, userId);
 	}
 }
