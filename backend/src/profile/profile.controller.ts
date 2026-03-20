@@ -6,7 +6,6 @@ import {
 	Delete,
 	Body,
 	Param,
-	UseGuards,
 	Req,
 	UseInterceptors,
 	UploadedFile,
@@ -21,7 +20,6 @@ import { ProfileService } from "./profile.service";
 interface AuthenticatedRequest extends Request {
 	user: { id: number; username: string };
 }
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 import {
 	UpdateProfileResponse,
@@ -42,7 +40,6 @@ export class ProfileController {
 
 	// GET /profile/me - 自分のプロフィール取得
 	@Get("me")
-	@UseGuards(JwtAuthGuard)
 	async getMyProfile(
 		@Req() req: AuthenticatedRequest,
 	): Promise<GetProfileResponse> {
@@ -63,7 +60,6 @@ export class ProfileController {
 
 	// PUT /profile/me - プロフィール更新
 	@Put("me")
-	@UseGuards(JwtAuthGuard)
 	async updateProfile(
 		@Req() req: AuthenticatedRequest,
 		@Body() updateData: UpdateProfileDto,
@@ -83,7 +79,6 @@ export class ProfileController {
 
 	// POST /profile/avatar - アバターアップロード
 	@Post("avatar")
-	@UseGuards(JwtAuthGuard)
 	@UseInterceptors(
 		FileInterceptor("avatar", {
 			storage: diskStorage({
@@ -130,7 +125,6 @@ export class ProfileController {
 
 	// DELETE /profile/avatar - アバター削除
 	@Delete("avatar")
-	@UseGuards(JwtAuthGuard)
 	async deleteAvatar(
 		@Req() req: AuthenticatedRequest,
 	): Promise<DeleteAvatarResponse> {

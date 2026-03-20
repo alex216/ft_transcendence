@@ -5,7 +5,6 @@ import {
 	Delete,
 	Body,
 	Param,
-	UseGuards,
 	Req,
 	BadRequestException,
 } from "@nestjs/common";
@@ -15,7 +14,6 @@ import { FriendService } from "./friend.service";
 interface AuthenticatedRequest extends Request {
 	user: { id: number; username: string };
 }
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import {
 	SendFriendRequestRequest,
 	SendFriendRequestResponse,
@@ -33,7 +31,6 @@ export class FriendController {
 
 	// POST /friends/request - フレンドリクエスト送信
 	@Post("request")
-	@UseGuards(JwtAuthGuard)
 	async sendFriendRequest(
 		@Req() req: AuthenticatedRequest,
 		@Body() body: SendFriendRequestRequest,
@@ -65,7 +62,6 @@ export class FriendController {
 
 	// POST /friends/accept/:requestId - フレンドリクエスト承認
 	@Post("accept/:requestId")
-	@UseGuards(JwtAuthGuard)
 	async acceptFriendRequest(
 		@Req() req: AuthenticatedRequest,
 		@Param("requestId") requestId: string,
@@ -84,7 +80,6 @@ export class FriendController {
 
 	// POST /friends/reject/:requestId - フレンドリクエスト拒否
 	@Post("reject/:requestId")
-	@UseGuards(JwtAuthGuard)
 	async rejectFriendRequest(
 		@Req() req: AuthenticatedRequest,
 		@Param("requestId") requestId: string,
@@ -103,7 +98,6 @@ export class FriendController {
 
 	// DELETE /friends/:friendId - フレンド削除
 	@Delete(":friendId")
-	@UseGuards(JwtAuthGuard)
 	async removeFriend(
 		@Req() req: AuthenticatedRequest,
 		@Param("friendId") friendId: string,
@@ -122,7 +116,6 @@ export class FriendController {
 
 	// GET /friends - フレンドリスト取得
 	@Get()
-	@UseGuards(JwtAuthGuard)
 	async getFriends(
 		@Req() req: AuthenticatedRequest,
 	): Promise<GetFriendsResponse> {
@@ -132,7 +125,6 @@ export class FriendController {
 
 	// GET /friends/requests - フレンドリクエスト一覧取得
 	@Get("requests")
-	@UseGuards(JwtAuthGuard)
 	async getFriendRequests(
 		@Req() req: AuthenticatedRequest,
 	): Promise<GetFriendRequestsResponse> {
@@ -142,7 +134,6 @@ export class FriendController {
 
 	// GET /friends/status/:userId - 特定ユーザーとのフレンド状態を取得
 	@Get("status/:userId")
-	@UseGuards(JwtAuthGuard)
 	async getFriendStatus(
 		@Req() req: AuthenticatedRequest,
 		@Param("userId") userId: string,

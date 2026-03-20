@@ -140,17 +140,7 @@ async function bootstrap() {
 		});
 		console.log("🛡️  CSRF Protection: Enabled");
 	} else {
-		// SKIP_AUTH=true のときは認証も CSRF も無効化（開発用）
-		app.use(
-			(
-				req: Request & { user?: unknown },
-				_res: Response,
-				next: NextFunction,
-			) => {
-				req.user = { id: 1, username: "test_user" };
-				next();
-			},
-		);
+		// SKIP_AUTH=true のときは CSRF を無効化（認証バイパスは JwtAuthGuard が担当）
 		console.log("🚀 Development Mode: Authentication & CSRF Bypassed");
 	}
 
