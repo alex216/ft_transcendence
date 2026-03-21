@@ -11,7 +11,9 @@ setup: ssl
 	@if [ ! -f .env ]; then \
 		echo ".env ファイルを作成しています..."; \
 		cp .env.sample .env; \
-		echo ".env ファイルが作成されました"; \
+		sed -i "s/csrf_secret_key_here/$$(openssl rand -hex 32)/" .env; \
+		sed -i "s/jwt_secret_key_here/$$(openssl rand -hex 32)/" .env; \
+		echo ".env ファイルが作成されました（CSRF_SECRET・JWT_SECRETを自動生成）"; \
 	else \
 		echo ".env ファイルは既に存在します"; \
 	fi
