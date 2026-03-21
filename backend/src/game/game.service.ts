@@ -106,10 +106,9 @@ export class GameService {
 			}
 		}
 
-		// 4. AI paddle movement
-		const aiSpeed = 3; // px per frame
+		// 4. AI paddle behavior (provvisory)
+		const aiSpeed = 3;
 		if (game.dx > 0) {
-			// muovi il paddle AI verso la palla
 			if (game.ball.y > game.rightPaddleY + PAD_LENGTH / 2) {
 				game.rightPaddleY = Math.min(
 					FIELD_HEIGHT - PAD_LENGTH,

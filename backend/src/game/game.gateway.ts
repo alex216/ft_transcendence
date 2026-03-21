@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { GameService } from "./game.service";
 import { AuthService } from "../auth/auth.service";
-import { UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import * as cookie from "cookie";
 
 interface AuthenticatedSocket extends Socket {
@@ -34,31 +34,47 @@ export class GameGateway {
 	constructor(
 		private readonly gameService: GameService,
 		private readonly authService: AuthService,
+		private readonly jwtService: JwtService, // provvisory. waiting for auth.jwt.verifytoken()
 	) {}
 
 	async handleConnection(client: AuthenticatedSocket) {
 		try {
+			let token: string | undefined;
+
+			// try cookie
 			const rawCookie = client.handshake.headers.cookie;
-			if (!rawCookie) throw new UnauthorizedException();
-
-			const cookies = cookie.parse(rawCookie);
-			const token = cookies["access_token"];
-			if (!token) throw new UnauthorizedException();
-
-			let payload: { sub: number };
-
-			if (token) {
-				// TODO: substitute with authService.verifyTokenForSocket when it will be ready
-				payload = { sub: parseInt(token) }; // dummy: using token
-			} else {
-				// Dummy fallback for local testing: random ID
-				payload = { sub: Math.floor(Math.random() * 1000) + 1 };
+			if (rawCookie) {
+				const cookies = cookie.parse(rawCookie);
+				token = cookies["access_token"];
 			}
-			client.data.user = { id: payload.sub };
+
+			console.log("TOKEN:", token);
+
+			if (!token) {
+				console.log("No token → dummy user");
+				client.data.user = { id: Math.floor(Math.random() * 1000) + 1 };
+				return;
+			}
+
+			let payload: any;
+
+			try {
+				// this will have to be replaced by the auth.jwt.tokenverify()
+				payload = this.jwtService.verify(token);
+			} catch (err) {
+				console.log("Invalid token → dummy user");
+				client.data.user = { id: Math.floor(Math.random() * 1000) + 1 };
+				return;
+			}
+
+			client.data.user = {
+				id: payload.sub,
+				username: payload.username,
+			};
 
 			console.log(`[WS] Connected user: ${client.data.user.id}`);
 		} catch (e) {
-			console.log("[WS] Unauthorized connection");
+			console.log("Connection error:", e);
 			client.disconnect();
 		}
 	}
