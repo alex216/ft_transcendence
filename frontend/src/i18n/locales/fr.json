@@ -202,9 +202,9 @@
 			"s3Title": "3. Sécurité des données",
 			"s3Body": "Les mots de passe sont stockés avec le hachage bcrypt. Les données sont transmises via des connexions sécurisées. Nous mettons en œuvre des mesures techniques appropriées pour protéger vos données personnelles contre tout accès non autorisé.",
 			"s4Title": "4. Conservation des données",
-			"s4Body": "Vos données sont conservées tant que votre compte est actif. Vous pouvez demander la suppression de votre compte et de toutes les données associées en contactant les administrateurs.",
+			"s4Body": "Vos données sont conservées pendant toute la durée de vie de votre compte. Vous pouvez effacer immédiatement et complètement toutes vos données (profil, historique des matchs, chat, etc.) à tout moment via la fonctionnalité « Supprimer le compte » dans l'écran des paramètres.",
 			"s5Title": "5. Vos droits (RGPD)",
-			"s5Body": "En vertu du RGPD, vous avez le droit : d'accéder à vos données personnelles, de corriger les données inexactes, de demander la suppression de vos données, de vous opposer au traitement des données, et à la portabilité des données.",
+			"s5Body": "En vertu du RGPD, vous pouvez exercer directement les droits suivants dans le système :\n- Droit à la portabilité des données : vous pouvez obtenir immédiatement l'ensemble de vos données au format JSON via la fonctionnalité « Exporter les données » dans l'écran des paramètres.\n- Droit à l'effacement (droit à l'oubli) : toutes vos données peuvent être complètement supprimées du système via la fonctionnalité « Supprimer le compte » dans l'écran des paramètres.",
 			"s6Title": "6. Contact",
 			"s6Body": "Pour toute question relative à la confidentialité, veuillez contacter les administrateurs du projet via la plateforme 42."
 		},

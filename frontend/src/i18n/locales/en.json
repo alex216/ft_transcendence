@@ -202,9 +202,9 @@
 			"s3Title": "3. Data Security",
 			"s3Body": "Passwords are stored using bcrypt hashing. Data is transmitted over secure connections. We implement appropriate technical measures to protect your personal data against unauthorized access.",
 			"s4Title": "4. Data Retention",
-			"s4Body": "Your data is retained as long as your account is active. You may request deletion of your account and all associated data by contacting the administrators.",
+			"s4Body": "Your data is retained for the duration of your account. You can immediately and completely erase all your data (profile, match history, chat, etc.) at any time via the 'Delete Account' feature in the settings screen.",
 			"s5Title": "5. Your Rights (GDPR)",
-			"s5Body": "Under GDPR, you have the right to: access your personal data, correct inaccurate data, request deletion of your data, object to data processing, and request data portability.",
+			"s5Body": "Under GDPR, you can directly exercise the following rights within the system:\n- Right to data portability: You can instantly obtain all your data in JSON format via the 'Export Data' feature in the settings screen.\n- Right to erasure (right to be forgotten): All data can be completely erased from the system via the 'Delete Account' feature in the settings screen.",
 			"s6Title": "6. Contact",
 			"s6Body": "For privacy-related inquiries, please contact the project administrators through the 42 school platform."
 		},
