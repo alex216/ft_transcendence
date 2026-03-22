@@ -11,4 +11,5 @@ export const databaseConfig: TypeOrmModuleOptions = {
 	database: process.env.DATABASE_NAME || "transcendence_db",
 	entities: [__dirname + "/**/*.entity{.ts,.js}"],
 	synchronize: true, // 開発時のみtrue（本番環境では危険）
+	logging: process.env.NODE_ENV === "development", // 本番環境ではSQLログを無効化（テーブル構造・データの漏洩リスクを排除）
 };
