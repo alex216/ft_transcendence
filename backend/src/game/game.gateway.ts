@@ -33,6 +33,9 @@ export class GameGateway {
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: PaddleMoveDto,
 	) {
+		if (!data || typeof data.y !== "number" || !isFinite(data.y)) {
+			return;
+		}
 		// どの部屋の、どのプレイヤーが動いたかをServiceに伝える
 		this.gameService.updatePaddle(client.id, data.y);
 	}
