@@ -83,19 +83,28 @@ export class GdprService {
 		};
 	}
 
-	// ユーザーアカウントと関連データを全て削除する
+	// ユーザーアカウントと関連データを削除・匿名化する
 	async deleteAccount(userId: number, username: string): Promise<void> {
-		// MatchHistory はユーザーIDで検索して手動削除（外部キー制約なし）
+		// MatchHistory は削除せず匿名化（他ユーザーの試合履歴を壊さないため）
 		await this.matchHistoryRepo
 			.createQueryBuilder()
-			.delete()
-			.where("winnerUserId = :userId OR loserUserId = :userId", { userId })
+			.update()
+			.set({ winnerUserId: null })
+			.where("winnerUserId = :userId", { userId })
 			.execute();
 
-		// Chat は sender（username）で削除
+		await this.matchHistoryRepo
+			.createQueryBuilder()
+			.update()
+			.set({ loserUserId: null })
+			.where("loserUserId = :userId", { userId })
+			.execute();
+
+		// Chat も削除せず匿名化（会話の流れを壊さないため）
 		await this.chatRepo
 			.createQueryBuilder()
-			.delete()
+			.update()
+			.set({ sender: "削除済みユーザー" })
 			.where("sender = :username", { username })
 			.execute();
 
