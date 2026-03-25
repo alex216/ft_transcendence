@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Equal } from "typeorm";
+import { DataSource, Repository, Equal } from "typeorm";
 import { User } from "../user/user.entity";
 import { Profile } from "../profile/profile.entity";
 import { MatchHistory } from "../game/match-history.entity";
@@ -24,6 +24,7 @@ export class GdprService {
 
 		@InjectRepository(Friend)
 		private readonly friendRepo: Repository<Friend>,
+		private readonly dataSource: DataSource,
 	) {}
 
 	// ユーザーの全データをまとめてエクスポートする
@@ -85,30 +86,32 @@ export class GdprService {
 
 	// ユーザーアカウントと関連データを削除・匿名化する
 	async deleteAccount(userId: number, username: string): Promise<void> {
-		// MatchHistory は削除せず匿名化（他ユーザーの試合履歴を壊さないため）
-		await this.matchHistoryRepo
-			.createQueryBuilder()
-			.update()
-			.set({ winnerUserId: null })
-			.where("winnerUserId = :userId", { userId })
-			.execute();
+		await this.dataSource.transaction(async (manager) => {
+			// MatchHistory は削除せず匿名化（他ユーザーの試合履歴を壊さないため）
+			await manager
+				.createQueryBuilder()
+				.update("match_history")
+				.set({ winnerUserId: null })
+				.where("winnerUserId = :userId", { userId })
+				.execute();
 
-		await this.matchHistoryRepo
-			.createQueryBuilder()
-			.update()
-			.set({ loserUserId: null })
-			.where("loserUserId = :userId", { userId })
-			.execute();
+			await manager
+				.createQueryBuilder()
+				.update("match_history")
+				.set({ loserUserId: null })
+				.where("loserUserId = :userId", { userId })
+				.execute();
 
-		// Chat も削除せず匿名化（会話の流れを壊さないため）
-		await this.chatRepo
-			.createQueryBuilder()
-			.update()
-			.set({ sender: "削除済みユーザー" })
-			.where("sender = :username", { username })
-			.execute();
+			// Chat も削除せず匿名化（会話の流れを壊さないため）
+			await manager
+				.createQueryBuilder()
+				.update("chat")
+				.set({ sender: "削除済みユーザー" })
+				.where("sender = :username", { username })
+				.execute();
 
-		// User を削除すると CASCADE で Profile・Friend も消える
-		await this.userRepo.delete({ id: userId });
+			// User を削除すると CASCADE で Profile・Friend も消える
+			await manager.delete("user", { id: userId });
+		});
 	}
 }

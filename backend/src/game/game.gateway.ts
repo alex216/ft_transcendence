@@ -6,6 +6,7 @@ import {
 	WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { parse } from "cookie";
 import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
 import { PaddleMoveDto } from "../../../shared/game.interface";
@@ -30,13 +31,7 @@ export class GameGateway {
 		const cookieHeader = client.handshake.headers.cookie;
 		if (!cookieHeader) return undefined;
 
-		// "key=value; key2=value2" 形式をパース
-		const cookies: Record<string, string> = {};
-		for (const pair of cookieHeader.split(";")) {
-			const [k, ...rest] = pair.trim().split("=");
-			if (k) cookies[k.trim()] = rest.join("=").trim();
-		}
-
+		const cookies = parse(cookieHeader);
 		const token = cookies["access_token"];
 		if (!token) return undefined;
 
