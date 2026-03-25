@@ -19,11 +19,17 @@ import type {
 	GetFriendsResponse,
 	GetFriendRequestsResponse,
 	GetFriendStatusResponse,
+	TwoFASetupResponse,
+	TwoFAResponse,
+	TwoFAVerifyResponse,
 } from "/shared";
 
 // バックエンドAPIとの通信を担当
 // C++で言うと「HTTPクライアント」のようなもの
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// 42 OAuthログインURL（ブラウザがこのURLに遷移する）
+export const FORTY_TWO_AUTH_URL = `${API_URL}/auth/42`;
 
 // axiosの設定（クッキーを送信するために必要）
 const api = axios.create({
@@ -182,5 +188,39 @@ export const getFriendStatus = async (
 	const response = await api.get<GetFriendStatusResponse>(
 		`/friends/status/${userId}`,
 	);
+	return response.data;
+};
+
+// ============================================
+// 2FA API（二要素認証関連）
+// ============================================
+
+// 2FAセットアップ（QRコード取得）
+export const setup2FA = async (): Promise<TwoFASetupResponse> => {
+	const response = await api.post<TwoFASetupResponse>("/auth/2fa/setup");
+	return response.data;
+};
+
+// 2FA有効化（TOTPコードで認証して有効化）
+export const enable2FA = async (token: string): Promise<TwoFAResponse> => {
+	const response = await api.post<TwoFAResponse>("/auth/2fa/enable", {
+		token,
+	});
+	return response.data;
+};
+
+// 2FA無効化
+export const disable2FA = async (): Promise<TwoFAResponse> => {
+	const response = await api.post<TwoFAResponse>("/auth/2fa/disable");
+	return response.data;
+};
+
+// 2FA認証（ログイン時のコード検証）
+export const verify2FA = async (
+	token: string,
+): Promise<TwoFAVerifyResponse> => {
+	const response = await api.post<TwoFAVerifyResponse>("/auth/2fa/verify", {
+		token,
+	});
 	return response.data;
 };
