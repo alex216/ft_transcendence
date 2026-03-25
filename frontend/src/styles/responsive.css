@@ -1,0 +1,170 @@
+/* ============================================ */
+/* デザイントークン（CSS カスタムプロパティ）    */
+/* ============================================ */
+
+:root {
+	/* スペーシング */
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 20px;
+	--space-6: 24px;
+	--space-7: 28px;
+	--space-8: 32px;
+
+	/* カラー */
+	--color-primary: #667eea;
+	--color-primary-dark: #764ba2;
+	--color-success: #28a745;
+	--color-danger: #e74c3c;
+	--color-warning: #ffc107;
+	--color-secondary: #6c757d;
+	--color-text: #333;
+	--color-text-muted: #888;
+	--color-border: #e9ecef;
+	--color-bg-light: #f8f9fa;
+	--color-white: #fff;
+
+	/* タイポグラフィ */
+	--font-size-xs: 0.75rem;
+	--font-size-sm: 0.875rem;
+	--font-size-md: 1rem;
+	--font-size-lg: 1.125rem;
+	--font-size-xl: 1.5rem;
+	--font-size-2xl: 2rem;
+
+	/* ボーダー半径 */
+	--radius-sm: 5px;
+	--radius-md: 10px;
+	--radius-lg: 15px;
+	--radius-full: 999px;
+
+	/* シャドウ */
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+	--shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+	/* サイドバー幅 */
+	--sidebar-width: 250px;
+
+	/* トランジション */
+	--transition-fast: 0.15s ease;
+	--transition-base: 0.3s ease;
+}
+
+/* ============================================ */
+/* ブレークポイント                              */
+/* xs: ~480px  (スマートフォン縦)               */
+/* sm: ~768px  (スマートフォン横 / タブレット)  */
+/* md: ~1024px (タブレット横 / 小さいPC)        */
+/* lg: 1025px+ (デスクトップ)                   */
+/* ============================================ */
+
+/* ============================================ */
+/* モバイル: サイドバーを折りたたみ             */
+/* ============================================ */
+
+@media (max-width: 768px) {
+	/* ログイン後コンテナをタテ方向に */
+	.unified-container.logged-in {
+		flex-direction: column;
+		height: auto;
+		min-height: 100vh;
+		border-radius: 0;
+		max-width: 100%;
+	}
+
+	/* サイドバーを横幅フルに */
+	.sidebar {
+		width: 100%;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		padding: 8px 12px;
+		gap: 8px;
+	}
+
+	.sidebar-header {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.sidebar-header h1 {
+		font-size: 1rem;
+		margin-bottom: 0;
+	}
+
+	/* ナビゲーションをフレックス横並び */
+	.nav-menu {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.nav-menu li {
+		margin: 0;
+	}
+
+	.nav-menu button {
+		padding: 6px 10px;
+		font-size: 0.8rem;
+		border-radius: 6px;
+		white-space: nowrap;
+	}
+
+	.sidebar-footer {
+		margin-left: auto;
+	}
+
+	/* メインコンテンツ高さをautoに */
+	.main-content {
+		flex: 1;
+		overflow-y: auto;
+		height: auto;
+	}
+
+	/* AppをAlignをデフォルトに（padding上書き） */
+	.App {
+		padding: 0;
+		align-items: flex-start;
+	}
+}
+
+/* ============================================ */
+/* 極小画面: スマートフォン縦 480px以下         */
+/* ============================================ */
+
+@media (max-width: 480px) {
+	.nav-menu button {
+		padding: 5px 8px;
+		font-size: 0.75rem;
+	}
+
+	.sidebar-header h1 {
+		display: none; /* ロゴを非表示 */
+	}
+
+	.unified-container.logged-out {
+		padding: 24px 16px;
+	}
+}
+
+/* ============================================ */
+/* テーブルのモバイル対応                       */
+/* ============================================ */
+
+@media (max-width: 600px) {
+	table {
+		font-size: 0.8rem;
+	}
+
+	table th,
+	table td {
+		padding: 8px !important;
+	}
+}
