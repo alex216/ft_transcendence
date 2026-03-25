@@ -9,6 +9,8 @@
 		"profile": "Profile",
 		"friends": "Friends",
 		"requests": "Requests",
+		"stats": "Stats",
+		"settings": "Settings",
 		"logout": "Logout"
 	},
 	"auth": {

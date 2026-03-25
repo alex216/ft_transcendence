@@ -9,6 +9,8 @@
 		"profile": "プロフィール",
 		"friends": "フレンド",
 		"requests": "リクエスト",
+		"stats": "統計",
+		"settings": "設定",
 		"logout": "ログアウト"
 	},
 	"auth": {
