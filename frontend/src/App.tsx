@@ -20,7 +20,10 @@ import LeaderboardPage from "./components/LeaderboardPage";
 import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
 import ChatPage from "./components/ChatPage";
 import LegalModal, { LegalType } from "./components/LegalModal";
+import StatsDashboard from "./components/StatsDashboard";
+import GdprSettings from "./components/GdprSettings";
 import "./App.css";
+import "./styles/responsive.css";
 
 type Page =
 	| "home"
@@ -32,7 +35,9 @@ type Page =
 	| "history"
 	| "leaderboard"
 	| "online"
-	| "chat";
+	| "chat"
+	| "stats"
+	| "settings";
 
 function App() {
 	const { t, i18n } = useTranslation();
@@ -235,6 +240,20 @@ function App() {
 					/>
 				);
 
+			case "stats":
+				return <StatsDashboard />;
+
+			case "settings":
+				return (
+					<GdprSettings
+						onAccountDeleted={() => {
+							setUser(null);
+							setCurrentPage("home");
+							localStorage.removeItem("hasLoggedIn");
+						}}
+					/>
+				);
+
 			default:
 				return null;
 		}
@@ -347,6 +366,24 @@ function App() {
 										{t("nav.requests")}
 									</button>
 								</li>
+
+								<li>
+									<button
+										className={currentPage === "stats" ? "active" : ""}
+										onClick={() => setCurrentPage("stats")}
+									>
+										{t("nav.stats")}
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "settings" ? "active" : ""}
+										onClick={() => setCurrentPage("settings")}
+									>
+										{t("nav.settings")}
+									</button>
+								</li>
 							</ul>
 
 							<div className="sidebar-footer">
@@ -357,19 +394,19 @@ function App() {
 						</nav>
 
 						<main className="main-content">
-						<div className="main-content-inner">{renderContent()}</div>
-						<footer className="app-footer">
-							<span>{t("legal.footer.rights")}</span>
-							<div className="app-footer-links">
-								<button onClick={() => setLegalModal("privacy")}>
-									{t("legal.footer.privacy")}
-								</button>
-								<button onClick={() => setLegalModal("terms")}>
-									{t("legal.footer.terms")}
-								</button>
-							</div>
-						</footer>
-					</main>
+							<div className="main-content-inner">{renderContent()}</div>
+							<footer className="app-footer">
+								<span>{t("legal.footer.rights")}</span>
+								<div className="app-footer-links">
+									<button onClick={() => setLegalModal("privacy")}>
+										{t("legal.footer.privacy")}
+									</button>
+									<button onClick={() => setLegalModal("terms")}>
+										{t("legal.footer.terms")}
+									</button>
+								</div>
+							</footer>
+						</main>
 					</>
 				) : (
 					<>
