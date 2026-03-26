@@ -5,7 +5,7 @@ import {
 	CreateDateColumn,
 } from "typeorm";
 
-@Entity()
+@Entity("match_history")
 export class MatchHistory {
 	@PrimaryGeneratedColumn()
 	id: number;
