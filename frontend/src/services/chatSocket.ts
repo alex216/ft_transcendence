@@ -3,7 +3,7 @@
  * バックエンドの/chatネームスペースと通信
  */
 import { io, Socket } from "socket.io-client";
-import { API_URL, SOCKET_OPTIONS } from "./socketManager";
+import { SOCKET_URL, SOCKET_OPTIONS } from "./socketManager";
 import type { ChatMessage } from "/shared/chat.interface";
 
 // チャット用のSocket.IOクライアント（シングルトン）
@@ -15,7 +15,7 @@ let chatSocket: Socket | null = null;
 export const getChatSocket = (): Socket => {
 	if (!chatSocket) {
 		// /chat ネームスペースに接続
-		chatSocket = io(`${API_URL}/chat`, SOCKET_OPTIONS);
+		chatSocket = io(`${SOCKET_URL}/chat`, SOCKET_OPTIONS);
 
 		// 接続イベントのログ
 		chatSocket.on("connect", () => {

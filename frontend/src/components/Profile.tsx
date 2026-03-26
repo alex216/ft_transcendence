@@ -14,7 +14,8 @@ const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
 	const [message, setMessage] = useState("");
 	const [uploading, setUploading] = useState(false);
 
-	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+	// アバター画像はnginxの /uploads/ ルートから配信されるので
+	// avatarUrl（例: /uploads/avatar.png）をそのまま使える
 
 	useEffect(() => {
 		loadProfile();
@@ -93,7 +94,7 @@ const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
 				<div className="avatar-section">
 					{profile.avatarUrl ? (
 						<img
-							src={`${API_URL}${profile.avatarUrl}`}
+							src={profile.avatarUrl}
 							alt={t("profile.avatar")}
 							className="avatar-large"
 						/>
