@@ -32,6 +32,9 @@ shared/*.map
 # User uploads
 backend/uploads/
 
+# SSL証明書（秘密鍵は絶対にコミットしない）
+nginx/ssl/
+
 # others
 en.subject.pdf
 

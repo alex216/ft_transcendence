@@ -9,6 +9,7 @@ export const databaseConfig: TypeOrmModuleOptions = {
 	username: process.env.DATABASE_USER || "transcendence",
 	password: process.env.DATABASE_PASSWORD || "password123",
 	database: process.env.DATABASE_NAME || "transcendence_db",
-	entities: [__dirname + "/**/*.entity{.ts,.js}"],
+	autoLoadEntities: true, // forFeature()で登録されたエンティティを自動ロード（globパターン不要）
 	synchronize: true, // 開発時のみtrue（本番環境では危険）
+	logging: process.env.NODE_ENV === "development", // 本番環境ではSQLログを無効化（テーブル構造・データの漏洩リスクを排除）
 };
