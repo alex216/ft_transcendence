@@ -37,6 +37,51 @@ const api = axios.create({
 	withCredentials: true, // セッションクッキーを含める
 });
 
+// ============================================
+// CSRF対策: Double Submit Cookieパターン
+// ============================================
+// バックエンドはPOST/PUT/DELETE/PATCHに X-CSRF-Token ヘッダーを要求する
+// ① 初回リクエスト前に GET /auth/csrf-token でトークンを取得・キャッシュ
+// ② request interceptor で自動的にヘッダーに付与
+// ③ 403エラー時はトークンを再取得してリトライ
+
+let csrfToken: string | null = null;
+
+// CSRFトークンをバックエンドから取得してキャッシュする
+const fetchCsrfToken = async (): Promise<string> => {
+	const response = await api.get<{ csrfToken: string }>("/auth/csrf-token");
+	csrfToken = response.data.csrfToken;
+	return csrfToken;
+};
+
+// request interceptor: 状態変更リクエストにX-CSRF-Tokenヘッダーを自動付与
+api.interceptors.request.use(async (config) => {
+	const method = config.method?.toUpperCase();
+	if (method && ["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+		if (!csrfToken) {
+			await fetchCsrfToken();
+		}
+		config.headers["X-CSRF-Token"] = csrfToken;
+	}
+	return config;
+});
+
+// CSRFトークンが期限切れの場合（403エラー）にトークンを再取得して1回だけリトライする
+api.interceptors.response.use(
+	(response) => response,
+	async (error) => {
+		// ここにリトライロジックを実装
+		const originalRequest = error.config;
+		if (error.response?.status === 403 && !originalRequest._csrfRetry) {
+			originalRequest._csrfRetry = true;
+			await fetchCsrfToken();
+			originalRequest.headers["X-CSRF-Token"] = csrfToken;
+			return api(originalRequest);
+		}
+		return Promise.reject(error);
+	},
+);
+
 // ユーザー登録
 export const register = async (
 	username: string,

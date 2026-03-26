@@ -2,12 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getMyProfile, uploadAvatar, deleteAvatar } from "../api";
 import type { GetProfileResponse } from "/shared";
+import TwoFASettings from "./TwoFASettings";
 
 interface ProfileProps {
 	onEdit: () => void;
+	is2FAEnabled: boolean;
+	onRefreshUser: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
+const Profile: React.FC<ProfileProps> = ({
+	onEdit,
+	is2FAEnabled,
+	onRefreshUser,
+}) => {
 	const { t } = useTranslation();
 	const [profile, setProfile] = useState<GetProfileResponse | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -153,6 +160,12 @@ const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
 					</button>
 				</div>
 			</div>
+
+			{/* 2FA設定セクション */}
+			<TwoFASettings
+				is2FAEnabled={is2FAEnabled}
+				onStatusChange={onRefreshUser}
+			/>
 
 			{message && <p className="message">{message}</p>}
 		</div>

@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { cycleLanguage, LANGUAGE_LABELS } from "./i18n";
-import { register, login, getCurrentUser, logout } from "./api";
-import { GetMeResponse } from "/shared";
+import {
+	register,
+	login,
+	getCurrentUser,
+	logout,
+	FORTY_TWO_AUTH_URL,
+} from "./api";
+import type { GetMeResponse } from "/shared";
+import TwoFAVerify from "./components/TwoFAVerify";
 import Profile from "./components/Profile";
 import ProfileEdit from "./components/ProfileEdit";
 import FriendList from "./components/FriendList";
@@ -39,6 +46,7 @@ function App() {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
+	const [needs2FA, setNeeds2FA] = useState(false);
 
 	// Game context（OnlinePage → GamePage 連携用）
 	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
@@ -62,12 +70,9 @@ function App() {
 		setCurrentPage("chat");
 	};
 
-	// 初回ロード時にログイン状態を確認（以前ログインしたことがある場合のみ）
+	// 初回ロード時にログイン状態を確認（OAuthリダイレクト後もcookieからセッション復元）
 	useEffect(() => {
-		const hasLoggedInBefore = localStorage.getItem("hasLoggedIn") === "true";
-		if (hasLoggedInBefore) {
-			checkLoginStatus();
-		}
+		checkLoginStatus();
 	}, []);
 
 	// ログイン状態確認
@@ -85,13 +90,13 @@ function App() {
 		e.preventDefault();
 		try {
 			await register(username, password);
-			setMessage(t("auth.registerSuccess"));
+			setMessage("auth.registerSuccess");
 			setIsLogin(true);
 			setUsername("");
 			setPassword("");
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || t("auth.registerFailed"));
+			setMessage(error.response?.data?.message || "auth.registerFailed");
 		}
 	};
 
@@ -100,17 +105,31 @@ function App() {
 		e.preventDefault();
 		try {
 			const data = await login(username, password);
-			setUser(data.user);
-			setMessage(t("auth.loginSuccess"));
-			setUsername("");
-			setPassword("");
-			setCurrentPage("home");
-			// ログイン成功時にフラグを保存（次回リロード時にログイン状態を確認するため）
-			localStorage.setItem("hasLoggedIn", "true");
+			if (data.message === "2FA_REQUIRED") {
+				// 2FA有効ユーザー → コード入力画面へ
+				setNeeds2FA(true);
+				setUsername("");
+				setPassword("");
+				setMessage("");
+			} else {
+				// 通常ログイン成功
+				setUser(data.user!);
+				setMessage("auth.loginSuccess");
+				setUsername("");
+				setPassword("");
+				setCurrentPage("home");
+			}
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };
-			setMessage(error.response?.data?.message || t("auth.loginFailed"));
+			setMessage(error.response?.data?.message || "auth.loginFailed");
 		}
+	};
+
+	// 2FA認証成功ハンドラ
+	const handle2FAVerified = (userData: GetMeResponse) => {
+		setUser(userData);
+		setNeeds2FA(false);
+		setCurrentPage("home");
 	};
 
 	// ログアウト処理
@@ -119,11 +138,9 @@ function App() {
 			await logout();
 			setUser(null);
 			setCurrentPage("home");
-			setMessage(t("auth.logoutSuccess"));
-			// ログアウト時にフラグを削除
-			localStorage.removeItem("hasLoggedIn");
+			setMessage("auth.logoutSuccess");
 		} catch {
-			setMessage(t("auth.logoutFailed"));
+			setMessage("auth.logoutFailed");
 		}
 	};
 
@@ -144,7 +161,13 @@ function App() {
 				);
 
 			case "profile":
-				return <Profile onEdit={() => setCurrentPage("profile-edit")} />;
+				return (
+					<Profile
+						onEdit={() => setCurrentPage("profile-edit")}
+						is2FAEnabled={user.is_2fa_enabled ?? false}
+						onRefreshUser={checkLoginStatus}
+					/>
+				);
 
 			case "profile-edit":
 				return (
@@ -164,12 +187,10 @@ function App() {
 				// GamePage 側で props を受け取れるようにしておく（UI表示のため）
 				return (
 					<GamePage
-						mode={gameMode}
+						mode="ai"
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={() =>
-							setCurrentPage(gameMode === "online" ? "online" : "home")
-						}
+						onBack={() => setCurrentPage("home")}
 					/>
 				);
 
@@ -260,7 +281,6 @@ function App() {
 									<button
 										className={currentPage === "game" ? "active" : ""}
 										onClick={() => {
-											setGameMode("ai");
 											setGameRoomId(null);
 											setGameOpponent(null);
 											setCurrentPage("game");
@@ -353,59 +373,77 @@ function App() {
 					</>
 				) : (
 					<>
-						{/* ログイン前：認証フォーム */}
-						<div className="auth-content">
-							<div className="auth-header">
-								<h1>ft_transcendence</h1>
-								<button className="lang-toggle" onClick={cycleLanguage}>
-									{LANGUAGE_LABELS[i18n.language] || "EN"}
-								</button>
-							</div>
-
-							<div className="auth-form">
-								<div className="tabs">
-									<button
-										className={isLogin ? "active" : ""}
-										onClick={() => setIsLogin(true)}
-									>
-										{t("auth.login")}
-									</button>
-									<button
-										className={!isLogin ? "active" : ""}
-										onClick={() => setIsLogin(false)}
-									>
-										{t("auth.register")}
+						{needs2FA ? (
+							<TwoFAVerify
+								onVerified={handle2FAVerified}
+								onCancel={() => setNeeds2FA(false)}
+							/>
+						) : (
+							<div className="auth-content">
+								<div className="auth-header">
+									<h1>ft_transcendence</h1>
+									<button className="lang-toggle" onClick={cycleLanguage}>
+										{LANGUAGE_LABELS[i18n.language] || "EN"}
 									</button>
 								</div>
 
-								<form onSubmit={isLogin ? handleLogin : handleRegister}>
-									<h2>
-										{isLogin ? t("auth.login") : t("auth.userRegistration")}
-									</h2>
+								<div className="auth-form">
+									<div className="tabs">
+										<button
+											className={isLogin ? "active" : ""}
+											onClick={() => setIsLogin(true)}
+										>
+											{t("auth.login")}
+										</button>
+										<button
+											className={!isLogin ? "active" : ""}
+											onClick={() => setIsLogin(false)}
+										>
+											{t("auth.register")}
+										</button>
+									</div>
 
-									<input
-										type="text"
-										placeholder={t("auth.username")}
-										value={username}
-										onChange={(e) => setUsername(e.target.value)}
-										required
-									/>
+									<form onSubmit={isLogin ? handleLogin : handleRegister}>
+										<h2>
+											{isLogin ? t("auth.login") : t("auth.userRegistration")}
+										</h2>
 
-									<input
-										type="password"
-										placeholder={t("auth.password")}
-										value={password}
-										onChange={(e) => setPassword(e.target.value)}
-										required
-									/>
+										<input
+											type="text"
+											placeholder={t("auth.username")}
+											value={username}
+											onChange={(e) => setUsername(e.target.value)}
+											required
+										/>
 
-									<button type="submit">
-										{isLogin ? t("auth.login") : t("auth.register")}
-									</button>
-								</form>
+										<input
+											type="password"
+											placeholder={t("auth.password")}
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											required
+										/>
 
-								{message && <p className="message">{message}</p>}
+										<button type="submit">
+											{isLogin ? t("auth.login") : t("auth.register")}
+										</button>
+									</form>
+
+									{isLogin && (
+										<div className="oauth-section">
+											<div className="divider">
+												<span>{t("auth.or")}</span>
+											</div>
+											<a href={FORTY_TWO_AUTH_URL} className="btn-42-login">
+												{t("auth.loginWith42")}
+											</a>
+										</div>
+									)}
+
+									{message && <p className="message">{t(message)}</p>}
+								</div>
 							</div>
+						)}
 						<footer className="app-footer">
 							<span>{t("legal.footer.rights")}</span>
 							<div className="app-footer-links">
@@ -417,14 +455,13 @@ function App() {
 								</button>
 							</div>
 						</footer>
-					</div>
-				</>
-			)}
+					</>
+				)}
+			</div>
 			{legalModal && (
 				<LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
 			)}
 		</div>
-	</div>
 	);
 }
 
