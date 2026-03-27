@@ -309,10 +309,17 @@ button[type="submit"]:hover {
 /* メインコンテンツエリア */
 .main-content {
 	flex: 1;
-	padding: 40px;
-	overflow-y: auto;
 	background: #f8f9fa;
 	transition: opacity 0.6s ease 0.3s;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.main-content-inner {
+	flex: 1;
+	padding: 40px;
+	overflow-y: auto;
 }
 
 /* ページコンテンツのフェードイン */
@@ -327,7 +334,7 @@ button[type="submit"]:hover {
 	}
 }
 
-.main-content > * {
+.main-content-inner > * {
 	animation: fadeIn 0.3s ease-out;
 }
 
@@ -1166,4 +1173,146 @@ button[type="submit"]:hover {
 	.online-layout {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* ============================================ */
+/* フッター（法的ページリンク）                 */
+/* ============================================ */
+
+.app-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 20px;
+	border-top: 1px solid #e0e0e0;
+	background: #f8f9fa;
+	font-size: 0.75rem;
+	color: #999;
+	flex-shrink: 0;
+}
+
+.unified-container.logged-out .app-footer {
+	border-top: 1px solid #e9ecef;
+	background: transparent;
+	margin-top: 20px;
+	padding: 10px 0 0;
+}
+
+.app-footer-links {
+	display: flex;
+	gap: 12px;
+}
+
+.app-footer-links button {
+	background: none;
+	border: none;
+	color: #667eea;
+	font-size: 0.75rem;
+	cursor: pointer;
+	padding: 0;
+	text-decoration: underline;
+	transition: color 0.2s;
+}
+
+.app-footer-links button:hover {
+	color: #764ba2;
+}
+
+/* ============================================ */
+/* 法的ページ モーダル                          */
+/* ============================================ */
+
+.legal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	padding: 20px;
+	animation: fadeIn 0.2s ease-out;
+}
+
+.legal-modal {
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	width: 100%;
+	max-width: 680px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.legal-modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 24px;
+	border-bottom: 1px solid #e0e0e0;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.legal-modal-header h2 {
+	color: white;
+	margin: 0;
+	font-size: 1.2rem;
+	text-align: left;
+}
+
+.legal-close-btn {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	cursor: pointer;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+	flex-shrink: 0;
+}
+
+.legal-close-btn:hover {
+	background: rgba(255, 255, 255, 0.35);
+}
+
+.legal-modal-body {
+	padding: 24px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.legal-updated {
+	font-size: 0.8rem;
+	color: #999;
+	margin-bottom: 12px;
+}
+
+.legal-intro {
+	color: #555;
+	line-height: 1.6;
+	margin-bottom: 20px;
+}
+
+.legal-section {
+	margin-bottom: 20px;
+}
+
+.legal-section h3 {
+	font-size: 0.95rem;
+	color: #333;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+.legal-section p {
+	font-size: 0.875rem;
+	color: #666;
+	line-height: 1.7;
 }

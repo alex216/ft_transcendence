@@ -13,32 +13,19 @@ export * from "./friend.types";
 // ============================================
 
 export interface User {
-    id: number;
-    username: string;
-    // パスワードログイン画面に対応しつつ、OAuthユーザー（パスワードなし）も許容する
-    password?: string; 
-    
-    // 【新規追加】マイルストーン6：42 OAuth用
-    forty_two_id?: string;
-    
-    // 【新規追加】マイルストーン6：2FA用
-    is_2fa_enabled: boolean;
-    two_factor_secret?: string;
-    
-    created_at: Date; // スネークケースを維持
-}
+	id: number;
+	username: string;
+	// パスワードログイン画面に対応しつつ、OAuthユーザー（パスワードなし）も許容する
+	password?: string;
 
-// 【新規追加】ログイン・登録成功時のレスポンス型
-// フロントエンドがJWT（access_token）を受け取れるようにします
-export interface AuthResponse {
-    success: boolean;
-    message: string;
-    access_token: string; // フロントエンドの認証維持に必須
-    user: {
-        id: number;
-        username: string;
-        is_2fa_enabled: boolean;
-    };
+	// 【新規追加】マイルストーン6：42 OAuth用
+	forty_two_id?: string;
+
+	// 【新規追加】マイルストーン6：2FA用
+	is_2fa_enabled: boolean;
+	two_factor_secret?: string;
+
+	created_at: Date; // スネークケースを維持
 }
 
 // ============================================

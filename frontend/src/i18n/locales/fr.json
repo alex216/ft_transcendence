@@ -184,5 +184,46 @@
 			"requestRejected": "Demande d'ami refusée",
 			"friendRemoved": "Ami supprimé"
 		}
+	},
+	"legal": {
+		"footer": {
+			"privacy": "Politique de confidentialité",
+			"terms": "Conditions d'utilisation",
+			"rights": "© 2026 ft_transcendence. Tous droits réservés."
+		},
+		"privacy": {
+			"title": "Politique de confidentialité",
+			"updated": "Dernière mise à jour : 17 mars 2026",
+			"intro": "Cette politique de confidentialité décrit comment ft_transcendence collecte, utilise et protège vos informations personnelles.",
+			"s1Title": "1. Informations collectées",
+			"s1Body": "Nous collectons : nom d'utilisateur et mot de passe (chiffré avec bcrypt), informations de profil (nom d'affichage, biographie, avatar), statistiques de jeu et historique des matchs, relations d'amitié et messages de chat.",
+			"s2Title": "2. Utilisation des informations",
+			"s2Body": "Vos informations sont utilisées pour : fournir et améliorer le service, gérer votre compte et l'authentification, activer les fonctionnalités multijoueur et sociales, afficher les classements et l'historique des matchs.",
+			"s3Title": "3. Sécurité des données",
+			"s3Body": "Les mots de passe sont stockés avec le hachage bcrypt. Les données sont transmises via des connexions sécurisées. Nous mettons en œuvre des mesures techniques appropriées pour protéger vos données personnelles contre tout accès non autorisé.",
+			"s4Title": "4. Conservation des données",
+			"s4Body": "Vos données sont conservées pendant toute la durée de vie de votre compte. Vous pouvez effacer immédiatement et complètement toutes vos données (profil, historique des matchs, chat, etc.) à tout moment via la fonctionnalité « Supprimer le compte » dans l'écran des paramètres.",
+			"s5Title": "5. Vos droits (RGPD)",
+			"s5Body": "En vertu du RGPD, vous pouvez exercer directement les droits suivants dans le système :\n- Droit à la portabilité des données : vous pouvez obtenir immédiatement l'ensemble de vos données au format JSON via la fonctionnalité « Exporter les données » dans l'écran des paramètres.\n- Droit à l'effacement (droit à l'oubli) : toutes vos données peuvent être complètement supprimées du système via la fonctionnalité « Supprimer le compte » dans l'écran des paramètres.",
+			"s6Title": "6. Contact",
+			"s6Body": "Pour toute question relative à la confidentialité, veuillez contacter les administrateurs du projet via la plateforme 42."
+		},
+		"terms": {
+			"title": "Conditions d'utilisation",
+			"updated": "Dernière mise à jour : 17 mars 2026",
+			"intro": "En utilisant ft_transcendence, vous acceptez ces conditions d'utilisation. Veuillez les lire attentivement avant de créer un compte.",
+			"s1Title": "1. Acceptation des conditions",
+			"s1Body": "En créant un compte ou en utilisant le service, vous acceptez ces conditions d'utilisation et notre politique de confidentialité. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le service.",
+			"s2Title": "2. Comptes utilisateurs",
+			"s2Body": "Vous êtes responsable de la sécurité de vos identifiants. Vous ne devez pas partager votre mot de passe ni utiliser le compte d'un autre utilisateur. Vous devez avoir au moins 13 ans pour utiliser ce service.",
+			"s3Title": "3. Utilisation acceptable",
+			"s3Body": "Vous acceptez de ne pas : utiliser le service à des fins illégales, harceler d'autres utilisateurs, tenter de contourner les mesures de sécurité, procéder à l'ingénierie inverse du service, ou télécharger du contenu nuisible.",
+			"s4Title": "4. Contenu utilisateur",
+			"s4Body": "Vous conservez la propriété du contenu que vous soumettez (informations de profil, messages). En soumettant du contenu, vous nous accordez une licence pour l'utiliser dans le cadre du service. Nous nous réservons le droit de supprimer tout contenu en violation de ces conditions.",
+			"s5Title": "5. Avertissement",
+			"s5Body": "Ce service est fourni tel quel à des fins éducatives dans le cadre du programme 42. Nous ne faisons aucune garantie concernant la disponibilité, l'exactitude ou l'adéquation à un usage particulier.",
+			"s6Title": "6. Modifications des conditions",
+			"s6Body": "Nous pouvons mettre à jour ces conditions à tout moment. La poursuite de l'utilisation du service après la publication des modifications constitue votre acceptation des conditions révisées."
+		}
 	}
 }

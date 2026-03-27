@@ -11,15 +11,22 @@
 ## 🚀 クイックスタート
 
 ```bash
-# 1. 環境変数ファイルを作成
+# 1. 初回セットアップ（以下をまとめて行う）
+#    - .env ファイルの作成
+#    - SSL 証明書の生成
+#    - npm install（husky / lint-staged の有効化）
 make setup
 
 # 2. アプリケーションを起動
 make build
 
 # 3. ブラウザでアクセス
-# http://localhost:3001
+# https://localhost
 ```
+
+> **注意**: `make setup` はプロジェクトルートで実行してください。
+> `npm install` が含まれており、コミット時に ESLint / Prettier を自動実行する lint-staged が有効になります。
+> これを省略すると、コミットしても自動チェックが動作しません。
 
 詳細は [SETUP.md](./SETUP.md) を参照してください。
 
@@ -84,12 +91,21 @@ make build
 
 - Docker
 - Docker Compose
+- Node.js（husky / lint-staged のセットアップに必要）
 
-### 2. 起動
+### 2. 初回セットアップ
 
 ```bash
-# プロジェクトのルートディレクトリで実行
-docker-compose up --build
+# プロジェクトルートで実行（.env作成 / SSL証明書生成 / npm install）
+make setup
+```
+
+`make setup` の中で `npm install` が実行され、コミット時に ESLint / Prettier を自動実行する lint-staged が有効になります。**このステップを省略するとコミットの自動チェックが動作しません。**
+
+### 3. 起動
+
+```bash
+make build
 ```
 
 初回起動時は、各コンテナのビルドとnpmパッケージのインストールに数分かかります。

@@ -10,16 +10,16 @@ import { FortyTwoStrategy } from "./strategies/forty-two.strategy";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'fallback-jwt-secret',
-      signOptions: { expiresIn: '24h' },
-    }),
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, TwoFactorService, FortyTwoStrategy, JwtStrategy],
-  exports: [AuthService],
+	imports: [
+		TypeOrmModule.forFeature([User]),
+		PassportModule,
+		JwtModule.register({
+			secret: process.env.JWT_SECRET || "fallback-jwt-secret",
+			signOptions: { expiresIn: "24h" },
+		}),
+	],
+	controllers: [AuthController],
+	providers: [AuthService, TwoFactorService, FortyTwoStrategy, JwtStrategy],
+	exports: [AuthService],
 })
 export class AuthModule {}
