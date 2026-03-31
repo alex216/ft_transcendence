@@ -59,6 +59,11 @@ export class ChatGateway
 		@ConnectedSocket() client: Socket,
 		@MessageBody() payload: ChatMessage, //
 	) {
+		if (!payload || !payload.roomId || !payload.content) {
+			this.logger.warn(`Invalid message payload from ${client.id}`);
+			return;
+		}
+
 		this.logger.log(
 			`📩 Message from ${client.id} in room ${payload.roomId}: ${payload.content}`,
 		);
