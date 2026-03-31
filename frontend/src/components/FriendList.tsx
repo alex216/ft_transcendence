@@ -16,7 +16,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 	const [newFriendUsername, setNewFriendUsername] = useState("");
 	const [sending, setSending] = useState(false);
 
-	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+	// アバター画像はnginxの /uploads/ ルートから直接配信
 
 	useEffect(() => {
 		loadFriends();
@@ -109,7 +109,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 						<div key={friendItem.id} className="friend-card">
 							{friendItem.friend.avatarUrl ? (
 								<img
-									src={`${API_URL}${friendItem.friend.avatarUrl}`}
+									src={friendItem.friend.avatarUrl}
 									alt={friendItem.friend.username}
 									className="avatar"
 								/>

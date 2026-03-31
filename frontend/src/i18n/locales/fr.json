@@ -22,7 +22,9 @@
 		"loginFailed": "Échec de la connexion",
 		"registerFailed": "Échec de l'inscription",
 		"logoutSuccess": "Déconnecté",
-		"logoutFailed": "Échec de la déconnexion"
+		"logoutFailed": "Échec de la déconnexion",
+		"or": "ou",
+		"loginWith42": "Se connecter avec 42"
 	},
 	"home": {
 		"welcome": "Bienvenue, {{username}} !",
@@ -148,6 +150,31 @@
 		"wins": "Victoires",
 		"losses": "Défaites",
 		"winRate": "Taux de victoire"
+	},
+	"twofa": {
+		"title": "Authentification à deux facteurs (2FA)",
+		"enabled": "Activé",
+		"disabled": "Désactivé",
+		"setup": "Configurer 2FA",
+		"settingUp": "Configuration...",
+		"scanQr": "Scannez le QR code avec votre application d'authentification",
+		"codePlaceholder": "Code à 6 chiffres",
+		"enable": "Activer",
+		"enabling": "Activation...",
+		"enableSuccess": "2FA activé",
+		"enableFailed": "Échec de l'activation",
+		"disable": "Désactiver 2FA",
+		"disabling": "Désactivation...",
+		"disableConfirm": "Désactiver 2FA ?",
+		"disableSuccess": "2FA désactivé",
+		"disableFailed": "Échec de la désactivation",
+		"setupFailed": "Échec de la configuration",
+		"verifyTitle": "Authentification à deux facteurs",
+		"verifyDescription": "Entrez le code à 6 chiffres affiché dans votre application d'authentification",
+		"verify": "Vérifier",
+		"verifying": "Vérification...",
+		"verifyFailed": "Échec de la vérification",
+		"backToLogin": "Retour à la connexion"
 	},
 	"common": {
 		"loading": "Chargement...",
