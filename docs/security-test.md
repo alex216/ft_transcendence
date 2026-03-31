@@ -92,12 +92,8 @@ curl -k -b /tmp/cookies.txt -s -o /dev/null -w "%{http_code}" \
 
 ## 4. CSRF確認
 
-**トークン取得**
-
-```bash
-curl -k -c /tmp/cookies.txt https://localhost/api/auth/csrf-token
-# → {"csrfToken":"xxx..."} が返ること
-```
+> `$TOKEN` と `/tmp/cookies.txt` は事前準備で取得済みのものをそのまま使います。
+> ここで再度 `/csrf-token` を叩くと Cookie が上書きされ `$TOKEN` と不一致になるため注意。
 
 **トークンなしで POST → 403 になること**
 

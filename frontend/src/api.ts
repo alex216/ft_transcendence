@@ -19,17 +19,68 @@ import type {
 	GetFriendsResponse,
 	GetFriendRequestsResponse,
 	GetFriendStatusResponse,
+	TwoFASetupResponse,
+	TwoFAResponse,
+	TwoFAVerifyResponse,
 } from "/shared";
 
 // バックエンドAPIとの通信を担当
 // C++で言うと「HTTPクライアント」のようなもの
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+// 42 OAuthログインURL（ブラウザがこのURLに遷移する）
+export const FORTY_TWO_AUTH_URL = `${API_URL}/auth/42`;
+
 // axiosの設定（クッキーを送信するために必要）
 const api = axios.create({
 	baseURL: API_URL,
 	withCredentials: true, // セッションクッキーを含める
 });
+
+// ============================================
+// CSRF対策: Double Submit Cookieパターン
+// ============================================
+// バックエンドはPOST/PUT/DELETE/PATCHに X-CSRF-Token ヘッダーを要求する
+// ① 初回リクエスト前に GET /auth/csrf-token でトークンを取得・キャッシュ
+// ② request interceptor で自動的にヘッダーに付与
+// ③ 403エラー時はトークンを再取得してリトライ
+
+let csrfToken: string | null = null;
+
+// CSRFトークンをバックエンドから取得してキャッシュする
+const fetchCsrfToken = async (): Promise<string> => {
+	const response = await api.get<{ csrfToken: string }>("/auth/csrf-token");
+	csrfToken = response.data.csrfToken;
+	return csrfToken;
+};
+
+// request interceptor: 状態変更リクエストにX-CSRF-Tokenヘッダーを自動付与
+api.interceptors.request.use(async (config) => {
+	const method = config.method?.toUpperCase();
+	if (method && ["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+		if (!csrfToken) {
+			await fetchCsrfToken();
+		}
+		config.headers["X-CSRF-Token"] = csrfToken;
+	}
+	return config;
+});
+
+// CSRFトークンが期限切れの場合（403エラー）にトークンを再取得して1回だけリトライする
+api.interceptors.response.use(
+	(response) => response,
+	async (error) => {
+		// ここにリトライロジックを実装
+		const originalRequest = error.config;
+		if (error.response?.status === 403 && !originalRequest._csrfRetry) {
+			originalRequest._csrfRetry = true;
+			await fetchCsrfToken();
+			originalRequest.headers["X-CSRF-Token"] = csrfToken;
+			return api(originalRequest);
+		}
+		return Promise.reject(error);
+	},
+);
 
 // ユーザー登録
 export const register = async (
@@ -182,5 +233,39 @@ export const getFriendStatus = async (
 	const response = await api.get<GetFriendStatusResponse>(
 		`/friends/status/${userId}`,
 	);
+	return response.data;
+};
+
+// ============================================
+// 2FA API（二要素認証関連）
+// ============================================
+
+// 2FAセットアップ（QRコード取得）
+export const setup2FA = async (): Promise<TwoFASetupResponse> => {
+	const response = await api.post<TwoFASetupResponse>("/auth/2fa/setup");
+	return response.data;
+};
+
+// 2FA有効化（TOTPコードで認証して有効化）
+export const enable2FA = async (token: string): Promise<TwoFAResponse> => {
+	const response = await api.post<TwoFAResponse>("/auth/2fa/enable", {
+		token,
+	});
+	return response.data;
+};
+
+// 2FA無効化
+export const disable2FA = async (): Promise<TwoFAResponse> => {
+	const response = await api.post<TwoFAResponse>("/auth/2fa/disable");
+	return response.data;
+};
+
+// 2FA認証（ログイン時のコード検証）
+export const verify2FA = async (
+	token: string,
+): Promise<TwoFAVerifyResponse> => {
+	const response = await api.post<TwoFAVerifyResponse>("/auth/2fa/verify", {
+		token,
+	});
 	return response.data;
 };

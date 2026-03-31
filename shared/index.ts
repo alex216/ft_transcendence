@@ -22,10 +22,23 @@ export interface User {
 	forty_two_id?: string;
 
 	// 【新規追加】マイルストーン6：2FA用
-	is_2fa_enabled: boolean;
+	is_2fa_enabled?: boolean;
 	two_factor_secret?: string;
 
 	created_at: Date; // スネークケースを維持
+}
+
+// 【新規追加】ログイン・登録成功時のレスポンス型
+// フロントエンドがJWT（access_token）を受け取れるようにします
+export interface AuthResponse {
+	success: boolean;
+	message: string;
+	access_token: string; // フロントエンドの認証維持に必須
+	user: {
+		id: number;
+		username: string;
+		is_2fa_enabled: boolean;
+	};
 }
 
 // ============================================
@@ -37,6 +50,7 @@ export interface User {
 export interface GetMeResponse {
 	id: number;
 	username: string;
+	is_2fa_enabled?: boolean;
 }
 
 // POST /auth/register
@@ -60,7 +74,7 @@ export interface LoginRequest {
 export interface LoginResponse {
 	success: boolean;
 	message: string;
-	user: GetMeResponse; // API定義を統一
+	user?: GetMeResponse; // 2FA_REQUIRED時はuserが返らない
 }
 
 // POST /auth/logout
@@ -72,5 +86,31 @@ export interface LogoutResponse {
 // エラーレスポンス
 export interface ErrorResponse {
 	statusCode: number;
+	message: string;
+}
+
+// ============================================
+// 2FA（二要素認証）関連の型定義
+// ============================================
+
+// POST /auth/2fa/setup - QRコード取得
+export interface TwoFASetupResponse {
+	qrCodeUrl: string; // data:image/png;base64形式のQRコード画像URL
+}
+
+// POST /auth/2fa/enable, /auth/2fa/verify で送信するリクエスト
+export interface TwoFATokenRequest {
+	token: string; // 6桁のTOTPコード
+}
+
+// POST /auth/2fa/enable, /auth/2fa/disable のレスポンス
+export interface TwoFAResponse {
+	success: boolean;
+	message: string;
+}
+
+// POST /auth/2fa/verify のレスポンス（ログイン完了）
+export interface TwoFAVerifyResponse {
+	success: boolean;
 	message: string;
 }

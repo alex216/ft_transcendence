@@ -100,7 +100,8 @@ async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
 	// 静的ファイル配信の設定（アップロードされた画像など）
-	app.useStaticAssets(join(__dirname, "..", "uploads"), {
+	// __dirname は dist/src/ を指すため process.cwd()（= /app）を使う
+	app.useStaticAssets(join(process.cwd(), "uploads"), {
 		prefix: "/uploads/", // URL: http://localhost:3000/uploads/avatars/xxx.jpg
 	});
 

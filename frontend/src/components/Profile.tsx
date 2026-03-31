@@ -2,19 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getMyProfile, uploadAvatar, deleteAvatar } from "../api";
 import type { GetProfileResponse } from "/shared";
+import TwoFASettings from "./TwoFASettings";
 
 interface ProfileProps {
 	onEdit: () => void;
+	is2FAEnabled: boolean;
+	onRefreshUser: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
+const Profile: React.FC<ProfileProps> = ({
+	onEdit,
+	is2FAEnabled,
+	onRefreshUser,
+}) => {
 	const { t } = useTranslation();
 	const [profile, setProfile] = useState<GetProfileResponse | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [message, setMessage] = useState("");
 	const [uploading, setUploading] = useState(false);
 
-	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+	// アバター画像はnginxの /uploads/ ルートから配信されるので
+	// avatarUrl（例: /uploads/avatar.png）をそのまま使える
 
 	useEffect(() => {
 		loadProfile();
@@ -93,7 +101,7 @@ const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
 				<div className="avatar-section">
 					{profile.avatarUrl ? (
 						<img
-							src={`${API_URL}${profile.avatarUrl}`}
+							src={profile.avatarUrl}
 							alt={t("profile.avatar")}
 							className="avatar-large"
 						/>
@@ -152,6 +160,12 @@ const Profile: React.FC<ProfileProps> = ({ onEdit }) => {
 					</button>
 				</div>
 			</div>
+
+			{/* 2FA設定セクション */}
+			<TwoFASettings
+				is2FAEnabled={is2FAEnabled}
+				onStatusChange={onRefreshUser}
+			/>
 
 			{message && <p className="message">{message}</p>}
 		</div>

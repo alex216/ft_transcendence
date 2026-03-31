@@ -18,7 +18,7 @@ const FriendRequests: React.FC = () => {
 	const [message, setMessage] = useState("");
 	const [processing, setProcessing] = useState<number | null>(null);
 
-	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+	// アバター画像はnginxの /uploads/ ルートから直接配信
 
 	useEffect(() => {
 		loadRequests();
@@ -98,7 +98,7 @@ const FriendRequests: React.FC = () => {
 							<div key={request.id} className="request-card">
 								{request.sender.avatarUrl ? (
 									<img
-										src={`${API_URL}${request.sender.avatarUrl}`}
+										src={request.sender.avatarUrl}
 										alt={request.sender.username}
 										className="avatar"
 									/>
@@ -151,7 +151,7 @@ const FriendRequests: React.FC = () => {
 							<div key={request.id} className="request-card">
 								{request.receiver.avatarUrl ? (
 									<img
-										src={`${API_URL}${request.receiver.avatarUrl}`}
+										src={request.receiver.avatarUrl}
 										alt={request.receiver.username}
 										className="avatar"
 									/>

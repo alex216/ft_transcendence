@@ -4,7 +4,12 @@
  */
 
 // 環境変数からAPIのURLを取得（デフォルトはlocalhost:3000）
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// WebSocket接続用のベースURL
+// REST APIは https://localhost/api だが、Socket.IOのネームスペースは /game, /chat
+// なので /api を除いたオリジン（https://localhost）を使う
+export const SOCKET_URL = API_URL.replace(/\/api\/?$/, "");
 
 // Socket.IOの共通オプション
 export const SOCKET_OPTIONS = {
@@ -16,4 +21,6 @@ export const SOCKET_OPTIONS = {
 	reconnectionAttempts: 5,
 	// タイムアウト（ミリ秒）
 	timeout: 10000,
+	// nginx経由でCookieを送信するために必要
+	withCredentials: true,
 };
