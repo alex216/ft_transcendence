@@ -10,11 +10,11 @@ export class MatchHistory {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column()
-	winnerId: string; // 勝者のID（または名前）
+	@Column({ nullable: true })
+	winnerUserId: number | null;
 
-	@Column()
-	loserId: string; // 敗者のID
+	@Column({ nullable: true })
+	loserUserId: number | null;
 
 	@Column()
 	winnerScore: number;
@@ -23,5 +23,5 @@ export class MatchHistory {
 	loserScore: number;
 
 	@CreateDateColumn()
-	createdAt: Date; // 試合が行われた日時
+	createdAt: Date;
 }

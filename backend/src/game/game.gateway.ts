@@ -6,10 +6,10 @@ import {
 	WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { parse } from "cookie";
+import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
 import { AuthService } from "../auth/auth.service";
-import { JwtService } from "@nestjs/jwt";
-import * as cookie from "cookie";
 
 interface AuthenticatedSocket extends Socket {
 	data: {
@@ -34,44 +34,37 @@ export class GameGateway {
 	constructor(
 		private readonly gameService: GameService,
 		private readonly authService: AuthService,
-		private readonly jwtService: JwtService, // provvisory. waiting for auth.jwt.verifytoken()
+		private readonly jwtService: JwtService,
 	) {}
+
+	// coming from the merge main. It will be used to refine handleConnection
+	private extractUserId(client: Socket): number | undefined {
+		const cookieHeader = client.handshake.headers.cookie;
+		if (!cookieHeader) return undefined;
+
+		const cookies = parse(cookieHeader);
+		const token = cookies["access_token"];
+		if (!token) return undefined;
+
+		try {
+			const payload = this.jwtService.verify<{ sub: number }>(token);
+			return payload.sub;
+		} catch {
+			return undefined;
+		}
+	}
 
 	async handleConnection(client: AuthenticatedSocket) {
 		try {
-			let token: string | undefined;
+			const userId = this.extractUserId(client);
 
-			// try cookie
-			const rawCookie = client.handshake.headers.cookie;
-			if (rawCookie) {
-				const cookies = cookie.parse(rawCookie);
-				token = cookies["access_token"];
-			}
-
-			console.log("TOKEN:", token);
-
-			if (!token) {
-				console.log("No token → dummy user");
+			if (!userId) {
+				console.log("No valid token → dummy user");
 				client.data.user = { id: Math.floor(Math.random() * 1000) + 1 };
 				return;
 			}
 
-			let payload: any;
-
-			try {
-				// this will have to be replaced by the auth.jwt.tokenverify()
-				payload = this.jwtService.verify(token);
-			} catch (err) {
-				console.log("Invalid token → dummy user");
-				client.data.user = { id: Math.floor(Math.random() * 1000) + 1 };
-				return;
-			}
-
-			client.data.user = {
-				id: payload.sub,
-				username: payload.username,
-			};
-
+			client.data.user = { id: userId };
 			console.log(`[WS] Connected user: ${client.data.user.id}`);
 		} catch (e) {
 			console.log("Connection error:", e);
@@ -88,7 +81,7 @@ export class GameGateway {
 	@SubscribeMessage("joinQueue")
 	handleJoinQueue(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
-		this.gameService.addToQueue(client, userId, this.server);
+		this.gameService.addToQueue(client, this.server, userId);
 	}
 
 	@SubscribeMessage("moveUp")

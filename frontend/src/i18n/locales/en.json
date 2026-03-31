@@ -22,7 +22,9 @@
 		"loginFailed": "Login failed",
 		"registerFailed": "Registration failed",
 		"logoutSuccess": "Logged out",
-		"logoutFailed": "Logout failed"
+		"logoutFailed": "Logout failed",
+		"or": "or",
+		"loginWith42": "Login with 42"
 	},
 	"home": {
 		"welcome": "Welcome, {{username}}!",
@@ -148,6 +150,31 @@
 		"wins": "Wins",
 		"losses": "Losses",
 		"winRate": "Win Rate"
+	},
+	"twofa": {
+		"title": "Two-Factor Authentication (2FA)",
+		"enabled": "Enabled",
+		"disabled": "Disabled",
+		"setup": "Set up 2FA",
+		"settingUp": "Setting up...",
+		"scanQr": "Scan the QR code with your authenticator app",
+		"codePlaceholder": "6-digit code",
+		"enable": "Enable",
+		"enabling": "Enabling...",
+		"enableSuccess": "2FA has been enabled",
+		"enableFailed": "Failed to enable",
+		"disable": "Disable 2FA",
+		"disabling": "Disabling...",
+		"disableConfirm": "Disable 2FA?",
+		"disableSuccess": "2FA has been disabled",
+		"disableFailed": "Failed to disable",
+		"setupFailed": "Setup failed",
+		"verifyTitle": "Two-Factor Authentication",
+		"verifyDescription": "Enter the 6-digit code displayed in your authenticator app",
+		"verify": "Verify",
+		"verifying": "Verifying...",
+		"verifyFailed": "Verification failed",
+		"backToLogin": "Back to login"
 	},
 	"common": {
 		"loading": "Loading...",

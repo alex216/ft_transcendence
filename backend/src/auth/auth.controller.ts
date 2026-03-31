@@ -28,7 +28,7 @@ import type {
 
 // 認証済みリクエストの型（req.user が存在することを保証）
 interface AuthenticatedRequest extends Request {
-	user: { id: number; username: string };
+	user: { id: number; username: string; is_2fa_enabled: boolean };
 	cookies: Record<string, string>;
 }
 
@@ -275,7 +275,11 @@ export class AuthController {
 	async getCurrentUser(
 		@Req() req: AuthenticatedRequest,
 	): Promise<GetMeResponse> {
-		return { id: req.user.id, username: req.user.username };
+		return {
+			id: req.user.id,
+			username: req.user.username,
+			is_2fa_enabled: req.user.is_2fa_enabled,
+		};
 	}
 
 	@Post("logout")

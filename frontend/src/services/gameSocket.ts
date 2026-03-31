@@ -3,7 +3,7 @@
  * バックエンドの/gameネームスペースと通信
  */
 import { io, Socket } from "socket.io-client";
-import { API_URL, SOCKET_OPTIONS } from "./socketManager";
+import { SOCKET_URL, SOCKET_OPTIONS } from "./socketManager";
 import type { GameState, PaddleMoveDto } from "/shared/game.interface";
 
 // ゲーム用のSocket.IOクライアント（シングルトン）
@@ -15,7 +15,7 @@ let gameSocket: Socket | null = null;
 export const getGameSocket = (): Socket => {
 	if (!gameSocket) {
 		// /game ネームスペースに接続
-		gameSocket = io(`${API_URL}/game`, SOCKET_OPTIONS);
+		gameSocket = io(`${SOCKET_URL}/game`, SOCKET_OPTIONS);
 
 		// 接続イベントのログ
 		gameSocket.on("connect", () => {

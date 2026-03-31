@@ -22,7 +22,9 @@
 		"loginFailed": "ログイン失敗",
 		"registerFailed": "登録失敗",
 		"logoutSuccess": "ログアウトしました",
-		"logoutFailed": "ログアウト失敗"
+		"logoutFailed": "ログアウト失敗",
+		"or": "または",
+		"loginWith42": "42でログイン"
 	},
 	"home": {
 		"welcome": "ようこそ、{{username}}さん！",
@@ -148,6 +150,31 @@
 		"wins": "勝利",
 		"losses": "敗北",
 		"winRate": "勝率"
+	},
+	"twofa": {
+		"title": "二要素認証 (2FA)",
+		"enabled": "有効",
+		"disabled": "無効",
+		"setup": "2FAを設定",
+		"settingUp": "セットアップ中...",
+		"scanQr": "認証アプリでQRコードをスキャンしてください",
+		"codePlaceholder": "6桁のコード",
+		"enable": "有効化",
+		"enabling": "有効化中...",
+		"enableSuccess": "2FAが有効になりました",
+		"enableFailed": "有効化に失敗しました",
+		"disable": "2FAを無効化",
+		"disabling": "無効化中...",
+		"disableConfirm": "2FAを無効にしますか？",
+		"disableSuccess": "2FAが無効になりました",
+		"disableFailed": "無効化に失敗しました",
+		"setupFailed": "セットアップに失敗しました",
+		"verifyTitle": "二要素認証",
+		"verifyDescription": "認証アプリに表示されている6桁のコードを入力してください",
+		"verify": "認証",
+		"verifying": "認証中...",
+		"verifyFailed": "認証に失敗しました",
+		"backToLogin": "ログインに戻る"
 	},
 	"common": {
 		"loading": "読み込み中...",
