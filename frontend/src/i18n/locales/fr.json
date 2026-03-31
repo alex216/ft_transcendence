@@ -254,5 +254,32 @@
 			"s6Title": "6. Modifications des conditions",
 			"s6Body": "Nous pouvons mettre à jour ces conditions à tout moment. La poursuite de l'utilisation du service après la publication des modifications constitue votre acceptation des conditions révisées."
 		}
+	},
+	"stats": {
+		"title": "Statistiques",
+		"winRate": "Taux de victoire",
+		"wins": "Victoires",
+		"losses": "Défaites",
+		"total": "Total",
+		"historyTitle": "Historique des matchs (20 derniers)",
+		"opponentId": "ID adversaire",
+		"fetchFailed": "Échec du chargement des statistiques"
+	},
+	"gdpr": {
+		"title": "Paramètres de confidentialité",
+		"exportTitle": "Export des données",
+		"exportDesc": "Téléchargez toutes vos données (profil, historique des matchs, chat, etc.) au format JSON.",
+		"exporting": "Export en cours...",
+		"download": "Télécharger mes données",
+		"exportFailed": "Échec de l'export des données",
+		"deleteTitle": "Supprimer le compte",
+		"deleteDesc": "La suppression de votre compte effacera définitivement toutes vos données (profil, historique des matchs, amis, historique des chats). Cette action est irréversible.",
+		"deleteButton": "Supprimer le compte",
+		"confirmTitle": "Êtes-vous sûr ?",
+		"confirmDesc": "Cette action est irréversible. Toutes vos données seront définitivement supprimées.",
+		"deleting": "Suppression...",
+		"deleteConfirm": "Supprimer",
+		"deleteFailed": "Échec de la suppression du compte",
+		"csrfFailed": "Échec de la récupération du jeton CSRF"
 	}
 }
