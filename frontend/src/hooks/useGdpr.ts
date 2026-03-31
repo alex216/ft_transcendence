@@ -1,13 +1,9 @@
-import axios from "axios";
-import { getCsrfToken } from "./useCsrfToken";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "https://localhost/api";
+import { api } from "../api";
 
 export function useGdpr() {
 	// GETなのでCSRFトークン不要
 	const exportData = async (): Promise<void> => {
-		const response = await axios.get(`${API_URL}/gdpr/export`, {
-			withCredentials: true,
+		const response = await api.get("/gdpr/export", {
 			responseType: "blob",
 		});
 
@@ -30,13 +26,9 @@ export function useGdpr() {
 		URL.revokeObjectURL(url);
 	};
 
-	// DELETEなのでCSRFトークンが必要
+	// DELETEなのでCSRFトークンが必要（api インスタンスのインターセプターが自動付与）
 	const deleteAccount = async (): Promise<void> => {
-		const csrfToken = await getCsrfToken();
-		await axios.delete(`${API_URL}/gdpr/account`, {
-			withCredentials: true,
-			headers: { "x-csrf-token": csrfToken },
-		});
+		await api.delete("/gdpr/account");
 	};
 
 	return { exportData, deleteAccount };
