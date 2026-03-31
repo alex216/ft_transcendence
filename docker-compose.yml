@@ -12,6 +12,8 @@ services:
     volumes:
       # SSL証明書をマウント（make ssl で生成）
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      # nginx設定を直接マウント（ホスト側の変更が即時反映される）
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
       - frontend
@@ -87,7 +89,7 @@ services:
       - vault
     networks:
       - trans_network
-    command: sh -c "npm install && npm run start:dev"
+    command: npm run start:dev
 
   # Reactフロントエンド
   frontend:
