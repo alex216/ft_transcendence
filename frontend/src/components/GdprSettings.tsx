@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useGdpr } from "../hooks/useGdpr";
 import styles from "./GdprSettings.module.css";
 
@@ -7,6 +8,7 @@ export default function GdprSettings({
 }: {
 	onAccountDeleted?: () => void;
 }) {
+	const { t } = useTranslation();
 	const { exportData, deleteAccount } = useGdpr();
 
 	const [exporting, setExporting] = useState(false);
@@ -22,7 +24,7 @@ export default function GdprSettings({
 		try {
 			await exportData();
 		} catch {
-			setExportError("データのエクスポートに失敗しました");
+			setExportError(t("gdpr.exportFailed"));
 		} finally {
 			setExporting(false);
 		}
@@ -35,22 +37,20 @@ export default function GdprSettings({
 			await deleteAccount();
 			onAccountDeleted?.();
 		} catch {
-			setDeleteError("アカウントの削除に失敗しました");
+			setDeleteError(t("gdpr.deleteFailed"));
 			setDeleting(false);
 		}
 	};
 
 	return (
 		<div className={styles.container}>
-			<h2 className={styles.title}>プライバシー設定</h2>
+			<h2 className={styles.title}>{t("gdpr.title")}</h2>
 
 			{/* データエクスポート */}
 			<section className={styles.section}>
 				<div className={styles.sectionHeader}>
-					<h3 className={styles.sectionTitle}>データエクスポート</h3>
-					<p className={styles.sectionDesc}>
-						あなたのすべてのデータ（プロフィール、対戦履歴、チャットなど）をJSON形式でダウンロードできます。
-					</p>
+					<h3 className={styles.sectionTitle}>{t("gdpr.exportTitle")}</h3>
+					<p className={styles.sectionDesc}>{t("gdpr.exportDesc")}</p>
 				</div>
 				<div className={styles.sectionAction}>
 					<button
@@ -58,7 +58,7 @@ export default function GdprSettings({
 						onClick={handleExport}
 						disabled={exporting}
 					>
-						{exporting ? "エクスポート中..." : "データをダウンロード"}
+						{exporting ? t("gdpr.exporting") : t("gdpr.download")}
 					</button>
 					{exportError && <p className={styles.errorText}>{exportError}</p>}
 				</div>
@@ -70,18 +70,16 @@ export default function GdprSettings({
 			<section className={styles.section}>
 				<div className={styles.sectionHeader}>
 					<h3 className={`${styles.sectionTitle} ${styles.dangerTitle}`}>
-						アカウント削除
+						{t("gdpr.deleteTitle")}
 					</h3>
-					<p className={styles.sectionDesc}>
-						アカウントを削除すると、すべてのデータ（プロフィール、対戦履歴、フレンド関係、チャット履歴）が完全に消去されます。この操作は取り消せません。
-					</p>
+					<p className={styles.sectionDesc}>{t("gdpr.deleteDesc")}</p>
 				</div>
 				<div className={styles.sectionAction}>
 					<button
 						className={styles.btnDanger}
 						onClick={() => setShowConfirm(true)}
 					>
-						アカウントを削除
+						{t("gdpr.deleteButton")}
 					</button>
 				</div>
 			</section>
@@ -90,10 +88,8 @@ export default function GdprSettings({
 			{showConfirm && (
 				<div className={styles.overlay} role="dialog" aria-modal="true">
 					<div className={styles.dialog}>
-						<h3 className={styles.dialogTitle}>本当に削除しますか？</h3>
-						<p className={styles.dialogDesc}>
-							この操作は取り消せません。すべてのデータが完全に削除されます。
-						</p>
+						<h3 className={styles.dialogTitle}>{t("gdpr.confirmTitle")}</h3>
+						<p className={styles.dialogDesc}>{t("gdpr.confirmDesc")}</p>
 						{deleteError && <p className={styles.errorText}>{deleteError}</p>}
 						<div className={styles.dialogActions}>
 							<button
@@ -104,14 +100,14 @@ export default function GdprSettings({
 								}}
 								disabled={deleting}
 							>
-								キャンセル
+								{t("common.cancel")}
 							</button>
 							<button
 								className={styles.btnDanger}
 								onClick={handleDeleteConfirm}
 								disabled={deleting}
 							>
-								{deleting ? "削除中..." : "削除する"}
+								{deleting ? t("gdpr.deleting") : t("gdpr.deleteConfirm")}
 							</button>
 						</div>
 					</div>

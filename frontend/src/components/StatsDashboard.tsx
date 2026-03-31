@@ -1,11 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useStats } from "../hooks/useStats";
 import styles from "./StatsDashboard.module.css";
 
 const RADIUS = 44;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-function WinRateChart({ winRate }: { winRate: number }) {
+function WinRateChart({ winRate, label }: { winRate: number; label: string }) {
 	const progress = (winRate / 100) * CIRCUMFERENCE;
 	return (
 		<div className={styles.chartWrapper}>
@@ -40,14 +41,14 @@ function WinRateChart({ winRate }: { winRate: number }) {
 			</svg>
 			<div className={styles.chartLabel}>
 				<span className={styles.chartValue}>{winRate}%</span>
-				<span className={styles.chartSubLabel}>勝率</span>
+				<span className={styles.chartSubLabel}>{label}</span>
 			</div>
 		</div>
 	);
 }
 
 function formatDate(iso: string): string {
-	return new Date(iso).toLocaleString("ja-JP", {
+	return new Date(iso).toLocaleString(undefined, {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -57,54 +58,58 @@ function formatDate(iso: string): string {
 }
 
 export default function StatsDashboard() {
+	const { t } = useTranslation();
 	const { stats, history, loading, error } = useStats();
 
 	if (loading) {
-		return <div className={styles.loading}>読み込み中...</div>;
+		return <div className={styles.loading}>{t("common.loading")}</div>;
 	}
 
 	if (error) {
-		return <div className={styles.error}>{error}</div>;
+		return <div className={styles.error}>{t(error)}</div>;
 	}
 
 	return (
 		<div className={styles.container}>
-			<h2 className={styles.title}>統計</h2>
+			<h2 className={styles.title}>{t("stats.title")}</h2>
 
 			{/* 上段：円グラフ + 勝敗カウンター */}
 			<div className={styles.summary}>
-				<WinRateChart winRate={stats?.winRate ?? 0} />
+				<WinRateChart
+					winRate={stats?.winRate ?? 0}
+					label={t("stats.winRate")}
+				/>
 
 				<div className={styles.counters}>
 					<div className={`${styles.counter} ${styles.counterWin}`}>
 						<span className={styles.counterValue}>{stats?.wins ?? 0}</span>
-						<span className={styles.counterLabel}>勝利</span>
+						<span className={styles.counterLabel}>{t("stats.wins")}</span>
 					</div>
 					<div className={`${styles.counter} ${styles.counterLoss}`}>
 						<span className={styles.counterValue}>{stats?.losses ?? 0}</span>
-						<span className={styles.counterLabel}>敗北</span>
+						<span className={styles.counterLabel}>{t("stats.losses")}</span>
 					</div>
 					<div className={`${styles.counter} ${styles.counterTotal}`}>
 						<span className={styles.counterValue}>{stats?.total ?? 0}</span>
-						<span className={styles.counterLabel}>合計</span>
+						<span className={styles.counterLabel}>{t("stats.total")}</span>
 					</div>
 				</div>
 			</div>
 
 			{/* 下段：試合履歴テーブル */}
 			<div className={styles.historySection}>
-				<h3 className={styles.historyTitle}>試合履歴（最新20件）</h3>
+				<h3 className={styles.historyTitle}>{t("stats.historyTitle")}</h3>
 				{history.length === 0 ? (
-					<div className={styles.noHistory}>対戦履歴がまだありません</div>
+					<div className={styles.noHistory}>{t("history.noHistory")}</div>
 				) : (
 					<div className={styles.tableWrapper}>
 						<table className={styles.table}>
 							<thead>
 								<tr>
-									<th>日時</th>
-									<th>結果</th>
-									<th>スコア</th>
-									<th>相手ID</th>
+									<th>{t("history.date")}</th>
+									<th>{t("history.result")}</th>
+									<th>{t("history.score")}</th>
+									<th>{t("stats.opponentId")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -119,7 +124,9 @@ export default function StatsDashboard() {
 														: styles.badgeLoss
 												}
 											>
-												{m.result === "win" ? "勝利" : "敗北"}
+												{m.result === "win"
+													? t("history.win")
+													: t("history.lose")}
 											</span>
 										</td>
 										<td>
