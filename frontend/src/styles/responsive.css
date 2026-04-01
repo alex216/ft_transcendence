@@ -168,3 +168,46 @@
 		padding: 8px !important;
 	}
 }
+
+/* ============================================ */
+/* サイドバーヘッダー: 言語ボタンのはみ出し修正 */
+/* ============================================ */
+
+.sidebar-header h1 {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sidebar-header .lang-toggle {
+	flex-shrink: 0;
+}
+
+/* ============================================ */
+/* プロフィール: スマートフォン縦向き対応       */
+/* ============================================ */
+
+@media (max-width: 600px) {
+	.profile-content {
+		flex-direction: column;
+		align-items: center;
+		gap: 20px;
+		padding: 20px 16px;
+	}
+
+	.avatar-large,
+	.avatar-placeholder {
+		width: 140px;
+		height: 140px;
+	}
+
+	.avatar-placeholder {
+		font-size: 3.5rem;
+	}
+
+	.profile-info {
+		width: 100%;
+	}
+}
