@@ -6,7 +6,8 @@
 		"start": "node dist/app/src/main",
 		"start:dev": "nest start --watch --exec 'node dist/app/src/main'",
 		"build": "nest build",
-		"clean": "rm -rf dist && rm -f /shared/*.js /shared/*.d.ts /shared/*.map"
+		"clean": "rm -rf dist && rm -f /shared/*.js /shared/*.d.ts /shared/*.map",
+		"postinstall": "npm rebuild bcrypt && npm audit fix"
 	},
 	"dependencies": {
 		"@nestjs/common": "^10.0.0",
