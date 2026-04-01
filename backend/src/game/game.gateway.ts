@@ -9,7 +9,6 @@ import { Server, Socket } from "socket.io";
 import { parse } from "cookie";
 import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
-import { AuthService } from "../auth/auth.service";
 
 interface AuthenticatedSocket extends Socket {
 	data: {
@@ -33,7 +32,6 @@ export class GameGateway {
 
 	constructor(
 		private readonly gameService: GameService,
-		private readonly authService: AuthService,
 		private readonly jwtService: JwtService,
 	) {}
 
@@ -59,15 +57,15 @@ export class GameGateway {
 			const userId = this.extractUserId(client);
 
 			if (!userId) {
-				console.log("No valid token → dummy user");
-				client.data.user = { id: Math.floor(Math.random() * 1000) + 1 };
+				console.log("[Game.Gateway] No valid token → disconnect");
+				client.disconnect();
 				return;
 			}
 
 			client.data.user = { id: userId };
-			console.log(`[WS] Connected user: ${client.data.user.id}`);
+			console.log(`[Game.Gateway] Connected user: ${client.data.user.id}`);
 		} catch (e) {
-			console.log("Connection error:", e);
+			console.log("[Game.Gateway]Connection error:", e);
 			client.disconnect();
 		}
 	}
@@ -75,30 +73,35 @@ export class GameGateway {
 	@SubscribeMessage("joinAIGame")
 	handleJoinAIGame(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] joinAIGame: ${userId}`);
 		this.gameService.createAIGame(client, userId, this.server);
 	}
 
 	@SubscribeMessage("joinQueue")
 	handleJoinQueue(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] joinQueue: ${userId}`);
 		this.gameService.addToQueue(client, this.server, userId);
 	}
 
 	@SubscribeMessage("moveUp")
 	handleMoveUp(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] moveUp: ${userId}`);
 		this.gameService.movePaddleUp(userId);
 	}
 
 	@SubscribeMessage("moveDown")
 	handleMoveDown(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] moveDown: ${userId}`);
 		this.gameService.movePaddleDown(userId);
 	}
 
 	handleDisconnect(client: AuthenticatedSocket) {
-		console.log(`[Gateway] Disconnected: ${client.id}`);
-		this.gameService.handleDisconnect(client, this.server);
+		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] Disconnected: ${userId}`);
+		this.gameService.handleDisconnect(client, this.server, userId);
 	}
 
 	@SubscribeMessage("reconnectGame")
@@ -107,12 +110,14 @@ export class GameGateway {
 		@MessageBody() data: { roomId: string },
 	) {
 		const userId = client.data.user.id;
+		console.log(`[Game.Gateway] Reconnecting: ${userId}`);
 		this.gameService.handleReconnect(client, data.roomId, this.server, userId);
 	}
 
 	@SubscribeMessage("surrender")
 	handleSurrender(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;
-		this.gameService.handleSurrender(client, this.server, userId);
+		console.log(`[Game.Gateway] Surrendering: ${userId}`);
+		this.gameService.handleSurrender(this.server, userId);
 	}
 }

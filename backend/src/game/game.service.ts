@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
 import { GameState } from "../../../shared/game.interface";
+import { randomUUID } from "crypto";
 import {
 	FIELD_WIDTH,
 	FIELD_HEIGHT,
@@ -19,7 +20,8 @@ import {
 	MAX_SCORE,
 	ANGLE_CHANGE,
 	PAD_SPEED,
-	AI_ID,
+	AI_SOCKET_ID,
+	AI_USER_ID,
 } from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
@@ -28,8 +30,8 @@ interface GameInternalState extends GameState {
 	dy: number;
 	p1SocketId: string;
 	p2SocketId: string;
-	p1UserId?: number; // 認証済みユーザーのDB ID（統計用）
-	p2UserId?: number;
+	p1UserId: number; // 認証済みユーザーのDB ID（統計用）
+	p2UserId: number;
 	interval: NodeJS.Timeout | null;
 	disconnectTimer?: NodeJS.Timeout | null;
 	disconnectedPlayerId?: number;
@@ -42,7 +44,8 @@ export class GameService {
 		private readonly matchHistoryRepository: Repository<MatchHistory>,
 	) {}
 
-	// base maps
+	// キューにユーザーIDも一緒に保持する
+	private queue: { socket: Socket; userId: number }[] = [];
 	private AIgames = new Map<string, GameInternalState>();
 	private games = new Map<string, GameInternalState>();
 
@@ -53,9 +56,10 @@ export class GameService {
 	private socketToPlayer = new Map<string, number>();
 
 	createAIGame(client: Socket, playerId: number, server: Server) {
-		console.log(`[Game] Starting AI game for player ${playerId}`);
-
-		const roomId = `ai_${client.id}`;
+		const roomId = `room_${randomUUID()}`;
+		console.log(
+			`[Game.Service] CreateAIgame for player ${playerId} in room number ${roomId}`,
+		);
 		client.join(roomId);
 
 		const initialState: GameInternalState = {
@@ -68,7 +72,9 @@ export class GameService {
 			dx: SPEED_BASE,
 			dy: SPEED_BASE,
 			p1SocketId: client.id,
-			p2SocketId: AI_ID,
+			p2SocketId: AI_SOCKET_ID,
+			p1UserId: playerId,
+			p2UserId: AI_USER_ID,
 			interval: null,
 		};
 
@@ -80,6 +86,9 @@ export class GameService {
 		this.AIgames.set(roomId, initialState);
 		this.userIdToRoom.set(playerId, roomId);
 		this.socketToPlayer.set(client.id, playerId);
+		console.log(
+			`[Game.Service] Successfully starting AIgame for player ${playerId} in room number ${roomId}`,
+		);
 	}
 
 	private AIgameLoop(roomId: string, server: Server) {
@@ -142,7 +151,7 @@ export class GameService {
 			}
 		}
 
-		// 5. check for gameover
+		// 5. check for goal
 		if (game.ball.x <= 0 || game.ball.x >= FIELD_WIDTH) {
 			if (game.ball.x <= 0) game.rightScore++;
 			else game.leftScore++;
@@ -152,15 +161,24 @@ export class GameService {
 			game.dy = SPEED_BASE;
 		}
 
+		// 6. check for gameover
+		//	on gameover, we are sending the socketId of the winner like in the online case,
+		//	in the front, please remember to check the AI_SOCKET_ID in the shared/game.constants
 		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
 			clearInterval(game.interval);
-			this.AIgames.delete(roomId);
 
-			const winnerId =
+			const winnerSocketId =
 				game.leftScore >= MAX_SCORE ? game.p1SocketId : game.p2SocketId;
 
-			server.to(roomId).emit("gameOver", { winner: winnerId });
+			console.log(
+				`[Game.Service] AIgameOver. winnerSocketId->${winnerSocketId}`,
+			);
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId });
 			// not saving result for aiGames
+			this.AIgames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+			return;
 		}
 
 		// sending status to the client
@@ -169,29 +187,33 @@ export class GameService {
 		delete publicState.dy;
 		delete publicState.p1SocketId;
 		delete publicState.p2SocketId;
+		delete publicState.p1UserId;
+		delete publicState.p2UserId;
 		delete publicState.interval;
 		server.to(roomId).emit("updateState", publicState);
 	}
 
-	// キューにユーザーIDも一緒に保持する
-	private queue: { socket: Socket; userId?: number }[] = [];
-
 	// マッチメイキング
-	addToQueue(client: Socket, server: Server, userId?: number) {
-		console.log(`[Game] Player joined queue: ${client.id} (userId: ${userId})`);
+	addToQueue(client: Socket, server: Server, userId: number) {
+		console.log(`[Game.Service] addToQueue: ${userId}`);
 
-		if (this.queue.find((q) => q.socket.id === client.id)) return;
+		if (
+			this.queue.find((q) => q.socket.id === client.id) ||
+			this.queue.find((q) => q.userId === userId)
+		) {
+			console.log(`[Game.Service] user was already in queue: ${userId}`);
+			return;
+		}
 		this.queue.push({ socket: client, userId });
 		console.log(
-			"Queue:",
-			this.queue.map((q) => q.socket.id),
+			"[Game.Service] Queue: ",
+			this.queue.map((q) => q.userId),
 		);
 
 		if (this.queue.length >= 2) {
-			console.log(`[Game] Match found! Starting game...`);
 			const p1 = this.queue.shift()!;
 			const p2 = this.queue.shift()!;
-			const roomId = `room_${p1.socket.id}`;
+			const roomId = `room_${randomUUID()}`;
 
 			p1.socket.join(roomId);
 			p2.socket.join(roomId);
@@ -204,6 +226,9 @@ export class GameService {
 				p1.userId,
 				p2.userId,
 			);
+			console.log(
+				`[Game.Service] Match found! Starting game for players ${p1.userId} and ${p2.userId} in room number ${roomId}`,
+			);
 		}
 	}
 
@@ -213,8 +238,8 @@ export class GameService {
 		p1SocketId: string,
 		p2SocketId: string,
 		server: Server,
-		p1UserId?: number,
-		p2UserId?: number,
+		p1UserId: number,
+		p2UserId: number,
 	) {
 		const initialState: GameInternalState = {
 			ball: { ...FIELD_CENTER },
@@ -241,8 +266,8 @@ export class GameService {
 		this.games.set(roomId, initialState);
 		if (p1UserId) this.userIdToRoom.set(p1UserId, roomId);
 		if (p2UserId) this.userIdToRoom.set(p2UserId, roomId);
-		this.socketToPlayer.set(p1SocketId, p1UserId ?? -1);
-		this.socketToPlayer.set(p2SocketId, p2UserId ?? -1);
+		this.socketToPlayer.set(p1SocketId, p1UserId);
+		this.socketToPlayer.set(p2SocketId, p2UserId);
 	}
 
 	private gameLoop(roomId: string, server: Server) {
@@ -309,7 +334,7 @@ export class GameService {
 			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
 
 			const isP1Winner = game.leftScore >= MAX_SCORE;
-			const winnerId = isP1Winner ? game.p1UserId : game.p2UserId;
+			const winnerSocketId = isP1Winner ? game.p1SocketId : game.p2SocketId;
 			const winnerUserId = isP1Winner ? game.p1UserId : game.p2UserId;
 			const loserUserId = isP1Winner ? game.p2UserId : game.p1UserId;
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
@@ -327,15 +352,19 @@ export class GameService {
 			server.to(roomId).emit("updateState", finalState);
 
 			// フロントエンドに終了を通知
-			server.to(roomId).emit("gameOver", { winner: winnerId });
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId });
 
 			// DBへ試合結果を保存（非同期）
 			console.log(
-				`[MatchSaved] WinnerUser:${winnerUserId} (Socket:${winnerId}) vs LoserUser:${loserUserId}`,
+				`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
 			);
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
 			this.games.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.userIdToRoom.delete(game.p2UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+			this.socketToPlayer.delete(game.p2SocketId);
 			return;
 		}
 
@@ -404,25 +433,26 @@ export class GameService {
 		}
 	}
 
-	handleDisconnect(client: Socket, server: Server) {
-		console.log(`[GameService] Handling disconnect: ${client.id}`);
-
-		const userId = this.socketToPlayer.get(client.id);
-		if (userId === undefined) return;
-		this.socketToPlayer.delete(client.id);
-
-		// Removing from queue
-		this.queue = this.queue.filter((q) => q.socket.id !== client.id);
+	handleDisconnect(client: Socket, server: Server, userId: number) {
 		console.log(
-			"Queue:",
-			this.queue.map((q) => q.socket.id),
+			`[GameService] HandleDisconnect: socket->${client.id}, id->${userId}`,
 		);
+
+		// Removing from queue if not mathed yet
+		const wasInQueue = this.queue.some((q) => q.socket.id === client.id);
+		if (wasInQueue) {
+			this.queue = this.queue.filter((q) => q.socket.id !== client.id);
+			this.socketToPlayer.delete(client.id);
+			console.log(`[GameService] Player ${userId} removed from queue`);
+			return; // no need for reconnection logic
+		}
+		this.socketToPlayer.delete(client.id);
 
 		// online matches
 		for (const [roomId, game] of this.games.entries()) {
 			if (game.p1SocketId === client.id || game.p2SocketId === client.id) {
 				console.log(
-					`[GameService] Player left match ${roomId}, waiting reconnection`,
+					`[GameService] Player ${userId} left match ${roomId}, waiting reconnection`,
 				);
 
 				game.isPaused = true;
@@ -437,7 +467,7 @@ export class GameService {
 
 				game.disconnectTimer = setTimeout(() => {
 					console.log(
-						`[GameService] Grace period expired, ending match ${roomId}`,
+						`[GameService] Grace period expired for player ${userId}, ending match ${roomId}`,
 					);
 
 					clearInterval(game.interval);
@@ -451,15 +481,27 @@ export class GameService {
 						reason: "disconnect",
 					});
 
+					//saving in the DB
 					const winnerUserId =
 						game.p1SocketId === winnerSocketId ? game.p1UserId : game.p2UserId;
 					const loserUserId =
 						game.p1SocketId === loserSocketId ? game.p1UserId : game.p2UserId;
+					const winnerScore =
+						game.p1SocketId === winnerSocketId
+							? game.leftScore
+							: game.rightScore;
+					const loserScore =
+						game.p1SocketId === loserSocketId
+							? game.leftScore
+							: game.rightScore;
 					this.saveMatchResult(
-						MAX_SCORE,
-						Math.max(game.leftScore, game.rightScore),
+						winnerScore,
+						loserScore,
 						winnerUserId,
 						loserUserId,
+					);
+					console.log(
+						`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
 					);
 
 					this.games.delete(roomId);
@@ -475,8 +517,10 @@ export class GameService {
 				console.log(`[GameService] Player disconnected from AI game ${roomId}`);
 				if (game.interval) clearInterval(game.interval);
 				this.AIgames.delete(roomId);
+				this.userIdToRoom.delete(game.p1UserId);
+				this.socketToPlayer.delete(game.p1SocketId);
 				server.to(roomId).emit("gameOver", {
-					winner: 0,
+					winner: AI_SOCKET_ID,
 					reason: "disconnectAI",
 				});
 				break;
@@ -540,21 +584,51 @@ export class GameService {
 		}
 	}
 
-	handleSurrender(client: Socket, server: Server, userId: number) {
+	handleSurrender(server: Server, userId: number) {
+		console.log(`[GameService] Player ${userId} surrendered`);
 		const roomId = this.userIdToRoom.get(userId);
 		if (!roomId) return;
+
 		const game = this.games.get(roomId) || this.AIgames.get(roomId);
 		if (!game) return;
 
+		if (game.interval) {
+			clearInterval(game.interval);
+			game.interval = null;
+		}
 		const isP1 = game.p1UserId === userId;
 
-
 		const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
-		server
-			.to(roomId)
-			.emit("gameOver", { winner: winnerUserId, reason: "surrender" });
+		const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
+		const winnerScore = isP1 ? game.rightScore : game.leftScore;
+		const loserScore = isP1 ? game.leftScore : game.rightScore;
+		const winnerSocketId = isP1 ? game.p2SocketId : game.p1SocketId;
 
-		if (this.games.has(roomId)) this.games.delete(roomId);
-		if (this.AIgames.has(roomId)) this.AIgames.delete(roomId);
+		server.to(roomId).emit("gameOver", {
+			winner: winnerSocketId,
+			reason: "surrender",
+		});
+
+		// online match
+		if (this.games.has(roomId)) {
+			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
+
+			this.userIdToRoom.delete(winnerUserId);
+			this.userIdToRoom.delete(loserUserId);
+
+			this.socketToPlayer.delete(game.p1SocketId);
+			this.socketToPlayer.delete(game.p2SocketId);
+
+			this.games.delete(roomId);
+			return;
+		}
+
+		// AI match
+		if (this.AIgames.has(roomId)) {
+			this.userIdToRoom.delete(userId);
+			this.socketToPlayer.delete(game.p1SocketId);
+
+			this.AIgames.delete(roomId);
+		}
 	}
 }

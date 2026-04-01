@@ -19,4 +19,5 @@ export const SPEED_BASE = 5;
 export const ANGLE_CHANGE = SPEED_BASE * 4;
 export const SPEED_CHANGE = -1.1;
 export const MAX_SCORE = 11;
-export const AI_ID = null;
+export const AI_SOCKET_ID = null;
+export const AI_USER_ID = -1;
