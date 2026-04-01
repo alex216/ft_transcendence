@@ -5,6 +5,9 @@ export const PAD_SPEED = 8;
 export const PAD_WIDTH = 20;
 export const PAD_LENGTH = 100;
 export const PAD_BORDER_DIST = 40;
+export const AI_SOCKET_ID = null;
+export const AI_USER_ID = -1;
+export const GRACE_TIME = 15000;
 // 。。。finish
 
 export const FIELD_CENTER = { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT / 2 };
@@ -19,5 +22,3 @@ export const SPEED_BASE = 5;
 export const ANGLE_CHANGE = SPEED_BASE * 4;
 export const SPEED_CHANGE = -1.1;
 export const MAX_SCORE = 11;
-export const AI_SOCKET_ID = null;
-export const AI_USER_ID = -1;

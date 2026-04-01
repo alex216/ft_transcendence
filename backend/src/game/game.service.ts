@@ -22,6 +22,7 @@ import {
 	PAD_SPEED,
 	AI_SOCKET_ID,
 	AI_USER_ID,
+	GRACE_TIME,
 } from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
@@ -508,7 +509,7 @@ export class GameService {
 				this.userIdToRoom.delete(game.p2UserId);
 				this.socketToPlayer.delete(game.p1SocketId);
 				this.socketToPlayer.delete(game.p2SocketId);
-			}, 15000);
+			}, GRACE_TIME);
 
 			return;
 		}
