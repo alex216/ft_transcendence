@@ -56,6 +56,19 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 	const { t } = useTranslation();
 	const [s, setS] = useState<PongSettings>(DEFAULTS);
 
+	// キャンバスカードのコンテナ幅を計測してレスポンシブスケールを算出
+	const canvasCardRef = useRef<HTMLElement>(null);
+	const [containerWidth, setContainerWidth] = useState<number>(DEFAULTS.width);
+	useEffect(() => {
+		const el = canvasCardRef.current;
+		if (!el) return;
+		const ro = new ResizeObserver(([entry]) => {
+			setContainerWidth(entry.contentRect.width);
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, []);
+
 	// オンラインモード用の状態
 	const [gameState, setGameState] = useState<GameState | null>(null);
 	const [gameResult, setGameResult] = useState<{
@@ -65,20 +78,20 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 	const [isPlayer1, setIsPlayer1] = useState<boolean | null>(null); // 自分が左パドルかどうか（null=未確定）
 	const lastSentPaddleY = useRef<number | null>(null); // 最後に送信したパドル位置（プレイヤー判定用）
 
-	// AIモード用のprops
-	const pongProps = useMemo(
-		() => ({
-			width: s.width,
-			height: s.height,
-			ballSize: s.ballSize,
-			paddleHeight: s.paddleHeight,
-			paddleWidth: s.paddleWidth,
+	// AIモード用のprops（コンテナ幅に合わせてスケール）
+	const pongProps = useMemo(() => {
+		const scale = Math.min(1, containerWidth / s.width);
+		return {
+			width: Math.round(s.width * scale),
+			height: Math.round(s.height * scale),
+			ballSize: Math.max(4, Math.round(s.ballSize * scale)),
+			paddleHeight: Math.round(s.paddleHeight * scale),
+			paddleWidth: Math.max(4, Math.round(s.paddleWidth * scale)),
 			paddleSpeed: s.paddleSpeed,
 			upArrow: s.upArrow,
 			downArrow: s.downArrow,
-		}),
-		[s],
-	);
+		};
+	}, [s, containerWidth]);
 
 	// オンラインモードのWebSocket接続
 	useEffect(() => {
@@ -180,7 +193,7 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 			</header>
 
 			<div className="game-layout">
-				<section className="game-canvas-card">
+				<section className="game-canvas-card" ref={canvasCardRef}>
 					{mode === "online" ? (
 						<>
 							{/* オンラインモード：カスタムCanvas */}
