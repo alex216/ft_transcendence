@@ -531,7 +531,7 @@ h2 {
 
 .game-layout {
 	display: grid;
-	grid-template-columns: 1fr 320px;
+	grid-template-columns: minmax(0, 1fr) 320px;
 	gap: 16px;
 	align-items: start;
 }
@@ -540,6 +540,8 @@ h2 {
 	border-radius: 16px;
 	padding: 16px;
 	min-height: 420px;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .game-side-panel {
@@ -547,7 +549,8 @@ h2 {
 	padding: 16px;
 }
 
-@media (max-width: 960px) {
+/* canvas(700px) + gap(16px) + panel(320px) + padding(80px) + sidebar(250px) + AppPadding(40px) ≒ 1406px */
+@media (max-width: 1450px) {
 	.game-layout {
 		grid-template-columns: 1fr;
 	}
