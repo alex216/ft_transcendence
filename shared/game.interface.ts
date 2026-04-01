@@ -21,17 +21,17 @@ export interface GameState {
 	isPaused: boolean;
 }
 
+// new way of emitting state
+// the roomId will be used for reconnection attempts
+export interface GameStateDto {
+	roomId: string;
+	state: GameState;
+}
+
 // フロントエンドから送られてくる操作データ（パドルの移動指令）
 // old version
 export interface PaddleMoveDto {
 	y: number;
 }
-
-// NEW versions
-export interface PaddleMoveUp {
-	playerId: string;
-}
-
-export interface PaddleMoveDown {
-	playerId: string;
-}
+// NEW versions-> socket.emit("moveUp")
+// 新しい				-> socket.emit("moveDown")

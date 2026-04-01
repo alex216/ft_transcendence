@@ -3,7 +3,7 @@ import { Socket, Server } from "socket.io";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
-import { GameState } from "../../../shared/game.interface";
+import { GameState, GameStateDto } from "../../../shared/game.interface";
 import { randomUUID } from "crypto";
 import {
 	FIELD_WIDTH,
@@ -26,6 +26,7 @@ import {
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
+	roomId: string;
 	dx: number;
 	dy: number;
 	p1SocketId: string;
@@ -55,6 +56,20 @@ export class GameService {
 	// faster handleing of disconnections and reconnections
 	private socketToPlayer = new Map<string, number>();
 
+	private toDto(game: GameInternalState): GameStateDto {
+		return {
+			roomId: game.roomId,
+			state: {
+				ball: game.ball,
+				leftPaddleY: game.leftPaddleY,
+				rightPaddleY: game.rightPaddleY,
+				leftScore: game.leftScore,
+				rightScore: game.rightScore,
+				isPaused: game.isPaused,
+			},
+		};
+	}
+
 	createAIGame(client: Socket, playerId: number, server: Server) {
 		const roomId = `room_${randomUUID()}`;
 		console.log(
@@ -63,6 +78,7 @@ export class GameService {
 		client.join(roomId);
 
 		const initialState: GameInternalState = {
+			roomId: roomId,
 			ball: { ...FIELD_CENTER },
 			leftPaddleY: STARTING_POSITION,
 			rightPaddleY: STARTING_POSITION,
@@ -173,7 +189,7 @@ export class GameService {
 			console.log(
 				`[Game.Service] AIgameOver. winnerSocketId->${winnerSocketId}`,
 			);
-			server.to(roomId).emit("gameOver", { winner: winnerSocketId });
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId, roomId });
 			// not saving result for aiGames
 			this.AIgames.delete(roomId);
 			this.userIdToRoom.delete(game.p1UserId);
@@ -181,16 +197,7 @@ export class GameService {
 			return;
 		}
 
-		// sending status to the client
-		const publicState = { ...game };
-		delete publicState.dx;
-		delete publicState.dy;
-		delete publicState.p1SocketId;
-		delete publicState.p2SocketId;
-		delete publicState.p1UserId;
-		delete publicState.p2UserId;
-		delete publicState.interval;
-		server.to(roomId).emit("updateState", publicState);
+		server.to(roomId).emit("updateState", this.toDto(game));
 	}
 
 	// マッチメイキング
@@ -242,6 +249,7 @@ export class GameService {
 		p2UserId: number,
 	) {
 		const initialState: GameInternalState = {
+			roomId: roomId,
 			ball: { ...FIELD_CENTER },
 			leftPaddleY: STARTING_POSITION,
 			rightPaddleY: STARTING_POSITION,
@@ -341,18 +349,10 @@ export class GameService {
 			const loserScore = Math.min(game.leftScore, game.rightScore);
 
 			// 最終スコアを送信（11点を反映）
-			const finalState = { ...game };
-			delete finalState.dx;
-			delete finalState.dy;
-			delete finalState.p1SocketId;
-			delete finalState.p2SocketId;
-			delete finalState.p1UserId;
-			delete finalState.p2UserId;
-			delete finalState.interval;
-			server.to(roomId).emit("updateState", finalState);
+			server.to(roomId).emit("updateState", this.toDto(game));
 
 			// フロントエンドに終了を通知
-			server.to(roomId).emit("gameOver", { winner: winnerSocketId });
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId, roomId });
 
 			// DBへ試合結果を保存（非同期）
 			console.log(
@@ -369,15 +369,7 @@ export class GameService {
 		}
 
 		// 6. 状態配信
-		const publicState = { ...game };
-		delete publicState.dx;
-		delete publicState.dy;
-		delete publicState.p1SocketId;
-		delete publicState.p2SocketId;
-		delete publicState.p1UserId;
-		delete publicState.p2UserId;
-		delete publicState.interval;
-		server.to(roomId).emit("updateState", publicState);
+		server.to(roomId).emit("updateState", this.toDto(game));
 	}
 
 	// 試合結果をDBに保存する内部メソッド
@@ -438,93 +430,98 @@ export class GameService {
 			`[GameService] HandleDisconnect: socket->${client.id}, id->${userId}`,
 		);
 
-		// Removing from queue if not mathed yet
-		const wasInQueue = this.queue.some((q) => q.socket.id === client.id);
-		if (wasInQueue) {
-			this.queue = this.queue.filter((q) => q.socket.id !== client.id);
+		// Removing from queue if not matched yet
+		const queueIndex = this.queue.findIndex((q) => q.socket.id === client.id);
+		if (queueIndex !== -1) {
+			this.queue.splice(queueIndex, 1);
 			this.socketToPlayer.delete(client.id);
 			console.log(`[GameService] Player ${userId} removed from queue`);
 			return; // no need for reconnection logic
 		}
+
 		this.socketToPlayer.delete(client.id);
 
-		// online matches
-		for (const [roomId, game] of this.games.entries()) {
-			if (game.p1SocketId === client.id || game.p2SocketId === client.id) {
+		// Check if player is in an online match
+		const roomId = this.userIdToRoom.get(userId);
+		if (roomId && this.games.has(roomId)) {
+			const game = this.games.get(roomId)!;
+
+			console.log(
+				`[GameService] Player ${userId} left match ${roomId}, waiting reconnection`,
+			);
+
+			game.isPaused = true;
+
+			const otherSocketId =
+				game.p1SocketId === client.id ? game.p2SocketId : game.p1SocketId;
+			server
+				.to(roomId)
+				.emit("playerDisconnected", { playerSocketId: client.id });
+
+			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
+
+			game.disconnectTimer = setTimeout(() => {
 				console.log(
-					`[GameService] Player ${userId} left match ${roomId}, waiting reconnection`,
+					`[GameService] Grace period expired for player ${userId}, ending match ${roomId}`,
 				);
 
-				game.isPaused = true;
+				clearInterval(game.interval);
+				game.interval = null;
 
-				const otherSocketId =
-					game.p1SocketId === client.id ? game.p2SocketId : game.p1SocketId;
-				server
-					.to(roomId)
-					.emit("playerDisconnected", { playerSocketId: client.id });
+				const winnerSocketId = otherSocketId;
+				const loserSocketId = client.id;
 
-				if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
+				server.to(roomId).emit("gameOver", {
+					winner: winnerSocketId,
+					reason: "disconnect",
+					roomId,
+				});
 
-				game.disconnectTimer = setTimeout(() => {
-					console.log(
-						`[GameService] Grace period expired for player ${userId}, ending match ${roomId}`,
-					);
+				//saving in the DB
+				const winnerUserId =
+					game.p1SocketId === winnerSocketId ? game.p1UserId : game.p2UserId;
+				const loserUserId =
+					game.p1SocketId === loserSocketId ? game.p1UserId : game.p2UserId;
+				const winnerScore =
+					game.p1SocketId === winnerSocketId ? game.leftScore : game.rightScore;
+				const loserScore =
+					game.p1SocketId === loserSocketId ? game.leftScore : game.rightScore;
+				this.saveMatchResult(
+					winnerScore,
+					loserScore,
+					winnerUserId,
+					loserUserId,
+				);
 
-					clearInterval(game.interval);
-					game.interval = null;
+				console.log(
+					`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
+				);
 
-					const winnerSocketId = otherSocketId;
-					const loserSocketId = client.id;
+				this.games.delete(roomId);
+				this.userIdToRoom.delete(game.p1UserId);
+				this.userIdToRoom.delete(game.p2UserId);
+				this.socketToPlayer.delete(game.p1SocketId);
+				this.socketToPlayer.delete(game.p2SocketId);
+			}, 15000);
 
-					server.to(roomId).emit("gameOver", {
-						winner: winnerSocketId,
-						reason: "disconnect",
-					});
-
-					//saving in the DB
-					const winnerUserId =
-						game.p1SocketId === winnerSocketId ? game.p1UserId : game.p2UserId;
-					const loserUserId =
-						game.p1SocketId === loserSocketId ? game.p1UserId : game.p2UserId;
-					const winnerScore =
-						game.p1SocketId === winnerSocketId
-							? game.leftScore
-							: game.rightScore;
-					const loserScore =
-						game.p1SocketId === loserSocketId
-							? game.leftScore
-							: game.rightScore;
-					this.saveMatchResult(
-						winnerScore,
-						loserScore,
-						winnerUserId,
-						loserUserId,
-					);
-					console.log(
-						`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
-					);
-
-					this.games.delete(roomId);
-				}, 15000);
-
-				return;
-			}
+			return;
 		}
 
-		// AI matches
-		for (const [roomId, game] of this.AIgames.entries()) {
-			if (game.p1SocketId === client.id) {
-				console.log(`[GameService] Player disconnected from AI game ${roomId}`);
-				if (game.interval) clearInterval(game.interval);
-				this.AIgames.delete(roomId);
-				this.userIdToRoom.delete(game.p1UserId);
-				this.socketToPlayer.delete(game.p1SocketId);
-				server.to(roomId).emit("gameOver", {
-					winner: AI_SOCKET_ID,
-					reason: "disconnectAI",
-				});
-				break;
-			}
+		// AI matches (not waiting for reconnection)
+		if (roomId && this.AIgames.has(roomId)) {
+			const game = this.AIgames.get(roomId)!;
+			console.log(`[GameService] Player disconnected from AI game ${roomId}`);
+
+			if (game.interval) clearInterval(game.interval);
+			this.AIgames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+
+			server.to(roomId).emit("gameOver", {
+				winner: AI_SOCKET_ID,
+				reason: "disconnectAI",
+				roomId,
+			});
 		}
 	}
 
@@ -535,12 +532,23 @@ export class GameService {
 		userId: number,
 	) {
 		const game = this.games.get(roomId);
-		if (!game) return;
+		if (!game) {
+			client.emit("reconnectFailed", { reason: "game_not_found" });
+			return;
+		}
 
 		// Determine the player reconnecting and updating game attributes
 		const isP1 = game.p1UserId === userId;
 		const isP2 = game.p2UserId === userId;
-		if (!isP1 && !isP2) return;
+		if (!isP1 && !isP2) {
+			client.emit("reconnectFailed", { reason: "not_your_game" });
+			return;
+		}
+
+		if (!game.interval && !game.disconnectTimer) {
+			client.emit("reconnectFailed", { reason: "game_already_finished" });
+			return;
+		}
 		if (isP1) game.p1SocketId = client.id;
 		if (isP2) game.p2SocketId = client.id;
 
@@ -565,15 +573,7 @@ export class GameService {
 		server.to(roomId).emit("playerReconnected", { userId });
 
 		// re-send gamestate to the reconnected player
-		const publicState = { ...game };
-		delete publicState.dx;
-		delete publicState.dy;
-		delete publicState.p1SocketId;
-		delete publicState.p2SocketId;
-		delete publicState.p1UserId;
-		delete publicState.p2UserId;
-		delete publicState.interval;
-		client.emit("updateState", publicState);
+		client.emit("updateState", this.toDto(game));
 
 		// restart game loop if necessary
 		if (!game.interval) {
@@ -607,6 +607,7 @@ export class GameService {
 		server.to(roomId).emit("gameOver", {
 			winner: winnerSocketId,
 			reason: "surrender",
+			roomId,
 		});
 
 		// online match
