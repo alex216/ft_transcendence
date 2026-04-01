@@ -51,9 +51,11 @@ export class GameService {
 	private games = new Map<string, GameInternalState>();
 
 	// faster operations on movepaddle etc
+	// movepddleとか早く調べれるように
 	private userIdToRoom = new Map<number, string>();
 
 	// faster handleing of disconnections and reconnections
+	// reconnectionとか早く調べれるように
 	private socketToPlayer = new Map<string, number>();
 
 	private toDto(game: GameInternalState): GameStateDto {
@@ -107,6 +109,7 @@ export class GameService {
 		);
 	}
 
+	// ほとんどgameloopと同じにですけど、DBにセーブしてません
 	private AIgameLoop(roomId: string, server: Server) {
 		const game = this.AIgames.get(roomId);
 		if (!game || game.isPaused) return;
@@ -431,6 +434,7 @@ export class GameService {
 		);
 
 		// Removing from queue if not matched yet
+		// playerまだ待ってた倍、Queueから消すだけ
 		const queueIndex = this.queue.findIndex((q) => q.socket.id === client.id);
 		if (queueIndex !== -1) {
 			this.queue.splice(queueIndex, 1);
@@ -442,6 +446,7 @@ export class GameService {
 		this.socketToPlayer.delete(client.id);
 
 		// Check if player is in an online match
+		// Onlineだった倍
 		const roomId = this.userIdToRoom.get(userId);
 		if (roomId && this.games.has(roomId)) {
 			const game = this.games.get(roomId)!;
@@ -478,6 +483,7 @@ export class GameService {
 				});
 
 				//saving in the DB
+				//DBにセーブ
 				const winnerUserId =
 					game.p1SocketId === winnerSocketId ? game.p1UserId : game.p2UserId;
 				const loserUserId =
@@ -508,6 +514,7 @@ export class GameService {
 		}
 
 		// AI matches (not waiting for reconnection)
+		// AIだった倍、Reconnect待たないで消します
 		if (roomId && this.AIgames.has(roomId)) {
 			const game = this.AIgames.get(roomId)!;
 			console.log(`[GameService] Player disconnected from AI game ${roomId}`);
@@ -531,13 +538,14 @@ export class GameService {
 		server: Server,
 		userId: number,
 	) {
+		// roomId OK?
 		const game = this.games.get(roomId);
 		if (!game) {
 			client.emit("reconnectFailed", { reason: "game_not_found" });
 			return;
 		}
 
-		// Determine the player reconnecting and updating game attributes
+		// userId OK?
 		const isP1 = game.p1UserId === userId;
 		const isP2 = game.p2UserId === userId;
 		if (!isP1 && !isP2) {
@@ -555,27 +563,34 @@ export class GameService {
 		console.log(`[GameService] Player reconnected: ${client.id} in ${roomId}`);
 
 		// update the new socket for the reconnection
+		// Reconnnectの時にSocket変わっちゃうので、Updateしてます
 		this.socketToPlayer.set(client.id, userId);
 
 		// join the room again
+		// Joinやり直します
 		client.join(roomId);
 
 		// clear timer if still not clear
+		// ClearTimerリセット
 		if (game.disconnectTimer) {
 			clearTimeout(game.disconnectTimer);
 			game.disconnectTimer = null;
 		}
 
 		// resume game
+		// もう一度Gameをスタートします
 		game.isPaused = false;
 
 		// notify the other player
+		// 待ってた相手に知らせ送ります
 		server.to(roomId).emit("playerReconnected", { userId });
 
 		// re-send gamestate to the reconnected player
+		// 戻って来たPlayerに無くしちゃってたGamestateを贈り直します
 		client.emit("updateState", this.toDto(game));
 
 		// restart game loop if necessary
+		// Intervalがリスタートするべきな倍
 		if (!game.interval) {
 			game.interval = setInterval(
 				() => this.gameLoop(roomId, server),
@@ -611,6 +626,7 @@ export class GameService {
 		});
 
 		// online match
+		// Onlineだった倍
 		if (this.games.has(roomId)) {
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
@@ -625,6 +641,7 @@ export class GameService {
 		}
 
 		// AI match
+		// AIだった倍
 		if (this.AIgames.has(roomId)) {
 			this.userIdToRoom.delete(userId);
 			this.socketToPlayer.delete(game.p1SocketId);
