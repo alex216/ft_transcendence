@@ -539,7 +539,6 @@ h2 {
 .game-canvas-card {
 	border-radius: 16px;
 	padding: 16px;
-	min-height: 420px;
 	min-width: 0;
 }
 

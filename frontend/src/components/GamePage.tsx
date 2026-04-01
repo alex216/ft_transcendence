@@ -57,8 +57,9 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 	const [s, setS] = useState<PongSettings>(DEFAULTS);
 
 	// キャンバスカードのコンテナ幅を計測してレスポンシブスケールを算出
+	// 初期値0にすることで、ResizeObserver計測前の一瞬の表示崩れを防ぐ
 	const canvasCardRef = useRef<HTMLElement>(null);
-	const [containerWidth, setContainerWidth] = useState<number>(DEFAULTS.width);
+	const [containerWidth, setContainerWidth] = useState<number>(0);
 	useEffect(() => {
 		const el = canvasCardRef.current;
 		if (!el) return;
@@ -78,20 +79,24 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 	const [isPlayer1, setIsPlayer1] = useState<boolean | null>(null); // 自分が左パドルかどうか（null=未確定）
 	const lastSentPaddleY = useRef<number | null>(null); // 最後に送信したパドル位置（プレイヤー判定用）
 
-	// AIモード用のprops（コンテナ幅に合わせてスケール）
-	const pongProps = useMemo(() => {
-		const scale = Math.min(1, containerWidth / s.width);
-		return {
-			width: Math.round(s.width * scale),
-			height: Math.round(s.height * scale),
-			ballSize: Math.max(4, Math.round(s.ballSize * scale)),
-			paddleHeight: Math.round(s.paddleHeight * scale),
-			paddleWidth: Math.max(4, Math.round(s.paddleWidth * scale)),
+	// AIモード用のprops（元サイズで動作、見た目のスケールはCSS transformで処理）
+	const pongProps = useMemo(
+		() => ({
+			width: s.width,
+			height: s.height,
+			ballSize: s.ballSize,
+			paddleHeight: s.paddleHeight,
+			paddleWidth: s.paddleWidth,
 			paddleSpeed: s.paddleSpeed,
 			upArrow: s.upArrow,
 			downArrow: s.downArrow,
-		};
-	}, [s, containerWidth]);
+		}),
+		[s],
+	);
+
+	// CSSスケール: コンテナ幅に収まるよう縮小率を計算（0=計測前は非表示）
+	const pongScale =
+		containerWidth > 0 ? Math.min(1, containerWidth / s.width) : 0;
 
 	// オンラインモードのWebSocket接続
 	useEffect(() => {
@@ -241,8 +246,25 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 							)}
 						</>
 					) : (
-						/* AIモード：react-pongライブラリ */
-						<Pong key={JSON.stringify(pongProps)} {...pongProps} />
+						/* AIモード：react-pongライブラリ
+						 * ゲームロジックは元サイズ(s.width×s.height)で動作し、
+						 * CSS transformで視覚的にコンテナ幅に収める */
+						<div
+							style={{
+								width: s.width * pongScale,
+								height: s.height * pongScale,
+								overflow: "hidden",
+							}}
+						>
+							<div
+								style={{
+									transform: `scale(${pongScale})`,
+									transformOrigin: "top left",
+								}}
+							>
+								<Pong key={JSON.stringify(pongProps)} {...pongProps} />
+							</div>
+						</div>
 					)}
 				</section>
 
