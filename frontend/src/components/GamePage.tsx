@@ -258,6 +258,9 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 						>
 							<div
 								style={{
+									position: "relative",
+									width: s.width,
+									height: s.height,
 									transform: `scale(${pongScale})`,
 									transformOrigin: "top left",
 								}}
