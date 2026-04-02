@@ -111,7 +111,7 @@ export class GdprService {
 				.execute();
 
 			// User を削除すると CASCADE で Profile・Friend も消える
-			await manager.delete("user", { id: userId });
+			await manager.delete("users", { id: userId });
 		});
 	}
 }
