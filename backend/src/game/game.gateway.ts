@@ -13,7 +13,8 @@ import { PaddleMoveDto } from "../../../shared/game.interface";
 
 @WebSocketGateway({
 	cors: {
-		origin: "*",
+		origin: process.env.FRONTEND_URL || "http://localhost:3001",
+		credentials: true,
 	},
 	namespace: "game", // ゲーム専用の入り口
 })

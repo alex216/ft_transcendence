@@ -14,7 +14,8 @@ import { ChatMessage } from "../../../shared/chat.interface";
 
 @WebSocketGateway({
 	cors: {
-		origin: "*", // 開発環境なので全許可。本番ではフロントのURLに制限します
+		origin: process.env.FRONTEND_URL || "http://localhost:3001",
+		credentials: true,
 	},
 	namespace: "chat", // http://localhost:3000/chat で接続
 })
