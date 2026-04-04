@@ -10,12 +10,10 @@ import { parse } from "cookie";
 import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
 import { PaddleMoveDto } from "../../../shared/game.interface";
+import { corsConfig } from "../cors.config";
 
 @WebSocketGateway({
-	cors: {
-		origin: process.env.FRONTEND_URL || "http://localhost:3001",
-		credentials: true,
-	},
+	cors: corsConfig,
 	namespace: "game", // ゲーム専用の入り口
 })
 export class GameGateway {
