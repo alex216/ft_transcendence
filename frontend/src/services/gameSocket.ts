@@ -4,7 +4,7 @@
  */
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL, SOCKET_OPTIONS } from "./socketManager";
-import type { GameState, PaddleMoveDto } from "/shared/game.interface";
+import type { GameStateDto, PaddleMoveDto } from "/shared/game.interface";
 
 // ゲーム用のSocket.IOクライアント（シングルトン）
 let gameSocket: Socket | null = null;
@@ -74,7 +74,7 @@ export const movePaddle = (y: number): void => {
 /**
  * ゲーム状態更新を受信（1/60秒ごと）
  */
-export const onUpdateState = (callback: (state: GameState) => void): void => {
+export const onUpdateState = (callback: (dto: GameStateDto) => void): void => {
 	const socket = getGameSocket();
 	socket.on("updateState", callback);
 };

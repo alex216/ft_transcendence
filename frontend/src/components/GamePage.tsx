@@ -9,7 +9,7 @@ import {
 	movePaddle,
 	disconnectGameSocket,
 } from "../services/gameSocket";
-import type { GameState } from "/shared/game.interface";
+import type { GameState, GameStateDto } from "/shared/game.interface";
 
 export type GameMode = "ai" | "online";
 
@@ -113,7 +113,8 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 		socket.on("connect", handleConnect);
 
 		// ゲーム状態の更新を受信（プレイヤー判定も行う）
-		const handleUpdateState = (state: GameState) => {
+		const handleUpdateState = (dto: GameStateDto) => {
+			const state = dto.state;
 			setGameState(state);
 
 			// まだプレイヤーが確定していない場合、パドルの応答で判定
