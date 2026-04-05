@@ -4,7 +4,7 @@
  */
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL, SOCKET_OPTIONS } from "./socketManager";
-import type { GameStateDto, PaddleMoveDto } from "/shared/game.interface";
+import type { GameStateDto } from "/shared/game.interface";
 
 // ゲーム用のSocket.IOクライアント（シングルトン）
 let gameSocket: Socket | null = null;
@@ -58,13 +58,46 @@ export const joinQueue = (): void => {
 };
 
 /**
- * パドルの位置を送信
- * @param y パドルのY座標（0〜500の範囲推奨）
+ * AI対戦を開始
  */
-export const movePaddle = (y: number): void => {
+export const joinAIGame = (): void => {
 	const socket = getGameSocket();
-	const payload: PaddleMoveDto = { y };
-	socket.emit("movePaddle", payload);
+	socket.emit("joinAIGame");
+	console.log("[GameSocket] AI対戦開始");
+};
+
+/**
+ * パドルを上に移動（サーバーがPAD_SPEED分移動を計算）
+ */
+export const moveUp = (): void => {
+	const socket = getGameSocket();
+	socket.emit("moveUp");
+};
+
+/**
+ * パドルを下に移動（サーバーがPAD_SPEED分移動を計算）
+ */
+export const moveDown = (): void => {
+	const socket = getGameSocket();
+	socket.emit("moveDown");
+};
+
+/**
+ * 試合中の再接続を試みる
+ */
+export const reconnectGame = (roomId: string): void => {
+	const socket = getGameSocket();
+	socket.emit("reconnectGame", { roomId });
+	console.log("[GameSocket] 再接続試行:", roomId);
+};
+
+/**
+ * 降参（試合を放棄）
+ */
+export const surrender = (): void => {
+	const socket = getGameSocket();
+	socket.emit("surrender");
+	console.log("[GameSocket] 降参");
 };
 
 // ============================================
@@ -81,22 +114,49 @@ export const onUpdateState = (callback: (dto: GameStateDto) => void): void => {
 
 /**
  * ゲーム終了を受信
+ * winner: 勝者のsocketId（AI勝利時はnull）
+ * reason: "disconnect" | "disconnectAI" | "surrender" | undefined（通常終了）
  */
 export const onGameOver = (
-	callback: (data: { winner: string }) => void,
+	callback: (data: {
+		winner: string | null;
+		roomId: string;
+		reason?: string;
+	}) => void,
 ): void => {
 	const socket = getGameSocket();
 	socket.on("gameOver", callback);
 };
 
 /**
- * マッチング成功を受信（ゲーム開始）
+ * 対戦相手が切断した通知
  */
-export const onMatchFound = (
-	callback: (data: { roomId: string; opponent: string }) => void,
+export const onPlayerDisconnected = (
+	callback: (data: { playerSocketId: string }) => void,
 ): void => {
 	const socket = getGameSocket();
-	socket.on("matchFound", callback);
+	socket.on("playerDisconnected", callback);
+};
+
+/**
+ * 対戦相手が再接続した通知
+ */
+export const onPlayerReconnected = (
+	callback: (data: { userId: number }) => void,
+): void => {
+	const socket = getGameSocket();
+	socket.on("playerReconnected", callback);
+};
+
+/**
+ * 再接続失敗の通知
+ * reason: "game_not_found" | "not_your_game" | "game_already_finished"
+ */
+export const onReconnectFailed = (
+	callback: (data: { reason: string }) => void,
+): void => {
+	const socket = getGameSocket();
+	socket.on("reconnectFailed", callback);
 };
 
 /**
@@ -107,4 +167,7 @@ export const removeAllGameListeners = (): void => {
 	socket.off("updateState");
 	socket.off("gameOver");
 	socket.off("matchFound");
+	socket.off("playerDisconnected");
+	socket.off("playerReconnected");
+	socket.off("reconnectFailed");
 };
