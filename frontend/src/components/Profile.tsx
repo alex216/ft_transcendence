@@ -112,7 +112,7 @@ const Profile: React.FC<ProfileProps> = ({
 					)}
 
 					<div className="avatar-actions">
-						<label className="btn-secondary">
+						<label className="btn btn-secondary">
 							{uploading ? t("profile.uploading") : t("profile.changeAvatar")}
 							<input
 								type="file"
@@ -125,7 +125,7 @@ const Profile: React.FC<ProfileProps> = ({
 						{profile.avatarUrl && (
 							<button
 								onClick={handleDeleteAvatar}
-								className="btn-danger"
+								className="btn btn-danger"
 								disabled={uploading}
 							>
 								{t("profile.delete")}
@@ -155,7 +155,7 @@ const Profile: React.FC<ProfileProps> = ({
 						</span>
 					</div>
 
-					<button onClick={onEdit} className="btn-primary">
+					<button onClick={onEdit} className="btn btn-primary">
 						{t("profile.edit")}
 					</button>
 				</div>

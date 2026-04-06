@@ -117,7 +117,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 						{status === "idle" && (
 							<button
 								type="button"
-								className="btn-primary"
+								className="btn btn-primary"
 								onClick={startMatching}
 							>
 								{t("online.findMatch")}
@@ -126,7 +126,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 						{status === "matching" && (
 							<button
 								type="button"
-								className="btn-secondary"
+								className="btn btn-secondary"
 								onClick={cancelMatching}
 							>
 								{t("online.cancel")}
@@ -136,14 +136,14 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 							<>
 								<button
 									type="button"
-									className="btn-primary"
+									className="btn btn-primary"
 									onClick={startMatching}
 								>
 									{t("online.retry")}
 								</button>
 								<button
 									type="button"
-									className="btn-secondary"
+									className="btn btn-secondary"
 									onClick={cancelMatching}
 								>
 									{t("online.back")}

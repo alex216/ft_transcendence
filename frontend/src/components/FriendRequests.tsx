@@ -119,14 +119,14 @@ const FriendRequests: React.FC = () => {
 								<div className="request-actions">
 									<button
 										onClick={() => handleAccept(request.id)}
-										className="btn-primary-small"
+										className="btn btn-primary btn-sm"
 										disabled={processing === request.id}
 									>
 										{t("friendRequests.accept")}
 									</button>
 									<button
 										onClick={() => handleReject(request.id)}
-										className="btn-danger-small"
+										className="btn btn-danger btn-sm"
 										disabled={processing === request.id}
 									>
 										{t("friendRequests.reject")}
