@@ -153,7 +153,7 @@ export default function ChatRoom({
 			<div className="chat-input-area">
 				<input
 					type="text"
-					className="chat-input"
+					className="form-control rounded-pill chat-input"
 					placeholder={
 						isConnected ? t("chat.inputPlaceholder") : t("chat.connecting")
 					}
@@ -164,7 +164,7 @@ export default function ChatRoom({
 				/>
 				<button
 					type="button"
-					className="chat-send-btn"
+					className="btn btn-primary rounded-pill px-4"
 					onClick={handleSend}
 					disabled={!isConnected || !inputValue.trim()}
 				>
