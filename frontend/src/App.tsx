@@ -121,6 +121,11 @@ function App() {
 		e.preventDefault();
 		try {
 			const data = await login(username, password);
+			if (!data.success) {
+				// ログイン失敗（200レスポンスで返却される）
+				setMessage(data.message || "auth.loginFailed");
+				return;
+			}
 			if (data.message === "2FA_REQUIRED") {
 				// 2FA有効ユーザー → コード入力画面へ
 				setNeeds2FA(true);

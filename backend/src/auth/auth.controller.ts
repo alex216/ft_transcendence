@@ -151,10 +151,10 @@ export class AuthController {
 	): Promise<LoginResponse> {
 		const user = await this.authService.login(body.username, body.password);
 		if (!user) {
-			throw new HttpException(
-				"ユーザー名またはパスワードが間違っています",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return {
+				success: false,
+				message: "ユーザー名またはパスワードが間違っています",
+			};
 		}
 
 		// 2FAが有効なユーザーは一時トークンを発行してコード入力画面へ
