@@ -197,26 +197,20 @@ export class AuthController {
 	) {
 		const tempToken = req.cookies?.temp_token;
 		if (!tempToken) {
-			throw new HttpException(
-				"セッションが無効です。再度ログインしてください",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return {
+				success: false,
+				message: "セッションが無効です。再度ログインしてください",
+			};
 		}
 
 		const payload = this.authService.verifyTempToken(tempToken);
 		if (!payload) {
-			throw new HttpException(
-				"セッションが期限切れです",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "セッションが期限切れです" };
 		}
 
 		const user = await this.authService.findById(payload.sub);
 		if (!user || !user.two_factor_secret) {
-			throw new HttpException(
-				"ユーザーが見つかりません",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "ユーザーが見つかりません" };
 		}
 
 		const isValid = this.twoFactorService.verifyToken(
@@ -224,10 +218,7 @@ export class AuthController {
 			body.token,
 		);
 		if (!isValid) {
-			throw new HttpException(
-				"コードが正しくありません",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "コードが正しくありません" };
 		}
 
 		// 検証OK → 本物のJWTを発行
@@ -263,10 +254,7 @@ export class AuthController {
 			body.token,
 		);
 		if (!success) {
-			throw new HttpException(
-				"コードが正しくありません",
-				HttpStatus.BAD_REQUEST,
-			);
+			return { success: false, message: "コードが正しくありません" };
 		}
 
 		return { success: true, message: "2FAを有効化しました" };

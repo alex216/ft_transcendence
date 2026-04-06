@@ -50,7 +50,7 @@ export interface UpdateProfileResponse {
 export interface UploadAvatarResponse {
 	success: boolean;
 	message: string;
-	avatarUrl: string; // アップロードされた画像のURL
+	avatarUrl?: string; // アップロードされた画像のURL（失敗時はundefined）
 }
 
 // DELETE /profile/avatar - アバター削除
