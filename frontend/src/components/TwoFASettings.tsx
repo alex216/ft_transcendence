@@ -81,7 +81,7 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 				<button
 					onClick={handleDisable}
 					disabled={loading}
-					className="btn-danger"
+					className="btn btn-danger"
 				>
 					{loading ? t("twofa.disabling") : t("twofa.disable")}
 				</button>
@@ -89,8 +89,12 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 				<div className="twofa-setup">
 					<p>{t("twofa.scanQr")}</p>
 					<img src={qrCode} alt="2FA QR Code" className="qr-code" />
-					<form onSubmit={handleEnable}>
+					<form
+						onSubmit={handleEnable}
+						className="d-flex gap-2 align-items-center"
+					>
 						<input
+							className="form-control"
 							type="text"
 							placeholder={t("twofa.codePlaceholder")}
 							value={token}
@@ -105,7 +109,7 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 						<button
 							type="submit"
 							disabled={loading || token.length !== 6}
-							className="btn-primary-small"
+							className="btn btn-primary btn-sm"
 						>
 							{loading ? t("twofa.enabling") : t("twofa.enable")}
 						</button>
@@ -118,7 +122,7 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 				<button
 					onClick={handleSetup}
 					disabled={loading}
-					className="btn-primary-small"
+					className="btn btn-primary btn-sm"
 				>
 					{loading ? t("twofa.settingUp") : t("twofa.setup")}
 				</button>
