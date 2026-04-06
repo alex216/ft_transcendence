@@ -26,13 +26,13 @@ import type {
 
 // バックエンドAPIとの通信を担当
 // C++で言うと「HTTPクライアント」のようなもの
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+export const API_URL = import.meta.env.VITE_API_URL || "https://localhost/api";
 
 // 42 OAuthログインURL（ブラウザがこのURLに遷移する）
 export const FORTY_TWO_AUTH_URL = `${API_URL}/auth/42`;
 
 // axiosの設定（クッキーを送信するために必要）
-const api = axios.create({
+export const api = axios.create({
 	baseURL: API_URL,
 	withCredentials: true, // セッションクッキーを含める
 });

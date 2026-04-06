@@ -9,6 +9,8 @@
 		"profile": "Profile",
 		"friends": "Friends",
 		"requests": "Requests",
+		"stats": "Stats",
+		"settings": "Settings",
 		"logout": "Logout"
 	},
 	"auth": {
@@ -252,5 +254,32 @@
 			"s6Title": "6. Changes to Terms",
 			"s6Body": "We may update these terms at any time. Continued use of the service after changes are posted constitutes your acceptance of the revised terms."
 		}
+	},
+	"stats": {
+		"title": "Statistics",
+		"winRate": "Win Rate",
+		"wins": "Wins",
+		"losses": "Losses",
+		"total": "Total",
+		"historyTitle": "Match History (last 20)",
+		"opponentId": "Opponent ID",
+		"fetchFailed": "Failed to load statistics"
+	},
+	"gdpr": {
+		"title": "Privacy Settings",
+		"exportTitle": "Data Export",
+		"exportDesc": "Download all your data (profile, match history, chat, etc.) in JSON format.",
+		"exporting": "Exporting...",
+		"download": "Download My Data",
+		"exportFailed": "Failed to export data",
+		"deleteTitle": "Delete Account",
+		"deleteDesc": "Deleting your account will permanently erase all your data (profile, match history, friends, chat history). This action cannot be undone.",
+		"deleteButton": "Delete Account",
+		"confirmTitle": "Are you sure?",
+		"confirmDesc": "This action cannot be undone. All your data will be permanently deleted.",
+		"deleting": "Deleting...",
+		"deleteConfirm": "Delete",
+		"deleteFailed": "Failed to delete account",
+		"csrfFailed": "Failed to retrieve CSRF token"
 	}
 }

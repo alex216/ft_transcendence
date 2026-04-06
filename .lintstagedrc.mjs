@@ -1,4 +1,5 @@
-import { LINT_TARGET_FILES } from "./eslint.config.mts";
+// eslint.config.mts から LINT_TARGET_FILES = ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"] を手動同期
+const LINT_TARGET_FILES = "**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}";
 
 export default {
 	// ESLint設定から対象ファイルパターンを厳密に読み込み

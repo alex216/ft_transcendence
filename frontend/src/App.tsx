@@ -20,7 +20,10 @@ import LeaderboardPage from "./components/LeaderboardPage";
 import OnlinePage, { OnlineStartPayload } from "./components/OnlinePage";
 import ChatPage from "./components/ChatPage";
 import LegalModal, { LegalType } from "./components/LegalModal";
+import StatsDashboard from "./components/StatsDashboard";
+import GdprSettings from "./components/GdprSettings";
 import "./App.css";
+import "./styles/responsive.css";
 
 type Page =
 	| "home"
@@ -32,7 +35,9 @@ type Page =
 	| "history"
 	| "leaderboard"
 	| "online"
-	| "chat";
+	| "chat"
+	| "stats"
+	| "settings";
 
 function App() {
 	const { t, i18n } = useTranslation();
@@ -49,7 +54,6 @@ function App() {
 	const [needs2FA, setNeeds2FA] = useState(false);
 
 	// Game context（OnlinePage → GamePage 連携用）
-	const [gameMode, setGameMode] = useState<"ai" | "online">("ai");
 	const [gameRoomId, setGameRoomId] = useState<string | null>(null);
 	const [gameOpponent, setGameOpponent] = useState<
 		OnlineStartPayload["opponent"] | null
@@ -57,6 +61,14 @@ function App() {
 
 	// Legal modal
 	const [legalModal, setLegalModal] = useState<LegalType | null>(null);
+
+	// Mobile menu
+	const [menuOpen, setMenuOpen] = useState(false);
+
+	const navigateTo = (page: Page) => {
+		setCurrentPage(page);
+		setMenuOpen(false);
+	};
 
 	// DM context（FriendList → ChatPage 連携用）
 	const [dmTarget, setDmTarget] = useState<{
@@ -235,6 +247,20 @@ function App() {
 					/>
 				);
 
+			case "stats":
+				return <StatsDashboard />;
+
+			case "settings":
+				return (
+					<GdprSettings
+						onAccountDeleted={() => {
+							setUser(null);
+							setCurrentPage("home");
+							localStorage.removeItem("hasLoggedIn");
+						}}
+					/>
+				);
+
 			default:
 				return null;
 		}
@@ -247,7 +273,23 @@ function App() {
 				{user ? (
 					<>
 						{/* ログイン後：サイドバー + メインコンテンツ */}
-						<nav className="sidebar">
+						<div className="mobile-header">
+							<button
+								className="hamburger-btn"
+								onClick={() => setMenuOpen(!menuOpen)}
+							>
+								☰
+							</button>
+							<span className="mobile-title">ft_transcendence</span>
+							<button className="lang-toggle" onClick={cycleLanguage}>
+								{LANGUAGE_LABELS[i18n.language] || "EN"}
+							</button>
+						</div>
+						<div
+							className={`sidebar-overlay ${menuOpen ? "visible" : ""}`}
+							onClick={() => setMenuOpen(false)}
+						/>
+						<nav className={`sidebar ${menuOpen ? "open" : ""}`}>
 							<div className="sidebar-header">
 								<h1>ft_transcendence</h1>
 								<button className="lang-toggle" onClick={cycleLanguage}>
@@ -258,7 +300,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "home" ? "active" : ""}
-										onClick={() => setCurrentPage("home")}
+										onClick={() => navigateTo("home")}
 									>
 										{t("nav.home")}
 									</button>
@@ -270,7 +312,7 @@ function App() {
 										onClick={() => {
 											setGameRoomId(null);
 											setGameOpponent(null);
-											setCurrentPage("online");
+											navigateTo("online");
 										}}
 									>
 										{t("nav.online")}
@@ -283,7 +325,7 @@ function App() {
 										onClick={() => {
 											setGameRoomId(null);
 											setGameOpponent(null);
-											setCurrentPage("game");
+											navigateTo("game");
 										}}
 									>
 										{t("nav.ai")}
@@ -293,7 +335,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "history" ? "active" : ""}
-										onClick={() => setCurrentPage("history")}
+										onClick={() => navigateTo("history")}
 									>
 										{t("nav.history")}
 									</button>
@@ -302,7 +344,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "leaderboard" ? "active" : ""}
-										onClick={() => setCurrentPage("leaderboard")}
+										onClick={() => navigateTo("leaderboard")}
 									>
 										{t("nav.leaderboard")}
 									</button>
@@ -311,7 +353,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "chat" ? "active" : ""}
-										onClick={() => setCurrentPage("chat")}
+										onClick={() => navigateTo("chat")}
 									>
 										{t("nav.chat")}
 									</button>
@@ -322,7 +364,7 @@ function App() {
 										className={
 											currentPage.startsWith("profile") ? "active" : ""
 										}
-										onClick={() => setCurrentPage("profile")}
+										onClick={() => navigateTo("profile")}
 									>
 										{t("nav.profile")}
 									</button>
@@ -331,7 +373,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "friends" ? "active" : ""}
-										onClick={() => setCurrentPage("friends")}
+										onClick={() => navigateTo("friends")}
 									>
 										{t("nav.friends")}
 									</button>
@@ -342,9 +384,27 @@ function App() {
 										className={
 											currentPage === "friend-requests" ? "active" : ""
 										}
-										onClick={() => setCurrentPage("friend-requests")}
+										onClick={() => navigateTo("friend-requests")}
 									>
 										{t("nav.requests")}
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "stats" ? "active" : ""}
+										onClick={() => navigateTo("stats")}
+									>
+										{t("nav.stats")}
+									</button>
+								</li>
+
+								<li>
+									<button
+										className={currentPage === "settings" ? "active" : ""}
+										onClick={() => navigateTo("settings")}
+									>
+										{t("nav.settings")}
 									</button>
 								</li>
 							</ul>
@@ -357,19 +417,19 @@ function App() {
 						</nav>
 
 						<main className="main-content">
-						<div className="main-content-inner">{renderContent()}</div>
-						<footer className="app-footer">
-							<span>{t("legal.footer.rights")}</span>
-							<div className="app-footer-links">
-								<button onClick={() => setLegalModal("privacy")}>
-									{t("legal.footer.privacy")}
-								</button>
-								<button onClick={() => setLegalModal("terms")}>
-									{t("legal.footer.terms")}
-								</button>
-							</div>
-						</footer>
-					</main>
+							<div className="main-content-inner">{renderContent()}</div>
+							<footer className="app-footer">
+								<span>{t("legal.footer.rights")}</span>
+								<div className="app-footer-links">
+									<button onClick={() => setLegalModal("privacy")}>
+										{t("legal.footer.privacy")}
+									</button>
+									<button onClick={() => setLegalModal("terms")}>
+										{t("legal.footer.terms")}
+									</button>
+								</div>
+							</footer>
+						</main>
 					</>
 				) : (
 					<>
