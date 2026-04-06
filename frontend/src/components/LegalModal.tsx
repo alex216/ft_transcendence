@@ -16,14 +16,23 @@ const LegalModal: React.FC<LegalModalProps> = ({ type, onClose }) => {
 	const ns = `legal.${type}`;
 
 	return (
-		<div className="modal d-block" tabIndex={-1} onClick={onClose}>
+		<div
+			className="modal d-block"
+			tabIndex={-1}
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="legal-modal-title"
+			onClick={onClose}
+		>
 			<div
 				className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="modal-content">
 					<div className="modal-header legal-modal-header">
-						<h2 className="modal-title text-white">{t(`${ns}.title`)}</h2>
+						<h2 id="legal-modal-title" className="modal-title text-white">
+							{t(`${ns}.title`)}
+						</h2>
 						<button
 							type="button"
 							className="btn-close btn-close-white"

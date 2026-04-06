@@ -743,14 +743,7 @@ h2 {
 
 .chat-input {
 	flex: 1;
-	padding: 12px;
-	border: 2px solid #e0e0e0;
-	border-radius: 25px;
 	font-size: 1rem;
-}
-
-.chat-input:focus {
-	border-color: #667eea;
 }
 
 .chat-input:disabled {
