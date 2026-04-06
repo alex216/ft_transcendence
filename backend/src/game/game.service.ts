@@ -36,7 +36,6 @@ interface GameInternalState extends GameState {
 	p2UserId: number;
 	interval: NodeJS.Timeout | null;
 	disconnectTimer?: NodeJS.Timeout | null;
-	disconnectedPlayerId?: number;
 }
 
 @Injectable()
@@ -49,7 +48,7 @@ export class GameService {
 	// キューにユーザーIDも一緒に保持する
 	private queue: { socket: Socket; userId: number }[] = [];
 	private AIgames = new Map<string, GameInternalState>();
-	private games = new Map<string, GameInternalState>();
+	private onlineGames = new Map<string, GameInternalState>();
 
 	// faster operations on movepaddle etc
 	// movepddleとか早く調べれるように
@@ -58,6 +57,9 @@ export class GameService {
 	// faster handleing of disconnections and reconnections
 	// reconnectionとか早く調べれるように
 	private socketToPlayer = new Map<string, number>();
+
+	//automatic reconnection
+	private disconnectedPlayers = new Set<number>();
 
 	private toDto(game: GameInternalState): GameStateDto {
 		return {
@@ -74,6 +76,12 @@ export class GameService {
 	}
 
 	createAIGame(client: Socket, playerId: number, server: Server) {
+		if (this.userIdToRoom.has(playerId)) {
+			console.log(
+				`[Game.Service] The player ${playerId} is already in a match`,
+			);
+			return;
+		}
 		const roomId = `room_${randomUUID()}`;
 		console.log(
 			`[Game.Service] CreateAIgame for player ${playerId} in room number ${roomId}`,
@@ -206,13 +214,25 @@ export class GameService {
 
 	// マッチメイキング
 	addToQueue(client: Socket, server: Server, userId: number) {
-		console.log(`[Game.Service] addToQueue: ${userId}`);
+		console.log(`[Game.Service] try addToQueue: ${userId}`);
 
 		if (
 			this.queue.find((q) => q.socket.id === client.id) ||
 			this.queue.find((q) => q.userId === userId)
 		) {
 			console.log(`[Game.Service] user was already in queue: ${userId}`);
+			return;
+		}
+		if (this.userIdToRoom.has(userId)) {
+			console.log(
+				`[Game.Service] The player ${userId} is already in a match. Try reconnection`,
+			);
+			this.handleReconnect(
+				client,
+				this.userIdToRoom.get(userId),
+				server,
+				userId,
+			);
 			return;
 		}
 		this.queue.push({ socket: client, userId });
@@ -275,7 +295,7 @@ export class GameService {
 
 		initialState.interval = interval;
 
-		this.games.set(roomId, initialState);
+		this.onlineGames.set(roomId, initialState);
 		if (p1UserId) this.userIdToRoom.set(p1UserId, roomId);
 		if (p2UserId) this.userIdToRoom.set(p2UserId, roomId);
 		this.socketToPlayer.set(p1SocketId, p1UserId);
@@ -283,7 +303,7 @@ export class GameService {
 	}
 
 	private gameLoop(roomId: string, server: Server) {
-		const game = this.games.get(roomId);
+		const game = this.onlineGames.get(roomId);
 		if (!game || game.isPaused) return;
 
 		// 1. ボールの移動
@@ -364,11 +384,13 @@ export class GameService {
 			);
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
-			this.games.delete(roomId);
+			this.onlineGames.delete(roomId);
 			this.userIdToRoom.delete(game.p1UserId);
 			this.userIdToRoom.delete(game.p2UserId);
 			this.socketToPlayer.delete(game.p1SocketId);
 			this.socketToPlayer.delete(game.p2SocketId);
+			this.disconnectedPlayers.delete(game.p1UserId);
+			this.disconnectedPlayers.delete(game.p2UserId);
 			return;
 		}
 
@@ -400,7 +422,7 @@ export class GameService {
 	movePaddleUp(playerId: number) {
 		const roomId = this.userIdToRoom.get(playerId);
 		if (!roomId) return;
-		const game = this.games.get(roomId) || this.AIgames.get(roomId);
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
 		if (!game) return;
 
 		if (game.p1UserId === playerId) {
@@ -413,7 +435,7 @@ export class GameService {
 	movePaddleDown(playerId: number) {
 		const roomId = this.userIdToRoom.get(playerId);
 		if (!roomId) return;
-		const game = this.games.get(roomId) || this.AIgames.get(roomId);
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
 		if (!game) return;
 
 		if (game.p1UserId === playerId) {
@@ -449,20 +471,23 @@ export class GameService {
 		// Check if player is in an online match
 		// Onlineだった倍
 		const roomId = this.userIdToRoom.get(userId);
-		if (roomId && this.games.has(roomId)) {
-			const game = this.games.get(roomId)!;
+		if (roomId && this.onlineGames.has(roomId)) {
+			const game = this.onlineGames.get(roomId)!;
+			this.disconnectedPlayers.add(userId);
 
 			console.log(
 				`[GameService] Player ${userId} left match ${roomId}, waiting reconnection`,
+			);
+			console.log(
+				"[GameService] disconnectedPlayers ->",
+				Array.from(this.disconnectedPlayers),
 			);
 
 			game.isPaused = true;
 
 			const otherSocketId =
 				game.p1SocketId === client.id ? game.p2SocketId : game.p1SocketId;
-			server
-				.to(roomId)
-				.emit("playerDisconnected", { playerSocketId: client.id });
+			server.to(roomId).emit("playerDisconnected", { userId });
 
 			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
 
@@ -504,11 +529,14 @@ export class GameService {
 					`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
 				);
 
-				this.games.delete(roomId);
+				this.onlineGames.delete(roomId);
 				this.userIdToRoom.delete(game.p1UserId);
 				this.userIdToRoom.delete(game.p2UserId);
 				this.socketToPlayer.delete(game.p1SocketId);
 				this.socketToPlayer.delete(game.p2SocketId);
+				// removing the disconnected player definitely
+				this.disconnectedPlayers.delete(winnerUserId);
+				this.disconnectedPlayers.delete(loserUserId);
 			}, GRACE_TIME);
 
 			return;
@@ -540,7 +568,7 @@ export class GameService {
 		userId: number,
 	) {
 		// roomId OK?
-		const game = this.games.get(roomId);
+		const game = this.onlineGames.get(roomId);
 		if (!game) {
 			client.emit("reconnectFailed", { reason: "game_not_found" });
 			return;
@@ -561,7 +589,10 @@ export class GameService {
 		if (isP1) game.p1SocketId = client.id;
 		if (isP2) game.p2SocketId = client.id;
 
-		console.log(`[GameService] Player reconnected: ${client.id} in ${roomId}`);
+		console.log(
+			`[GameService] Player ${userId} reconnected: new socket -> ${client.id} room-> ${roomId}`,
+		);
+		this.disconnectedPlayers.delete(userId);
 
 		// update the new socket for the reconnection
 		// Reconnnectの時にSocket変わっちゃうので、Updateしてます
@@ -605,7 +636,7 @@ export class GameService {
 		const roomId = this.userIdToRoom.get(userId);
 		if (!roomId) return;
 
-		const game = this.games.get(roomId) || this.AIgames.get(roomId);
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
 		if (!game) return;
 
 		if (game.interval) {
@@ -620,6 +651,8 @@ export class GameService {
 		const loserScore = isP1 ? game.leftScore : game.rightScore;
 		const winnerSocketId = isP1 ? game.p2SocketId : game.p1SocketId;
 
+		this.disconnectedPlayers.delete(userId);
+
 		server.to(roomId).emit("gameOver", {
 			winner: winnerSocketId,
 			reason: "surrender",
@@ -628,7 +661,7 @@ export class GameService {
 
 		// online match
 		// Onlineだった倍
-		if (this.games.has(roomId)) {
+		if (this.onlineGames.has(roomId)) {
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
 			this.userIdToRoom.delete(winnerUserId);
@@ -637,7 +670,7 @@ export class GameService {
 			this.socketToPlayer.delete(game.p1SocketId);
 			this.socketToPlayer.delete(game.p2SocketId);
 
-			this.games.delete(roomId);
+			this.onlineGames.delete(roomId);
 			return;
 		}
 
