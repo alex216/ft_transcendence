@@ -39,11 +39,22 @@ interface FortyTwoCallbackRequest extends Request {
 
 // JWTをCookieにセットするヘルパー関数
 function setJwtCookie(res: Response, token: string) {
+	const isSecure = process.env.NODE_ENV !== "development";
+	const maxAge = 24 * 60 * 60 * 1000; // 24時間
+
 	res.cookie("access_token", token, {
 		httpOnly: true, // JS から読めない（XSS対策）
 		sameSite: "strict", // 他サイトからのリクエストでは Cookie を送らない（CSRF対策）
-		secure: process.env.NODE_ENV !== "development", // 本番は HTTPS のみ
-		maxAge: 24 * 60 * 60 * 1000, // 24時間
+		secure: isSecure, // 本番は HTTPS のみ
+		maxAge,
+	});
+
+	// フロントエンドがログイン状態を判定するための補助cookie（httpOnly: false）
+	res.cookie("logged_in", "true", {
+		httpOnly: false,
+		sameSite: "strict",
+		secure: isSecure,
+		maxAge,
 	});
 }
 
@@ -287,6 +298,7 @@ export class AuthController {
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutResponse> {
 		res.clearCookie("access_token");
+		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");
 		return { success: true, message: "ログアウト成功" };
 	}

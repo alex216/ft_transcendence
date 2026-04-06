@@ -87,8 +87,12 @@ function App() {
 		checkLoginStatus();
 	}, []);
 
-	// ログイン状態確認
+	// ログイン状態確認（logged_in cookieがない場合はAPIコールをスキップ）
 	const checkLoginStatus = async () => {
+		if (!document.cookie.includes("logged_in")) {
+			setUser(null);
+			return;
+		}
 		try {
 			const userData = await getCurrentUser();
 			setUser(userData);
