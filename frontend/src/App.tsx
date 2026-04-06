@@ -105,7 +105,12 @@ function App() {
 	const handleRegister = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
-			await register(username, password);
+			const data = await register(username, password);
+			if (!data.success) {
+				// 登録失敗（200レスポンスで返却される）
+				setMessage(data.message || "auth.registerFailed");
+				return;
+			}
 			setMessage("auth.registerSuccess");
 			setIsLogin(true);
 			setUsername("");

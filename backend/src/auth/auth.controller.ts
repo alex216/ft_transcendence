@@ -139,7 +139,10 @@ export class AuthController {
 				user: { id: user.id, username: user.username },
 			};
 		} catch (error) {
-			throw new HttpException((error as Error).message, HttpStatus.BAD_REQUEST);
+			return {
+				success: false,
+				message: (error as Error).message,
+			};
 		}
 	}
 
