@@ -7,6 +7,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { join } from "path";
 import { Request, Response, NextFunction } from "express";
 import { doubleCsrfProtection } from "./csrf/csrf.setup";
+import { corsConfig } from "./cors.config";
 
 // Vault のレスポンス型
 interface VaultSecrets {
@@ -106,11 +107,7 @@ async function bootstrap() {
 	});
 
 	// CORS設定（フロントエンドからアクセスできるようにする）
-	const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
-	app.enableCors({
-		origin: frontendUrl, // フロントエンドのURL
-		credentials: true, // クッキーを許可
-	});
+	app.enableCors(corsConfig);
 
 	// cookie-parser: リクエストのCookieを読み取れるようにする（JWTトークン取得に必要）
 	app.use(cookieParser());

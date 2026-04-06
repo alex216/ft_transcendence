@@ -54,8 +54,8 @@ services:
   # NestJSバックエンド
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: trans_backend
     restart: unless-stopped
     environment:
@@ -94,8 +94,8 @@ services:
   # Reactフロントエンド
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: trans_frontend
     restart: unless-stopped
     env_file:
