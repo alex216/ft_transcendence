@@ -2,11 +2,11 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY .npmrc ./
+COPY frontend/package*.json ./
+RUN npm install && npm rebuild esbuild
 
-RUN npm install
-
-COPY . .
+COPY frontend/ .
 
 EXPOSE 3001
 

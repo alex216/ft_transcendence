@@ -1,12 +1,14 @@
 FROM node:22-alpine
 
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-COPY package*.json ./
+COPY .npmrc ./
+COPY backend/package*.json ./
+RUN npm install && npm rebuild bcrypt
 
-RUN npm install
-
-COPY . .
+COPY backend/ .
 
 EXPOSE 3000
 

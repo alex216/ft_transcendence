@@ -1,0 +1,14 @@
+status=0
+
+echo "=========== npm audit --audit-level=high --omit=dev ==========="
+npm audit --audit-level=high --omit=dev || status=1
+cd frontend && npm audit --audit-level=high --omit=dev || status=1
+cd ../backend && npm audit --audit-level=high --omit=dev || status=1
+
+if [ $status -eq 0 ]; then
+  echo "=========== pre-push: all audits passed ==========="
+else
+  echo "=========== pre-push: vulnerabilities detected ==========="
+fi
+
+exit $status
