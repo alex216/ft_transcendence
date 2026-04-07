@@ -1,0 +1,44 @@
+/* ============================================ */
+/* Bootstrap テーマオーバーライド                */
+/* 紫グラデーションテーマを維持                  */
+/* ============================================ */
+
+:root {
+	--bs-primary: #667eea;
+	--bs-primary-rgb: 102, 126, 234;
+	--bs-danger: #e74c3c;
+	--bs-danger-rgb: 231, 76, 60;
+	--bs-body-font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+}
+
+body {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+	min-height: 100vh;
+}
+
+/* Primary ボタン: 紫テーマ */
+.btn-primary {
+	--bs-btn-bg: #667eea;
+	--bs-btn-border-color: #667eea;
+	--bs-btn-hover-bg: #5568d3;
+	--bs-btn-hover-border-color: #5568d3;
+	--bs-btn-active-bg: #4a5cc0;
+	--bs-btn-active-border-color: #4a5cc0;
+	--bs-btn-disabled-bg: #ccc;
+	--bs-btn-disabled-border-color: #ccc;
+}
+
+/* Danger ボタン: 赤テーマ */
+.btn-danger {
+	--bs-btn-bg: #e74c3c;
+	--bs-btn-border-color: #e74c3c;
+	--bs-btn-hover-bg: #c0392b;
+	--bs-btn-hover-border-color: #c0392b;
+}
+
+/* フォーカスリングを紫に統一 */
+.form-control:focus {
+	border-color: #667eea;
+	box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}

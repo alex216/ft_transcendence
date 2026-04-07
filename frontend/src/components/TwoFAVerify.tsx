@@ -40,8 +40,9 @@ function TwoFAVerify({ onVerified, onCancel }: TwoFAVerifyProps) {
 				<h2>{t("twofa.verifyTitle")}</h2>
 				<p>{t("twofa.verifyDescription")}</p>
 
-				<form onSubmit={handleSubmit}>
+				<form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
 					<input
+						className="form-control"
 						type="text"
 						placeholder={t("twofa.codePlaceholder")}
 						value={token}
@@ -56,12 +57,19 @@ function TwoFAVerify({ onVerified, onCancel }: TwoFAVerifyProps) {
 						required
 					/>
 
-					<button type="submit" disabled={loading || token.length !== 6}>
+					<button
+						type="submit"
+						className="btn btn-primary w-100"
+						disabled={loading || token.length !== 6}
+					>
 						{loading ? t("twofa.verifying") : t("twofa.verify")}
 					</button>
 				</form>
 
-				<button className="btn-back" onClick={onCancel}>
+				<button
+					className="btn btn-outline-secondary w-100 mt-3"
+					onClick={onCancel}
+				>
 					{t("twofa.backToLogin")}
 				</button>
 

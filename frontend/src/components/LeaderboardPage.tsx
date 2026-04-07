@@ -23,86 +23,29 @@ export default function LeaderboardPage() {
 	const { t } = useTranslation();
 
 	return (
-		<div style={{ padding: 24 }}>
-			<h2 style={{ marginTop: 0 }}>{t("leaderboard.title")}</h2>
-			<p style={{ marginTop: 4, opacity: 0.7 }}>
-				{t("leaderboard.description")}
-			</p>
+		<div className="p-4">
+			<h2 className="mt-0">{t("leaderboard.title")}</h2>
+			<p className="mt-1 text-muted">{t("leaderboard.description")}</p>
 
-			<div style={{ overflowX: "auto" }}>
-				<table style={{ width: "100%", borderCollapse: "collapse" }}>
+			<div className="table-responsive">
+				<table className="table table-hover">
 					<thead>
-						<tr style={{ textAlign: "left" }}>
-							<th
-								style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
-							>
-								{t("leaderboard.rank")}
-							</th>
-							<th
-								style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
-							>
-								{t("leaderboard.user")}
-							</th>
-							<th
-								style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
-							>
-								{t("leaderboard.wins")}
-							</th>
-							<th
-								style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
-							>
-								{t("leaderboard.losses")}
-							</th>
-							<th
-								style={{ padding: "10px 8px", borderBottom: "1px solid #ddd" }}
-							>
-								{t("leaderboard.winRate")}
-							</th>
+						<tr>
+							<th>{t("leaderboard.rank")}</th>
+							<th>{t("leaderboard.user")}</th>
+							<th>{t("leaderboard.wins")}</th>
+							<th>{t("leaderboard.losses")}</th>
+							<th>{t("leaderboard.winRate")}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{dummy.map((r) => (
 							<tr key={r.rank}>
-								<td
-									style={{
-										padding: "10px 8px",
-										borderBottom: "1px solid #eee",
-									}}
-								>
-									{r.rank}
-								</td>
-								<td
-									style={{
-										padding: "10px 8px",
-										borderBottom: "1px solid #eee",
-									}}
-								>
-									{r.username}
-								</td>
-								<td
-									style={{
-										padding: "10px 8px",
-										borderBottom: "1px solid #eee",
-									}}
-								>
-									{r.wins}
-								</td>
-								<td
-									style={{
-										padding: "10px 8px",
-										borderBottom: "1px solid #eee",
-									}}
-								>
-									{r.losses}
-								</td>
-								<td
-									style={{
-										padding: "10px 8px",
-										borderBottom: "1px solid #eee",
-									}}
-								>
-									{winRate(r.wins, r.losses)}
-								</td>
+								<td>{r.rank}</td>
+								<td>{r.username}</td>
+								<td>{r.wins}</td>
+								<td>{r.losses}</td>
+								<td>{winRate(r.wins, r.losses)}</td>
 							</tr>
 						))}
 					</tbody>

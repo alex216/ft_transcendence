@@ -350,7 +350,7 @@ function App() {
 							</ul>
 
 							<div className="sidebar-footer">
-								<button onClick={handleLogout} className="btn-logout">
+								<button onClick={handleLogout} className="btn btn-danger w-100">
 									{t("nav.logout")}
 								</button>
 							</div>
@@ -403,12 +403,16 @@ function App() {
 										</button>
 									</div>
 
-									<form onSubmit={isLogin ? handleLogin : handleRegister}>
+									<form
+										onSubmit={isLogin ? handleLogin : handleRegister}
+										className="d-flex flex-column gap-3"
+									>
 										<h2>
 											{isLogin ? t("auth.login") : t("auth.userRegistration")}
 										</h2>
 
 										<input
+											className="form-control"
 											type="text"
 											placeholder={t("auth.username")}
 											value={username}
@@ -417,6 +421,7 @@ function App() {
 										/>
 
 										<input
+											className="form-control"
 											type="password"
 											placeholder={t("auth.password")}
 											value={password}
@@ -424,7 +429,7 @@ function App() {
 											required
 										/>
 
-										<button type="submit">
+										<button type="submit" className="btn btn-primary w-100">
 											{isLogin ? t("auth.login") : t("auth.register")}
 										</button>
 									</form>

@@ -63,11 +63,12 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 			<h2>{t("profileEdit.title")}</h2>
 
 			<form onSubmit={handleSubmit}>
-				<div className="form-group">
-					<label htmlFor="displayName">
+				<div className="mb-3">
+					<label htmlFor="displayName" className="form-label">
 						{t("profileEdit.displayNameLabel")}
 					</label>
 					<input
+						className="form-control"
 						id="displayName"
 						type="text"
 						value={displayName}
@@ -75,12 +76,17 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 						maxLength={50}
 						placeholder={t("profileEdit.displayNamePlaceholder")}
 					/>
-					<small>{displayName.length} / 50</small>
+					<small className="form-text text-muted">
+						{displayName.length} / 50
+					</small>
 				</div>
 
-				<div className="form-group">
-					<label htmlFor="bio">{t("profileEdit.bioLabel")}</label>
+				<div className="mb-3">
+					<label htmlFor="bio" className="form-label">
+						{t("profileEdit.bioLabel")}
+					</label>
 					<textarea
+						className="form-control"
 						id="bio"
 						value={bio}
 						onChange={(e) => setBio(e.target.value)}
@@ -88,17 +94,17 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 						rows={5}
 						placeholder={t("profileEdit.bioPlaceholder")}
 					/>
-					<small>{bio.length} / 500</small>
+					<small className="form-text text-muted">{bio.length} / 500</small>
 				</div>
 
-				<div className="form-actions">
-					<button type="submit" className="btn-primary" disabled={saving}>
+				<div className="d-flex gap-2 mt-4">
+					<button type="submit" className="btn btn-primary" disabled={saving}>
 						{saving ? t("profileEdit.saving") : t("profileEdit.save")}
 					</button>
 					<button
 						type="button"
 						onClick={onCancel}
-						className="btn-secondary"
+						className="btn btn-secondary"
 						disabled={saving}
 					>
 						{t("profileEdit.cancel")}

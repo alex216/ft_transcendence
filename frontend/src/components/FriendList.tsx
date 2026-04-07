@@ -87,13 +87,14 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			{/* フレンド追加フォーム */}
 			<form onSubmit={handleSendRequest} className="add-friend-form">
 				<input
+					className="form-control"
 					type="text"
 					value={newFriendUsername}
 					onChange={(e) => setNewFriendUsername(e.target.value)}
 					placeholder={t("friends.usernamePlaceholder")}
 					disabled={sending}
 				/>
-				<button type="submit" className="btn-primary" disabled={sending}>
+				<button type="submit" className="btn btn-primary" disabled={sending}>
 					{sending ? t("friends.sending") : t("friends.sendRequest")}
 				</button>
 			</form>
@@ -133,7 +134,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 										onClick={() =>
 											onStartDM(friendItem.friendId, friendItem.friend.username)
 										}
-										className="btn-primary-small"
+										className="btn btn-primary btn-sm"
 									>
 										{t("friends.dm")}
 									</button>
@@ -145,7 +146,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 											friendItem.friend.username,
 										)
 									}
-									className="btn-danger-small"
+									className="btn btn-danger btn-sm"
 								>
 									{t("friends.delete")}
 								</button>

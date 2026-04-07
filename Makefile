@@ -1,7 +1,7 @@
 # ft_transcendence Makefile
 # C++の make と同じように使える
 
-.PHONY: all setup ssl up down build clean fclean re logs
+.PHONY: all setup ssl up down build clean fclean re logs reinstall
 
 # デフォルト: コンテナを起動
 all: up
@@ -70,6 +70,15 @@ clean:
 	rm -rf backend/dist
 	rm -rf frontend/build  # 本番ビルド時のみ生成される
 	rm -f shared/*.js shared/*.d.ts shared/*.map
+
+# node_modules ボリュームを再作成してコンテナを再ビルド
+# package.json に新しいパッケージを追加した後に使う
+# 使い方: make reinstall
+reinstall: down
+	docker volume rm -f $$(docker volume ls -q | grep frontend_node_modules) 2>/dev/null || true
+	docker volume rm -f $$(docker volume ls -q | grep backend_node_modules) 2>/dev/null || true
+	docker-compose up -d --build
+	@echo "✅ node_modules を再インストールしてコンテナを再起動しました"
 
 # 完全クリーン（コンテナとボリュームも削除）
 fclean: down
