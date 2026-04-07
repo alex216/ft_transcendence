@@ -1,25 +1,16 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
+import type {
+	StatsResponse,
+	MatchHistoryEntry,
+	LeaderboardEntry,
+} from "/shared";
 
-export interface StatsData {
-	wins: number;
-	losses: number;
-	total: number;
-	winRate: number; // 0〜100の整数
-}
-
-export interface MatchHistory {
-	id: number;
-	result: "win" | "loss";
-	myScore: number;
-	opponentScore: number;
-	opponentUserId: number;
-	playedAt: string;
-}
+export type { StatsResponse, MatchHistoryEntry, LeaderboardEntry };
 
 export function useStats() {
-	const [stats, setStats] = useState<StatsData | null>(null);
-	const [history, setHistory] = useState<MatchHistory[]>([]);
+	const [stats, setStats] = useState<StatsResponse | null>(null);
+	const [history, setHistory] = useState<MatchHistoryEntry[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -27,8 +18,8 @@ export function useStats() {
 		const fetchAll = async () => {
 			try {
 				const [statsRes, histRes] = await Promise.all([
-					api.get<StatsData>("/stats/me"),
-					api.get<MatchHistory[]>("/stats/me/match-history"),
+					api.get<StatsResponse>("/stats/me"),
+					api.get<MatchHistoryEntry[]>("/stats/me/match-history"),
 				]);
 				setStats(statsRes.data);
 				setHistory(histRes.data);
@@ -43,4 +34,27 @@ export function useStats() {
 	}, []);
 
 	return { stats, history, loading, error };
+}
+
+export function useLeaderboard() {
+	const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		const fetchLeaderboard = async () => {
+			try {
+				const res = await api.get<LeaderboardEntry[]>("/stats/leaderboard");
+				setLeaderboard(res.data);
+			} catch {
+				setError("leaderboard.fetchFailed");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchLeaderboard();
+	}, []);
+
+	return { leaderboard, loading, error };
 }

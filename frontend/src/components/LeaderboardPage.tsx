@@ -1,17 +1,5 @@
 import { useTranslation } from "react-i18next";
-
-type LeaderRow = {
-	rank: number;
-	username: string;
-	wins: number;
-	losses: number;
-};
-
-const dummy: LeaderRow[] = [
-	{ rank: 1, username: "alice", wins: 12, losses: 3 },
-	{ rank: 2, username: "test", wins: 8, losses: 6 },
-	{ rank: 3, username: "bob", wins: 5, losses: 9 },
-];
+import { useLeaderboard } from "../hooks/useStats";
 
 function winRate(w: number, l: number) {
 	const total = w + l;
@@ -21,6 +9,15 @@ function winRate(w: number, l: number) {
 
 export default function LeaderboardPage() {
 	const { t } = useTranslation();
+	const { leaderboard, loading, error } = useLeaderboard();
+
+	if (loading) {
+		return <div style={{ padding: 24 }}>{t("common.loading")}</div>;
+	}
+
+	if (error) {
+		return <div style={{ padding: 24 }}>{t(error)}</div>;
+	}
 
 	return (
 		<div className="p-4">
@@ -39,7 +36,7 @@ export default function LeaderboardPage() {
 						</tr>
 					</thead>
 					<tbody>
-						{dummy.map((r) => (
+						{leaderboard.map((r) => (
 							<tr key={r.rank}>
 								<td>{r.rank}</td>
 								<td>{r.username}</td>
