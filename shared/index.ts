@@ -114,3 +114,8 @@ export interface TwoFAVerifyResponse {
 	success: boolean;
 	message: string;
 }
+
+// ============================================
+// マイルストーン#6: 戦績・リーダーボード
+// ============================================
+export * from "./stats.types";
