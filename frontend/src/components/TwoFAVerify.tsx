@@ -21,12 +21,7 @@ function TwoFAVerify({ onVerified, onCancel }: TwoFAVerifyProps) {
 		setLoading(true);
 		setMessage("");
 		try {
-			const data = await verify2FA(token);
-			if (!data.success) {
-				// 認証失敗（200レスポンスで返却される）
-				setMessage(data.message || "twofa.verifyFailed");
-				return;
-			}
+			await verify2FA(token);
 			const userData = await getCurrentUser();
 			onVerified(userData);
 		} catch (err) {
