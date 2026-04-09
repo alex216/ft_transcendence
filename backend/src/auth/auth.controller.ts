@@ -234,7 +234,7 @@ export class AuthController {
 	async setupTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		return this.twoFactorService.generateSecret(fullUser);
 	}
@@ -247,7 +247,7 @@ export class AuthController {
 	) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		const success = await this.twoFactorService.enableTwoFactor(
 			fullUser,
@@ -265,7 +265,7 @@ export class AuthController {
 	async disableTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		await this.twoFactorService.disableTwoFactor(fullUser);
 		return { success: true, message: "2FAを無効化しました" };
