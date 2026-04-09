@@ -47,6 +47,8 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 	// 再接続用にroomIdを保持
 	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
+	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
+	const gameStartedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
@@ -73,6 +75,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			setGameState(dto.state);
 			// roomIdを保存（再接続に使用）
 			roomIdRef.current = dto.roomId;
+			gameStartedRef.current = true;
 			// 一時停止解除
 			if (isPaused) {
 				setIsPaused(false);
@@ -87,6 +90,8 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomId: string;
 			reason?: string;
 		}) => {
+			// 前のゲームのgameOverを無視（updateStateを受信する前のgameOverは自分のゲームではない）
+			if (!gameStartedRef.current) return;
 			console.log("[GamePage] ゲーム終了:", data);
 			const myId = socket.id;
 			const isWinner =
