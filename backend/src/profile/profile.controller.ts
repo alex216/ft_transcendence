@@ -13,7 +13,6 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
-import { unlink } from "fs";
 import { Request } from "express";
 import { ProfileService } from "./profile.service";
 
@@ -97,6 +96,14 @@ export class ProfileController {
 					callback(null, `user-${userId}-${timestamp}${ext}`);
 				},
 			}),
+			fileFilter: (req, file, callback) => {
+				// throwせずfalseを返すことで、不正ファイルを保存前に拒否（コンソールエラーなし）
+				if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+					callback(null, false);
+				} else {
+					callback(null, true);
+				}
+			},
 			limits: { fileSize: 5 * 1024 * 1024 },
 		}),
 	)
@@ -107,19 +114,10 @@ export class ProfileController {
 		const user = req.user;
 
 		if (!file) {
+			// fileFilterで拒否された場合（画像以外）もここに来る
 			return {
 				success: false,
-				message: "ファイルがアップロードされていません",
-			};
-		}
-
-		// ファイル形式チェック（multer保存後にコントローラ内で検証）
-		if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
-			// 不正なファイルを削除してからエラーを返す
-			unlink(`./uploads/avatars/${file.filename}`, () => {});
-			return {
-				success: false,
-				message: "画像ファイルのみアップロード可能です",
+				message: "画像ファイルのみアップロード可能です（jpg/jpeg/png/gif）",
 			};
 		}
 
