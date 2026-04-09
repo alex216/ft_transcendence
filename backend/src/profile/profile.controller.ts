@@ -49,13 +49,19 @@ export class ProfileController {
 
 	// GET /profile/:id - 他のユーザーのプロフィール取得
 	@Get(":id")
-	async getProfile(@Param("id") id: string): Promise<GetProfileResponse> {
+	async getProfile(
+		@Param("id") id: string,
+	): Promise<GetProfileResponse | { success: false; message: string }> {
 		const userId = parseInt(id, 10);
 		if (isNaN(userId)) {
-			throw new Error("無効なユーザーIDです");
+			return { success: false, message: "無効なユーザーIDです" };
 		}
 
-		return this.profileService.getProfileByUserId(userId);
+		try {
+			return await this.profileService.getProfileByUserId(userId);
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// PUT /profile/me - プロフィール更新
