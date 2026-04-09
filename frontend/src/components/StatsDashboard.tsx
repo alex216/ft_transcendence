@@ -109,7 +109,7 @@ export default function StatsDashboard() {
 									<th>{t("history.date")}</th>
 									<th>{t("history.result")}</th>
 									<th>{t("history.score")}</th>
-									<th>{t("stats.opponentId")}</th>
+									<th>{t("history.opponent")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -132,7 +132,7 @@ export default function StatsDashboard() {
 										<td>
 											{m.myScore} - {m.opponentScore}
 										</td>
-										<td>{m.opponentUserId}</td>
+										<td>{m.opponentUsername ?? "-"}</td>
 									</tr>
 								))}
 							</tbody>
