@@ -108,7 +108,10 @@
 		"youLose": "敗北",
 		"backToOnline": "オンラインに戻る",
 		"waitingForGame": "ゲーム開始を待っています...",
-		"clickToStart": "クリックして操作を開始"
+		"clickToStart": "クリックして操作を開始",
+		"surrender": "降参",
+		"opponentDisconnected": "相手が切断しました",
+		"waitingForReconnect": "相手の再接続を待っています..."
 	},
 	"online": {
 		"status": "ステータス",

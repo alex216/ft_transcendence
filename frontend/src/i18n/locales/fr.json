@@ -108,7 +108,10 @@
 		"youLose": "DÉFAITE",
 		"backToOnline": "Retour en ligne",
 		"waitingForGame": "En attente du début de la partie...",
-		"clickToStart": "Cliquez pour commencer"
+		"clickToStart": "Cliquez pour commencer",
+		"surrender": "Abandonner",
+		"opponentDisconnected": "L'adversaire s'est déconnecté",
+		"waitingForReconnect": "En attente de la reconnexion de l'adversaire..."
 	},
 	"online": {
 		"status": "Statut",

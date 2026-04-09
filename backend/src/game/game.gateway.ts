@@ -11,13 +11,14 @@ import { Server, Socket } from "socket.io";
 import { parse } from "cookie";
 import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
-import { PaddleMoveDto } from "../../../shared/game.interface";
 import { corsConfig } from "../cors.config";
 
-// userId を保持する拡張型
 interface AuthenticatedSocket extends Socket {
 	data: {
-		userId?: number;
+		user: {
+			id: number;
+			username?: string;
+		};
 	};
 }
 
@@ -34,7 +35,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private readonly jwtService: JwtService,
 	) {}
 
-	// WebSocket 接続時に一度だけ認証し、userId を client.data に保存する
+	// WebSocket 接続時に一度だけ認証し、user を client.data に保存する
 	// これにより各イベントハンドラで毎回 Cookie を読み直す必要がなくなる
 	handleConnection(client: AuthenticatedSocket) {
 		const cookieHeader = client.handshake.headers.cookie;
@@ -55,9 +56,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		try {
 			const payload = this.jwtService.verify<{ sub: number }>(token);
-			client.data.userId = payload.sub;
+			client.data.user = { id: payload.sub };
 			console.log(
-				`[GameGateway] 接続認証OK userId=${client.data.userId} (socket=${client.id})`,
+				`[GameGateway] 接続認証OK userId=${client.data.user.id} (socket=${client.id})`,
 			);
 		} catch (err) {
 			console.warn(
@@ -68,33 +69,55 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// 1. マッチメイキング待ち列に参加
+	@SubscribeMessage("joinAIGame")
+	handleJoinAIGame(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		console.log(`[GameGateway] joinAIGame: ${userId}`);
+		this.gameService.createAIGame(client, userId, this.server);
+	}
+
 	@SubscribeMessage("joinQueue")
 	handleJoinQueue(@ConnectedSocket() client: AuthenticatedSocket) {
-		const userId = client.data.userId;
+		const userId = client.data.user.id;
 		console.log(
 			`[GameGateway] joinQueue userId=${userId} (socket=${client.id})`,
 		);
 		this.gameService.addToQueue(client, this.server, userId);
 	}
 
-	// 2. パドル操作
-	@SubscribeMessage("movePaddle")
-	handleMove(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: PaddleMoveDto,
-	) {
-		if (!data || typeof data.y !== "number" || !isFinite(data.y)) {
-			return;
-		}
-		this.gameService.updatePaddle(client.id, data.y);
+	@SubscribeMessage("moveUp")
+	handleMoveUp(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.movePaddleUp(userId);
 	}
 
-	// 3. 切断
+	@SubscribeMessage("moveDown")
+	handleMoveDown(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		this.gameService.movePaddleDown(userId);
+	}
+
 	handleDisconnect(client: AuthenticatedSocket) {
-		console.log(
-			`[GameGateway] 切断 userId=${client.data.userId} (socket=${client.id})`,
-		);
-		this.gameService.handleDisconnect(client, this.server);
+		const userId = client.data?.user?.id;
+		if (!userId) return;
+		console.log(`[GameGateway] 切断 userId=${userId} (socket=${client.id})`);
+		this.gameService.handleDisconnect(client, this.server, userId);
+	}
+
+	@SubscribeMessage("reconnectGame")
+	handleReconnect(
+		@ConnectedSocket() client: AuthenticatedSocket,
+		@MessageBody() data: { roomId: string },
+	) {
+		const userId = client.data.user.id;
+		console.log(`[GameGateway] Reconnecting: ${userId}`);
+		this.gameService.handleReconnect(client, data.roomId, this.server, userId);
+	}
+
+	@SubscribeMessage("surrender")
+	handleSurrender(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		console.log(`[GameGateway] Surrendering: ${userId}`);
+		this.gameService.handleSurrender(this.server, userId);
 	}
 }

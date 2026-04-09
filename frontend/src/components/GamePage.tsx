@@ -1,15 +1,21 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import Pong from "@alexium216/react-pong";
 import PongCanvas from "./PongCanvas";
 import {
 	getGameSocket,
 	onUpdateState,
 	onGameOver,
-	movePaddle,
+	moveUp,
+	moveDown,
+	joinAIGame,
+	surrender,
 	disconnectGameSocket,
+	onPlayerDisconnected,
+	onPlayerReconnected,
+	onReconnectFailed,
 } from "../services/gameSocket";
-import type { GameState } from "/shared/game.interface";
+import type { GameState, GameStateDto } from "/shared/game.interface";
+import { AI_SOCKET_ID } from "/shared/game.constants";
 
 export type GameMode = "ai" | "online";
 
@@ -26,134 +32,117 @@ type GamePageProps = {
 	onBack?: () => void; // Onlineへ戻る（UI導線）
 };
 
-type PongSettings = {
-	width: number;
-	height: number;
-	ballSize: number;
-	paddleHeight: number;
-	paddleWidth: number;
-	paddleSpeed: number;
-	upArrow: string;
-	downArrow: string;
-};
-
-const DEFAULTS: PongSettings = {
-	width: 700,
-	height: 450,
-	ballSize: 10,
-	paddleHeight: 80,
-	paddleWidth: 10,
-	paddleSpeed: 7,
-	upArrow: "ArrowUp",
-	downArrow: "ArrowDown",
-};
-
-function clamp(n: number, min: number, max: number) {
-	return Math.max(min, Math.min(max, n));
-}
-
-function GamePage({ mode, roomId, onBack }: GamePageProps) {
+function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 	const { t } = useTranslation();
-	const [s, setS] = useState<PongSettings>(DEFAULTS);
 
-	// キャンバスカードのコンテナ幅を計測してレスポンシブスケールを算出
-	// 初期値0にすることで、ResizeObserver計測前の一瞬の表示崩れを防ぐ
-	const canvasCardRef = useRef<HTMLElement>(null);
-	const [containerWidth, setContainerWidth] = useState<number>(0);
-	useEffect(() => {
-		const el = canvasCardRef.current;
-		if (!el) return;
-		const ro = new ResizeObserver(([entry]) => {
-			setContainerWidth(entry.contentRect.width);
-		});
-		ro.observe(el);
-		return () => ro.disconnect();
-	}, []);
-
-	// オンラインモード用の状態
+	// ゲーム状態
 	const [gameState, setGameState] = useState<GameState | null>(null);
 	const [gameResult, setGameResult] = useState<{
-		winner: string;
+		winner: string | null;
 		isWinner: boolean;
+		reason?: string;
 	} | null>(null);
-	const [isPlayer1, setIsPlayer1] = useState<boolean | null>(null); // 自分が左パドルかどうか（null=未確定）
-	const lastSentPaddleY = useRef<number | null>(null); // 最後に送信したパドル位置（プレイヤー判定用）
+	const [isPaused, setIsPaused] = useState(false);
+	const [pauseMessage, setPauseMessage] = useState<string>("");
 
-	// AIモード用のprops（元サイズで動作、見た目のスケールはCSS transformで処理）
-	const pongProps = useMemo(
-		() => ({
-			width: s.width,
-			height: s.height,
-			ballSize: s.ballSize,
-			paddleHeight: s.paddleHeight,
-			paddleWidth: s.paddleWidth,
-			paddleSpeed: s.paddleSpeed,
-			upArrow: s.upArrow,
-			downArrow: s.downArrow,
-		}),
-		[s],
-	);
+	// 再接続用にroomIdを保持
+	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
 
-	// CSSスケール: コンテナ幅に収まるよう縮小率を計算（0=計測前は非表示）
-	const pongScale =
-		containerWidth > 0 ? Math.min(1, containerWidth / s.width) : 0;
-
-	// オンラインモードのWebSocket接続
+	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
-		if (mode !== "online") return;
-
 		const socket = getGameSocket();
 
-		// 接続時に自分のIDを確認して、player1かplayer2かを判定
-		// 注意: バックエンドは最初にjoinQueueしたプレイヤーがp1（左パドル）
 		const handleConnect = () => {
 			console.log("[GamePage] WebSocket接続成功");
 		};
-
 		socket.on("connect", handleConnect);
 
-		// ゲーム状態の更新を受信（プレイヤー判定も行う）
-		const handleUpdateState = (state: GameState) => {
-			setGameState(state);
+		// AI対戦の場合、接続完了後にjoinAIGameを送信
+		if (mode === "ai") {
+			if (socket.connected) {
+				joinAIGame();
+			} else {
+				socket.once("connect", () => {
+					joinAIGame();
+				});
+			}
+		}
 
-			// まだプレイヤーが確定していない場合、パドルの応答で判定
-			if (isPlayer1 === null && lastSentPaddleY.current !== null) {
-				const tolerance = 5; // 誤差許容
-				if (Math.abs(state.leftPaddleY - lastSentPaddleY.current) < tolerance) {
-					console.log("[GamePage] Player 1 (左パドル) と判定");
-					setIsPlayer1(true);
-				} else if (
-					Math.abs(state.rightPaddleY - lastSentPaddleY.current) < tolerance
-				) {
-					console.log("[GamePage] Player 2 (右パドル) と判定");
-					setIsPlayer1(false);
-				}
+		// ゲーム状態の更新を受信
+		const handleUpdateState = (dto: GameStateDto) => {
+			setGameState(dto.state);
+			// roomIdを保存（再接続に使用）
+			roomIdRef.current = dto.roomId;
+			// 一時停止解除
+			if (isPaused) {
+				setIsPaused(false);
+				setPauseMessage("");
 			}
 		};
 		onUpdateState(handleUpdateState);
 
 		// ゲーム終了を受信
-		const handleGameOver = (data: { winner: string }) => {
+		const handleGameOver = (data: {
+			winner: string | null;
+			roomId: string;
+			reason?: string;
+		}) => {
 			console.log("[GamePage] ゲーム終了:", data);
 			const myId = socket.id;
+			const isWinner =
+				data.winner === myId || (mode === "ai" && data.winner !== AI_SOCKET_ID);
 			setGameResult({
 				winner: data.winner,
-				isWinner: data.winner === myId,
+				isWinner,
+				reason: data.reason,
 			});
 		};
 		onGameOver(handleGameOver);
+
+		// 対戦相手の切断通知
+		const handlePlayerDisconnected = () => {
+			console.log("[GamePage] 対戦相手が切断");
+			setIsPaused(true);
+			setPauseMessage(t("game.opponentDisconnected"));
+		};
+		onPlayerDisconnected(handlePlayerDisconnected);
+
+		// 対戦相手の再接続通知
+		const handlePlayerReconnected = () => {
+			console.log("[GamePage] 対戦相手が再接続");
+			setIsPaused(false);
+			setPauseMessage("");
+		};
+		onPlayerReconnected(handlePlayerReconnected);
+
+		// 再接続失敗の通知
+		const handleReconnectFailed = (data: { reason: string }) => {
+			console.log("[GamePage] 再接続失敗:", data.reason);
+		};
+		onReconnectFailed(handleReconnectFailed);
 
 		return () => {
 			socket.off("connect", handleConnect);
 			socket.off("updateState", handleUpdateState);
 			socket.off("gameOver", handleGameOver);
+			socket.off("playerDisconnected", handlePlayerDisconnected);
+			socket.off("playerReconnected", handlePlayerReconnected);
+			socket.off("reconnectFailed", handleReconnectFailed);
 		};
-	}, [mode, roomId, isPlayer1]);
+	}, [mode, isPaused]);
 
-	// パドル移動をサーバーに送信（プレイヤー判定用に位置を記録）
-	const handlePaddleMove = useCallback((y: number) => {
-		lastSentPaddleY.current = y;
-		movePaddle(y);
+	// パドル操作コールバック
+	const handleMoveUp = useCallback(() => {
+		moveUp();
+	}, []);
+
+	const handleMoveDown = useCallback(() => {
+		moveDown();
+	}, []);
+
+	// 降参
+	const handleSurrender = useCallback(() => {
+		surrender();
 	}, []);
 
 	// ゲームを終了してOnlinePageに戻る
@@ -176,222 +165,106 @@ function GamePage({ mode, roomId, onBack }: GamePageProps) {
 				</div>
 
 				<div style={{ display: "flex", gap: 8 }}>
+					{!gameResult && gameState && (
+						<button
+							type="button"
+							className="btn-secondary"
+							onClick={handleSurrender}
+						>
+							{t("game.surrender")}
+						</button>
+					)}
 					{onBack && (
 						<button
 							type="button"
-							className="btn btn-secondary"
-							onClick={mode === "online" ? handleBackToOnline : onBack}
+							className="btn-secondary"
+							onClick={handleBackToOnline}
 						>
 							{t("game.back")}
-						</button>
-					)}
-					{mode === "ai" && (
-						<button
-							type="button"
-							className="btn btn-primary"
-							onClick={() => setS(DEFAULTS)}
-						>
-							{t("game.reset")}
 						</button>
 					)}
 				</div>
 			</header>
 
 			<div className="game-layout">
-				<section className="game-canvas-card" ref={canvasCardRef}>
-					{mode === "online" ? (
-						<>
-							{/* オンラインモード：カスタムCanvas */}
-							<PongCanvas
-								gameState={gameState}
-								onPaddleMove={handlePaddleMove}
-								isPlayer1={isPlayer1}
-								autoFocus
-							/>
+				<section className="game-canvas-card">
+					<PongCanvas
+						gameState={gameState}
+						onMoveUp={handleMoveUp}
+						onMoveDown={handleMoveDown}
+						isPlayer1={null}
+						autoFocus
+					/>
 
-							{/* ゲーム結果表示 */}
-							{gameResult && (
-								<div
-									style={{
-										position: "absolute",
-										top: "50%",
-										left: "50%",
-										transform: "translate(-50%, -50%)",
-										background: "rgba(0,0,0,0.9)",
-										padding: "32px 48px",
-										borderRadius: "16px",
-										textAlign: "center",
-										zIndex: 10,
-									}}
-								>
-									<h2
-										style={{
-											color: gameResult.isWinner ? "#00ff88" : "#ff4444",
-											margin: 0,
-										}}
-									>
-										{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
-									</h2>
-									<p style={{ color: "#aaa", marginTop: 8 }}>
-										{gameState?.leftScore} - {gameState?.rightScore}
-									</p>
-									<button
-										type="button"
-										onClick={handleBackToOnline}
-										style={{ marginTop: 16 }}
-									>
-										{t("game.backToOnline")}
-									</button>
-								</div>
-							)}
-						</>
-					) : (
-						/* AIモード：react-pongライブラリ
-						 * ゲームロジックは元サイズ(s.width×s.height)で動作し、
-						 * CSS transformで視覚的にコンテナ幅に収める */
+					{/* 一時停止オーバーレイ */}
+					{isPaused && (
 						<div
 							style={{
-								width: s.width * pongScale,
-								height: s.height * pongScale,
-								overflow: "hidden",
+								position: "absolute",
+								top: "50%",
+								left: "50%",
+								transform: "translate(-50%, -50%)",
+								background: "rgba(0,0,0,0.8)",
+								padding: "24px 40px",
+								borderRadius: "16px",
+								textAlign: "center",
+								zIndex: 10,
 							}}
 						>
-							<div
+							<h3 style={{ color: "#ffaa00", margin: 0 }}>{pauseMessage}</h3>
+							<p style={{ color: "#aaa", marginTop: 8 }}>
+								{t("game.waitingForReconnect")}
+							</p>
+						</div>
+					)}
+
+					{/* ゲーム結果表示 */}
+					{gameResult && (
+						<div
+							style={{
+								position: "absolute",
+								top: "50%",
+								left: "50%",
+								transform: "translate(-50%, -50%)",
+								background: "rgba(0,0,0,0.9)",
+								padding: "32px 48px",
+								borderRadius: "16px",
+								textAlign: "center",
+								zIndex: 10,
+							}}
+						>
+							<h2
 								style={{
-									position: "relative",
-									width: s.width,
-									height: s.height,
-									transform: `scale(${pongScale})`,
-									transformOrigin: "top left",
+									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
+									margin: 0,
 								}}
 							>
-								<Pong key={JSON.stringify(pongProps)} {...pongProps} />
-							</div>
+								{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
+							</h2>
+							{gameResult.reason && (
+								<p style={{ color: "#888", marginTop: 4, fontSize: 14 }}>
+									({gameResult.reason})
+								</p>
+							)}
+							<p style={{ color: "#aaa", marginTop: 8 }}>
+								{gameState?.leftScore} - {gameState?.rightScore}
+							</p>
+							<button
+								type="button"
+								onClick={handleBackToOnline}
+								style={{ marginTop: 16 }}
+							>
+								{t("game.backToOnline")}
+							</button>
 						</div>
 					)}
 				</section>
 
 				<aside className="game-side-panel">
-					{mode === "ai" && (
-						<>
-							<h3>{t("game.settings")}</h3>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.width")}: {s.width}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={480}
-									max={980}
-									step={10}
-									value={s.width}
-									onChange={(e) =>
-										setS((p) => ({ ...p, width: Number(e.target.value) }))
-									}
-								/>
-							</label>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.height")}: {s.height}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={320}
-									max={700}
-									step={10}
-									value={s.height}
-									onChange={(e) =>
-										setS((p) => ({ ...p, height: Number(e.target.value) }))
-									}
-								/>
-							</label>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.ballSize")}: {s.ballSize}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={6}
-									max={24}
-									step={1}
-									value={s.ballSize}
-									onChange={(e) =>
-										setS((p) => ({ ...p, ballSize: Number(e.target.value) }))
-									}
-								/>
-							</label>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.paddleHeight")}: {s.paddleHeight}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={40}
-									max={180}
-									step={5}
-									value={s.paddleHeight}
-									onChange={(e) =>
-										setS((p) => ({
-											...p,
-											paddleHeight: Number(e.target.value),
-										}))
-									}
-								/>
-							</label>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.paddleWidth")}: {s.paddleWidth}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={6}
-									max={30}
-									step={1}
-									value={s.paddleWidth}
-									onChange={(e) =>
-										setS((p) => ({ ...p, paddleWidth: Number(e.target.value) }))
-									}
-								/>
-							</label>
-
-							<label className="slider-row">
-								<div className="slider-label">
-									{t("game.paddleSpeed")}: {s.paddleSpeed}
-								</div>
-								<input
-									className="slider-input"
-									type="range"
-									min={2}
-									max={20}
-									step={1}
-									value={s.paddleSpeed}
-									onChange={(e) =>
-										setS((p) => ({
-											...p,
-											paddleSpeed: clamp(Number(e.target.value), 1, 50),
-										}))
-									}
-								/>
-							</label>
-
-							<hr />
-
-							<h3>{t("game.controls")}</h3>
-							<p style={{ marginTop: 0 }}>
-								<code>↑ W</code> / <code>↓ S</code>
-							</p>
-						</>
-					)}
+					<h3>{t("game.controls")}</h3>
+					<p style={{ marginTop: 0 }}>
+						<code>↑ W</code> / <code>↓ S</code>
+					</p>
 				</aside>
 			</div>
 		</div>

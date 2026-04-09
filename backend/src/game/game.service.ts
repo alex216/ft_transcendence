@@ -3,7 +3,8 @@ import { Socket, Server } from "socket.io";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { MatchHistory } from "./match-history.entity";
-import { GameState } from "../../../shared/game.interface";
+import { GameState, GameStateDto } from "../../../shared/game.interface";
+import { randomUUID } from "crypto";
 import {
 	FIELD_WIDTH,
 	FIELD_HEIGHT,
@@ -14,23 +15,27 @@ import {
 	RIGHTPAD_LEFTMOST,
 	RIGHTPAD_RIGHTMOST,
 	STARTING_POSITION,
-	UPPER_LIMIT,
 	SPEED_BASE,
 	SPEED_CHANGE,
 	MAX_SCORE,
 	ANGLE_CHANGE,
 	PAD_SPEED,
-} from "./game.constants";
+	AI_SOCKET_ID,
+	AI_USER_ID,
+	GRACE_TIME,
+} from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
 interface GameInternalState extends GameState {
+	roomId: string;
 	dx: number;
 	dy: number;
-	p1Id: string;
-	p2Id: string;
-	p1UserId?: number; // 認証済みユーザーのDB ID（統計用）
-	p2UserId?: number;
+	p1SocketId: string;
+	p2SocketId: string;
+	p1UserId: number; // 認証済みユーザーのDB ID（統計用）
+	p2UserId: number;
 	interval: NodeJS.Timeout | null;
+	disconnectTimer?: NodeJS.Timeout | null;
 }
 
 @Injectable()
@@ -40,26 +45,206 @@ export class GameService {
 		private readonly matchHistoryRepository: Repository<MatchHistory>,
 	) {}
 
-	private games = new Map<string, GameInternalState>();
 	// キューにユーザーIDも一緒に保持する
-	private queue: { socket: Socket; userId?: number }[] = [];
+	private queue: { socket: Socket; userId: number }[] = [];
+	private AIgames = new Map<string, GameInternalState>();
+	private onlineGames = new Map<string, GameInternalState>();
+
+	// faster operations on movepaddle etc
+	// movepddleとか早く調べれるように
+	private userIdToRoom = new Map<number, string>();
+
+	// faster handleing of disconnections and reconnections
+	// reconnectionとか早く調べれるように
+	private socketToPlayer = new Map<string, number>();
+
+	//automatic reconnection
+	private disconnectedPlayers = new Set<number>();
+
+	private toDto(game: GameInternalState): GameStateDto {
+		return {
+			roomId: game.roomId,
+			state: {
+				ball: game.ball,
+				leftPaddleY: game.leftPaddleY,
+				rightPaddleY: game.rightPaddleY,
+				leftScore: game.leftScore,
+				rightScore: game.rightScore,
+				isPaused: game.isPaused,
+			},
+		};
+	}
+
+	createAIGame(client: Socket, playerId: number, server: Server) {
+		if (this.userIdToRoom.has(playerId)) {
+			console.log(
+				`[Game.Service] The player ${playerId} is already in a match`,
+			);
+			return;
+		}
+		const roomId = `room_${randomUUID()}`;
+		console.log(
+			`[Game.Service] CreateAIgame for player ${playerId} in room number ${roomId}`,
+		);
+		client.join(roomId);
+
+		const initialState: GameInternalState = {
+			roomId: roomId,
+			ball: { ...FIELD_CENTER },
+			leftPaddleY: STARTING_POSITION,
+			rightPaddleY: STARTING_POSITION,
+			leftScore: 0,
+			rightScore: 0,
+			isPaused: false,
+			dx: SPEED_BASE,
+			dy: SPEED_BASE,
+			p1SocketId: client.id,
+			p2SocketId: AI_SOCKET_ID,
+			p1UserId: playerId,
+			p2UserId: AI_USER_ID,
+			interval: null,
+		};
+
+		const interval = setInterval(() => {
+			this.AIgameLoop(roomId, server);
+		}, 1000 / 60);
+
+		initialState.interval = interval;
+		this.AIgames.set(roomId, initialState);
+		this.userIdToRoom.set(playerId, roomId);
+		this.socketToPlayer.set(client.id, playerId);
+		console.log(
+			`[Game.Service] Successfully starting AIgame for player ${playerId} in room number ${roomId}`,
+		);
+	}
+
+	// ほとんどgameloopと同じにですけど、DBにセーブしてません
+	private AIgameLoop(roomId: string, server: Server) {
+		const game = this.AIgames.get(roomId);
+		if (!game || game.isPaused) return;
+
+		// 1. ball movement
+		game.ball.x += game.dx;
+		game.ball.y += game.dy;
+
+		// 2. up and down bounce
+		if (
+			(game.dy < 0 && game.ball.y <= 0) ||
+			(game.dy > 0 && game.ball.y >= FIELD_HEIGHT)
+		) {
+			game.dy *= -1;
+		}
+
+		// 3. player paddle collision
+		if (
+			game.dx < 0 &&
+			game.ball.x <= LEFTPAD_RIGHTMOST &&
+			game.ball.x >= LEFTPAD_LEFTMOST
+		) {
+			if (
+				game.ball.y >= game.leftPaddleY &&
+				game.ball.y <= game.leftPaddleY + PAD_LENGTH
+			) {
+				const hitPos = (game.ball.y - game.leftPaddleY) / PAD_LENGTH;
+				game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+				game.dx *= SPEED_CHANGE;
+			}
+		}
+
+		// 4. AI paddle behavior (provvisory)
+		const aiSpeed = 3;
+		if (game.dx > 0) {
+			if (game.ball.y > game.rightPaddleY + PAD_LENGTH / 2) {
+				game.rightPaddleY = Math.min(
+					FIELD_HEIGHT - PAD_LENGTH,
+					game.rightPaddleY + aiSpeed,
+				);
+			} else {
+				game.rightPaddleY = Math.max(0, game.rightPaddleY - aiSpeed);
+			}
+
+			// AI paddle collision
+			if (
+				game.ball.x >= RIGHTPAD_LEFTMOST &&
+				game.ball.x <= RIGHTPAD_RIGHTMOST
+			) {
+				if (
+					game.ball.y >= game.rightPaddleY &&
+					game.ball.y <= game.rightPaddleY + PAD_LENGTH
+				) {
+					const hitPos = (game.ball.y - game.rightPaddleY) / PAD_LENGTH;
+					game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
+					game.dx *= SPEED_CHANGE;
+				}
+			}
+		}
+
+		// 5. check for goal
+		if (game.ball.x <= 0 || game.ball.x >= FIELD_WIDTH) {
+			if (game.ball.x <= 0) game.rightScore++;
+			else game.leftScore++;
+
+			game.ball = { ...FIELD_CENTER };
+			game.dx = game.dx > 0 ? -SPEED_BASE : SPEED_BASE;
+			game.dy = SPEED_BASE;
+		}
+
+		// 6. check for gameover
+		//	on gameover, we are sending the socketId of the winner like in the online case,
+		//	in the front, please remember to check the AI_SOCKET_ID in the shared/game.constants
+		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
+			clearInterval(game.interval);
+
+			const winnerSocketId =
+				game.leftScore >= MAX_SCORE ? game.p1SocketId : game.p2SocketId;
+
+			console.log(
+				`[Game.Service] AIgameOver. winnerSocketId->${winnerSocketId}`,
+			);
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId, roomId });
+			// not saving result for aiGames
+			this.AIgames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+			return;
+		}
+
+		server.to(roomId).emit("updateState", this.toDto(game));
+	}
 
 	// マッチメイキング
-	addToQueue(client: Socket, server: Server, userId?: number) {
-		console.log(`[Game] Player joined queue: ${client.id} (userId: ${userId})`);
+	addToQueue(client: Socket, server: Server, userId: number) {
+		console.log(`[Game.Service] try addToQueue: ${userId}`);
 
-		if (this.queue.find((q) => q.socket.id === client.id)) return;
+		if (
+			this.queue.find((q) => q.socket.id === client.id) ||
+			this.queue.find((q) => q.userId === userId)
+		) {
+			console.log(`[Game.Service] user was already in queue: ${userId}`);
+			return;
+		}
+		if (this.userIdToRoom.has(userId)) {
+			console.log(
+				`[Game.Service] The player ${userId} is already in a match. Try reconnection`,
+			);
+			this.handleReconnect(
+				client,
+				this.userIdToRoom.get(userId),
+				server,
+				userId,
+			);
+			return;
+		}
 		this.queue.push({ socket: client, userId });
 		console.log(
-			"Queue:",
-			this.queue.map((q) => q.socket.id),
+			"[Game.Service] Queue: ",
+			this.queue.map((q) => q.userId),
 		);
 
 		if (this.queue.length >= 2) {
-			console.log(`[Game] Match found! Starting game...`);
 			const p1 = this.queue.shift()!;
 			const p2 = this.queue.shift()!;
-			const roomId = `room_${p1.socket.id}`;
+			const roomId = `room_${randomUUID()}`;
 
 			p1.socket.join(roomId);
 			p2.socket.join(roomId);
@@ -72,19 +257,23 @@ export class GameService {
 				p1.userId,
 				p2.userId,
 			);
+			console.log(
+				`[Game.Service] Match found! Starting game for players ${p1.userId} and ${p2.userId} in room number ${roomId}`,
+			);
 		}
 	}
 
 	// ゲームの初期化
 	initGame(
 		roomId: string,
-		p1Id: string,
-		p2Id: string,
+		p1SocketId: string,
+		p2SocketId: string,
 		server: Server,
-		p1UserId?: number,
-		p2UserId?: number,
+		p1UserId: number,
+		p2UserId: number,
 	) {
 		const initialState: GameInternalState = {
+			roomId: roomId,
 			ball: { ...FIELD_CENTER },
 			leftPaddleY: STARTING_POSITION,
 			rightPaddleY: STARTING_POSITION,
@@ -93,8 +282,8 @@ export class GameService {
 			isPaused: false,
 			dx: SPEED_BASE,
 			dy: SPEED_BASE,
-			p1Id,
-			p2Id,
+			p1SocketId,
+			p2SocketId,
 			p1UserId,
 			p2UserId,
 			interval: null,
@@ -106,12 +295,16 @@ export class GameService {
 
 		initialState.interval = interval;
 
-		this.games.set(roomId, initialState);
+		this.onlineGames.set(roomId, initialState);
+		if (p1UserId) this.userIdToRoom.set(p1UserId, roomId);
+		if (p2UserId) this.userIdToRoom.set(p2UserId, roomId);
+		this.socketToPlayer.set(p1SocketId, p1UserId);
+		this.socketToPlayer.set(p2SocketId, p2UserId);
 	}
 
 	private gameLoop(roomId: string, server: Server) {
-		const game = this.games.get(roomId);
-		if (!game) return;
+		const game = this.onlineGames.get(roomId);
+		if (!game || game.isPaused) return;
 
 		// 1. ボールの移動
 		game.ball.x += game.dx;
@@ -170,48 +363,39 @@ export class GameService {
 		// 5. 終了判定とDB保存
 		if (game.leftScore >= MAX_SCORE || game.rightScore >= MAX_SCORE) {
 			clearInterval(game.interval);
+			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
 
 			const isP1Winner = game.leftScore >= MAX_SCORE;
-			const winnerId = isP1Winner ? game.p1Id : game.p2Id;
+			const winnerSocketId = isP1Winner ? game.p1SocketId : game.p2SocketId;
 			const winnerUserId = isP1Winner ? game.p1UserId : game.p2UserId;
 			const loserUserId = isP1Winner ? game.p2UserId : game.p1UserId;
 			const winnerScore = Math.max(game.leftScore, game.rightScore);
 			const loserScore = Math.min(game.leftScore, game.rightScore);
 
 			// 最終スコアを送信（11点を反映）
-			/* eslint-disable @typescript-eslint/no-unused-vars */
-			const {
-				dx,
-				dy,
-				p1Id,
-				p2Id,
-				p1UserId,
-				p2UserId,
-				interval,
-				...finalState
-			} = game;
-			/* eslint-enable @typescript-eslint/no-unused-vars */
-			server.to(roomId).emit("updateState", finalState);
+			server.to(roomId).emit("updateState", this.toDto(game));
 
 			// フロントエンドに終了を通知
-			server.to(roomId).emit("gameOver", { winner: winnerId });
+			server.to(roomId).emit("gameOver", { winner: winnerSocketId, roomId });
 
 			// DBへ試合結果を保存（非同期）
 			console.log(
-				`[MatchSaved] WinnerUser:${winnerUserId} (Socket:${winnerId}) vs LoserUser:${loserUserId}`,
+				`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
 			);
 			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
 
-			this.games.delete(roomId);
+			this.onlineGames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.userIdToRoom.delete(game.p2UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+			this.socketToPlayer.delete(game.p2SocketId);
+			this.disconnectedPlayers.delete(game.p1UserId);
+			this.disconnectedPlayers.delete(game.p2UserId);
 			return;
 		}
 
 		// 6. 状態配信
-		/* eslint-disable @typescript-eslint/no-unused-vars */
-		const { dx, dy, p1Id, p2Id, p1UserId, p2UserId, interval, ...publicState } =
-			game;
-		/* eslint-enable @typescript-eslint/no-unused-vars */
-		server.to(roomId).emit("updateState", publicState);
+		server.to(roomId).emit("updateState", this.toDto(game));
 	}
 
 	// 試合結果をDBに保存する内部メソッド
@@ -235,69 +419,105 @@ export class GameService {
 		}
 	}
 
-	updatePaddle(playerId: string, y: number) {
-		//managing bad y
-		if (y < 0 || y > UPPER_LIMIT) {
-			console.error("[Game]怪しいｙが気まあしてアレンジします。");
-			if (y < 0) y = 0;
-			else y = UPPER_LIMIT;
-		}
-		for (const [, game] of this.games.entries()) {
-			// ★ roomId を消して「,」だけにする
-			if (game.p1Id === playerId) {
-				if (Math.abs(game.leftPaddleY - y) > PAD_SPEED) {
-					console.log(
-						"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
-					);
-					return;
-				}
-				game.leftPaddleY = y;
-				break;
-			} else if (game.p2Id === playerId) {
-				if (Math.abs(game.rightPaddleY - y) > PAD_SPEED) {
-					console.log(
-						"[GameService] WARNING: Pad早すぎてcheatかも。無視にします",
-					);
-					return;
-				}
-				game.rightPaddleY = y;
-				break;
-			}
+	movePaddleUp(playerId: number) {
+		const roomId = this.userIdToRoom.get(playerId);
+		if (!roomId) return;
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
+		if (!game) return;
+
+		if (game.p1UserId === playerId) {
+			game.leftPaddleY = Math.max(0, game.leftPaddleY - PAD_SPEED);
+		} else if (game.p2UserId === playerId) {
+			game.rightPaddleY = Math.max(0, game.rightPaddleY - PAD_SPEED);
 		}
 	}
 
-	handleDisconnect(client: Socket, server: Server) {
-		console.log(`[GameService] Handling disconnect: ${client.id}`);
+	movePaddleDown(playerId: number) {
+		const roomId = this.userIdToRoom.get(playerId);
+		if (!roomId) return;
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
+		if (!game) return;
 
-		// disconnected人をQueueから消す
-		this.queue = this.queue.filter((q) => q.socket.id !== client.id);
+		if (game.p1UserId === playerId) {
+			game.leftPaddleY = Math.min(
+				FIELD_HEIGHT - PAD_LENGTH,
+				game.leftPaddleY + PAD_SPEED,
+			);
+		} else if (game.p2UserId === playerId) {
+			game.rightPaddleY = Math.min(
+				FIELD_HEIGHT - PAD_LENGTH,
+				game.rightPaddleY + PAD_SPEED,
+			);
+		}
+	}
+
+	handleDisconnect(client: Socket, server: Server, userId: number) {
 		console.log(
-			"Queue:",
-			this.queue.map((q) => q.socket.id),
+			`[GameService] HandleDisconnect: socket->${client.id}, id->${userId}`,
 		);
 
-		// 試合中だったら。。。
-		for (const [roomId, game] of this.games.entries()) {
-			if (game.p1Id === client.id || game.p2Id === client.id) {
-				console.log(`[GameService] Player left match ${roomId}`);
+		// Removing from queue if not matched yet
+		// playerまだ待ってた倍、Queueから消すだけ
+		const queueIndex = this.queue.findIndex((q) => q.socket.id === client.id);
+		if (queueIndex !== -1) {
+			this.queue.splice(queueIndex, 1);
+			this.socketToPlayer.delete(client.id);
+			console.log(`[GameService] Player ${userId} removed from queue`);
+			return; // no need for reconnection logic
+		}
 
-				// 試合をストップ
+		this.socketToPlayer.delete(client.id);
+
+		// Check if player is in an online match
+		// Onlineだった倍
+		const roomId = this.userIdToRoom.get(userId);
+		if (roomId && this.onlineGames.has(roomId)) {
+			const game = this.onlineGames.get(roomId)!;
+			this.disconnectedPlayers.add(userId);
+
+			console.log(
+				`[GameService] Player ${userId} left match ${roomId}, waiting reconnection`,
+			);
+			console.log(
+				"[GameService] disconnectedPlayers ->",
+				Array.from(this.disconnectedPlayers),
+			);
+
+			game.isPaused = true;
+
+			const otherSocketId =
+				game.p1SocketId === client.id ? game.p2SocketId : game.p1SocketId;
+			server.to(roomId).emit("playerDisconnected", { userId });
+
+			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
+
+			game.disconnectTimer = setTimeout(() => {
+				console.log(
+					`[GameService] Grace period expired for player ${userId}, ending match ${roomId}`,
+				);
+
 				clearInterval(game.interval);
+				game.interval = null;
 
-				const isP1 = game.p1Id === client.id;
-				const winnerId = isP1 ? game.p2Id : game.p1Id;
-				const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
-				const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
+				const winnerSocketId = otherSocketId;
+				const loserSocketId = client.id;
 
-				// 試合終了の知らせ
 				server.to(roomId).emit("gameOver", {
-					winner: winnerId,
+					winner: winnerSocketId,
 					reason: "disconnect",
+					roomId,
 				});
 
-				// DBにセーブ
-				const winnerScore = MAX_SCORE;
-				const loserScore = isP1 ? game.leftScore : game.rightScore;
+				//saving in the DB
+				//DBにセーブ
+				const winnerUserId =
+					game.p1SocketId === winnerSocketId ? game.p1UserId : game.p2UserId;
+				const loserUserId =
+					game.p1SocketId === loserSocketId ? game.p1UserId : game.p2UserId;
+				const winnerScore =
+					game.p1SocketId === winnerSocketId ? game.leftScore : game.rightScore;
+				const loserScore =
+					game.p1SocketId === loserSocketId ? game.leftScore : game.rightScore;
 				this.saveMatchResult(
 					winnerScore,
 					loserScore,
@@ -305,9 +525,162 @@ export class GameService {
 					loserUserId,
 				);
 
-				this.games.delete(roomId);
-				break;
-			}
+				console.log(
+					`[Game.Service] saving result: Winner->${winnerUserId} Loser->${loserUserId}`,
+				);
+
+				this.onlineGames.delete(roomId);
+				this.userIdToRoom.delete(game.p1UserId);
+				this.userIdToRoom.delete(game.p2UserId);
+				this.socketToPlayer.delete(game.p1SocketId);
+				this.socketToPlayer.delete(game.p2SocketId);
+				// removing the disconnected player definitely
+				this.disconnectedPlayers.delete(winnerUserId);
+				this.disconnectedPlayers.delete(loserUserId);
+			}, GRACE_TIME);
+
+			return;
+		}
+
+		// AI matches (not waiting for reconnection)
+		// AIだった倍、Reconnect待たないで消します
+		if (roomId && this.AIgames.has(roomId)) {
+			const game = this.AIgames.get(roomId)!;
+			console.log(`[GameService] Player disconnected from AI game ${roomId}`);
+
+			if (game.interval) clearInterval(game.interval);
+			this.AIgames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+
+			server.to(roomId).emit("gameOver", {
+				winner: AI_SOCKET_ID,
+				reason: "disconnectAI",
+				roomId,
+			});
+		}
+	}
+
+	handleReconnect(
+		client: Socket,
+		roomId: string,
+		server: Server,
+		userId: number,
+	) {
+		// roomId OK?
+		const game = this.onlineGames.get(roomId);
+		if (!game) {
+			client.emit("reconnectFailed", { reason: "game_not_found" });
+			return;
+		}
+
+		// userId OK?
+		const isP1 = game.p1UserId === userId;
+		const isP2 = game.p2UserId === userId;
+		if (!isP1 && !isP2) {
+			client.emit("reconnectFailed", { reason: "not_your_game" });
+			return;
+		}
+
+		if (!game.interval && !game.disconnectTimer) {
+			client.emit("reconnectFailed", { reason: "game_already_finished" });
+			return;
+		}
+		if (isP1) game.p1SocketId = client.id;
+		if (isP2) game.p2SocketId = client.id;
+
+		console.log(
+			`[GameService] Player ${userId} reconnected: new socket -> ${client.id} room-> ${roomId}`,
+		);
+		this.disconnectedPlayers.delete(userId);
+
+		// update the new socket for the reconnection
+		// Reconnnectの時にSocket変わっちゃうので、Updateしてます
+		this.socketToPlayer.set(client.id, userId);
+
+		// join the room again
+		// Joinやり直します
+		client.join(roomId);
+
+		// clear timer if still not clear
+		// ClearTimerリセット
+		if (game.disconnectTimer) {
+			clearTimeout(game.disconnectTimer);
+			game.disconnectTimer = null;
+		}
+
+		// resume game
+		// もう一度Gameをスタートします
+		game.isPaused = false;
+
+		// notify the other player
+		// 待ってた相手に知らせ送ります
+		server.to(roomId).emit("playerReconnected", { userId });
+
+		// re-send gamestate to the reconnected player
+		// 戻って来たPlayerに無くしちゃってたGamestateを贈り直します
+		client.emit("updateState", this.toDto(game));
+
+		// restart game loop if necessary
+		// Intervalがリスタートするべきな倍
+		if (!game.interval) {
+			game.interval = setInterval(
+				() => this.gameLoop(roomId, server),
+				1000 / 60,
+			);
+		}
+	}
+
+	handleSurrender(server: Server, userId: number) {
+		console.log(`[GameService] Player ${userId} surrendered`);
+		const roomId = this.userIdToRoom.get(userId);
+		if (!roomId) return;
+
+		const game = this.onlineGames.get(roomId) || this.AIgames.get(roomId);
+		if (!game) return;
+
+		if (game.interval) {
+			clearInterval(game.interval);
+			game.interval = null;
+		}
+		const isP1 = game.p1UserId === userId;
+
+		const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
+		const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
+		const winnerScore = isP1 ? game.rightScore : game.leftScore;
+		const loserScore = isP1 ? game.leftScore : game.rightScore;
+		const winnerSocketId = isP1 ? game.p2SocketId : game.p1SocketId;
+
+		this.disconnectedPlayers.delete(userId);
+
+		server.to(roomId).emit("gameOver", {
+			winner: winnerSocketId,
+			reason: "surrender",
+			roomId,
+		});
+
+		// online match
+		// Onlineだった倍
+		if (this.onlineGames.has(roomId)) {
+			this.saveMatchResult(winnerScore, loserScore, winnerUserId, loserUserId);
+
+			this.userIdToRoom.delete(winnerUserId);
+			this.userIdToRoom.delete(loserUserId);
+
+			this.socketToPlayer.delete(game.p1SocketId);
+			this.socketToPlayer.delete(game.p2SocketId);
+
+			this.onlineGames.delete(roomId);
+			return;
+		}
+
+		// AI match
+		// AIだった倍
+		if (this.AIgames.has(roomId)) {
+			this.userIdToRoom.delete(userId);
+			this.socketToPlayer.delete(game.p1SocketId);
+
+			this.AIgames.delete(roomId);
 		}
 	}
 }

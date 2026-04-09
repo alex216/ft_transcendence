@@ -6,6 +6,7 @@ import {
 	onUpdateState,
 	disconnectGameSocket,
 } from "../services/gameSocket";
+import type { GameStateDto } from "/shared/game.interface";
 
 type OnlineStatus = "idle" | "matching" | "error";
 
@@ -48,12 +49,11 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 		};
 
 		// updateStateを受信 = マッチング成立 & ゲーム開始
-		const handleUpdateState = () => {
+		const handleUpdateState = (dto: GameStateDto) => {
 			console.log("[OnlinePage] ゲーム状態受信 → 即座にゲーム画面へ遷移");
 			if (onStartRef.current) {
-				const roomId = `game-${Date.now()}`;
 				const opponent: Opponent = { username: "対戦相手" };
-				onStartRef.current({ roomId, opponent });
+				onStartRef.current({ roomId: dto.roomId, opponent });
 			}
 		};
 

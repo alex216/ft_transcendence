@@ -1,23 +1,26 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GameState } from "/shared/game.interface";
+import {
+	FIELD_WIDTH,
+	FIELD_HEIGHT,
+	PAD_WIDTH,
+	PAD_LENGTH,
+	PAD_BORDER_DIST,
+} from "/shared/game.constants";
 
-// バックエンドと同じ定数（game.service.ts参照）
-// 座標系は固定のまま、CSSスケーリングでレスポンシブ対応
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
+// 表示用の定数
 const MAX_DISPLAY_WIDTH = 640; // 表示上の最大幅
-const PADDLE_WIDTH = 20;
-const PADDLE_HEIGHT = 100;
 const BALL_RADIUS = 10;
 
-// パドル位置（バックエンドの衝突判定に合わせる）
-const LEFT_PADDLE_X = 40;
-const RIGHT_PADDLE_X = 740;
+// パドルのX座標（shared定数から算出）
+const LEFT_PADDLE_X = PAD_BORDER_DIST;
+const RIGHT_PADDLE_X = FIELD_WIDTH - PAD_BORDER_DIST;
 
 type PongCanvasProps = {
 	gameState: GameState | null;
-	onPaddleMove: (y: number) => void;
+	onMoveUp: () => void;
+	onMoveDown: () => void;
 	isPlayer1: boolean | null; // true: 左パドル, false: 右パドル, null: 未確定（両方白）
 	autoFocus?: boolean; // ゲーム開始時に自動フォーカス
 };
@@ -29,14 +32,14 @@ type PongCanvasProps = {
  */
 export default function PongCanvas({
 	gameState,
-	onPaddleMove,
+	onMoveUp,
+	onMoveDown,
 	isPlayer1,
 	autoFocus = false,
 }: PongCanvasProps) {
 	const { t } = useTranslation();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
-	const paddleYRef = useRef<number>(250); // 自分のパドルY座標（送信用）
 	const keysPressed = useRef<Set<string>>(new Set()); // 押されているキーを追跡
 	const hasAutoFocused = useRef(false); // 自動フォーカス済みかどうか
 	const [isFocused, setIsFocused] = useState(false);
@@ -53,7 +56,7 @@ export default function PongCanvas({
 				container.parentElement?.clientWidth ?? MAX_DISPLAY_WIDTH,
 				MAX_DISPLAY_WIDTH,
 			);
-			const newScale = Math.min(1, availableWidth / CANVAS_WIDTH);
+			const newScale = Math.min(1, availableWidth / FIELD_WIDTH);
 			setScale(newScale);
 		};
 
@@ -76,7 +79,6 @@ export default function PongCanvas({
 	}, [autoFocus, gameState]);
 
 	// Canvasがフォーカスを持っているとき、ページスクロールを防止
-	// (React合成イベントはCanvas要素にフォーカスがないと発火しないため、windowレベルで監視)
 	useEffect(() => {
 		const preventScroll = (e: KeyboardEvent) => {
 			if (isFocused && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
@@ -91,10 +93,10 @@ export default function PongCanvas({
 	// キー押下時: キーをSetに追加（リピートイベントは無視）
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLCanvasElement>) => {
-			if (e.repeat) return; // OSのキーリピートは無視
+			if (e.repeat) return;
 			const validKeys = ["ArrowUp", "ArrowDown", "w", "W", "s", "S"];
 			if (validKeys.includes(e.key)) {
-				e.preventDefault(); // ページスクロールを防止
+				e.preventDefault();
 				keysPressed.current.add(e.key);
 			}
 		},
@@ -109,27 +111,20 @@ export default function PongCanvas({
 		[],
 	);
 
-	// 毎フレームでキー状態をチェックしてパドルを移動（フォーカス時のみ）
+	// 毎フレームでキー状態をチェックしてmoveUp/moveDownをサーバーに送信（フォーカス時のみ）
 	useEffect(() => {
 		if (!isFocused) return;
 
 		let animationId: number;
-		const moveSpeed = 8; // フレームあたりの移動量
 
 		const gameLoop = () => {
 			const keys = keysPressed.current;
-			let newY = paddleYRef.current;
 
 			if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) {
-				newY = Math.max(0, newY - moveSpeed);
+				onMoveUp();
 			}
 			if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) {
-				newY = Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, newY + moveSpeed);
-			}
-
-			if (newY !== paddleYRef.current) {
-				paddleYRef.current = newY;
-				onPaddleMove(newY);
+				onMoveDown();
 			}
 
 			animationId = requestAnimationFrame(gameLoop);
@@ -137,7 +132,7 @@ export default function PongCanvas({
 
 		animationId = requestAnimationFrame(gameLoop);
 		return () => cancelAnimationFrame(animationId);
-	}, [isFocused, onPaddleMove]);
+	}, [isFocused, onMoveUp, onMoveDown]);
 
 	// Canvas要素をクリックしたら自動的にフォーカス
 	const handleClick = useCallback(() => {
@@ -154,18 +149,14 @@ export default function PongCanvas({
 
 		// 背景をクリア（黒）
 		ctx.fillStyle = "#1a1a2e";
-		ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
 
 		if (!gameState) {
 			// ゲーム状態がない場合は待機メッセージ
 			ctx.fillStyle = "#ffffff";
 			ctx.font = "24px Arial";
 			ctx.textAlign = "center";
-			ctx.fillText(
-				t("game.waitingForGame"),
-				CANVAS_WIDTH / 2,
-				CANVAS_HEIGHT / 2,
-			);
+			ctx.fillText(t("game.waitingForGame"), FIELD_WIDTH / 2, FIELD_HEIGHT / 2);
 			return;
 		}
 
@@ -174,8 +165,8 @@ export default function PongCanvas({
 		ctx.strokeStyle = "#4a4a6a";
 		ctx.lineWidth = 2;
 		ctx.beginPath();
-		ctx.moveTo(CANVAS_WIDTH / 2, 0);
-		ctx.lineTo(CANVAS_WIDTH / 2, CANVAS_HEIGHT);
+		ctx.moveTo(FIELD_WIDTH / 2, 0);
+		ctx.lineTo(FIELD_WIDTH / 2, FIELD_HEIGHT);
 		ctx.stroke();
 		ctx.setLineDash([]);
 
@@ -183,45 +174,27 @@ export default function PongCanvas({
 		ctx.fillStyle = "#ffffff";
 		ctx.font = "48px Arial";
 		ctx.textAlign = "center";
-		ctx.fillText(String(gameState.leftScore), CANVAS_WIDTH / 4, 60);
-		ctx.fillText(String(gameState.rightScore), (CANVAS_WIDTH * 3) / 4, 60);
+		ctx.fillText(String(gameState.leftScore), FIELD_WIDTH / 4, 60);
+		ctx.fillText(String(gameState.rightScore), (FIELD_WIDTH * 3) / 4, 60);
 
 		// 左パドル（isPlayer1 === true の時だけ緑、null/false は白）
 		ctx.fillStyle = isPlayer1 === true ? "#00ff88" : "#ffffff";
-		ctx.fillRect(
-			LEFT_PADDLE_X,
-			gameState.leftPaddleY,
-			PADDLE_WIDTH,
-			PADDLE_HEIGHT,
-		);
+		ctx.fillRect(LEFT_PADDLE_X, gameState.leftPaddleY, PAD_WIDTH, PAD_LENGTH);
 
 		// 右パドル（isPlayer1 === false の時だけ緑、null/true は白）
 		ctx.fillStyle = isPlayer1 === false ? "#00ff88" : "#ffffff";
-		ctx.fillRect(
-			RIGHT_PADDLE_X,
-			gameState.rightPaddleY,
-			PADDLE_WIDTH,
-			PADDLE_HEIGHT,
-		);
+		ctx.fillRect(RIGHT_PADDLE_X, gameState.rightPaddleY, PAD_WIDTH, PAD_LENGTH);
 
 		// ボール
 		ctx.fillStyle = "#ffff00";
 		ctx.beginPath();
 		ctx.arc(gameState.ball.x, gameState.ball.y, BALL_RADIUS, 0, Math.PI * 2);
 		ctx.fill();
-
-		// 自分のパドル位置を同期（確定後のみ）
-		if (isPlayer1 !== null) {
-			const myPaddleY = isPlayer1
-				? gameState.leftPaddleY
-				: gameState.rightPaddleY;
-			paddleYRef.current = myPaddleY;
-		}
 	}, [gameState, isPlayer1]);
 
 	// スケーリング後の表示サイズを計算
-	const displayWidth = CANVAS_WIDTH * scale;
-	const displayHeight = CANVAS_HEIGHT * scale;
+	const displayWidth = FIELD_WIDTH * scale;
+	const displayHeight = FIELD_HEIGHT * scale;
 
 	return (
 		<div
@@ -235,8 +208,8 @@ export default function PongCanvas({
 		>
 			<canvas
 				ref={canvasRef}
-				width={CANVAS_WIDTH}
-				height={CANVAS_HEIGHT}
+				width={FIELD_WIDTH}
+				height={FIELD_HEIGHT}
 				style={{
 					display: "block",
 					border: isFocused ? "2px solid #00ff88" : "2px solid #4a4a6a",
