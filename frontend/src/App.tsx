@@ -67,6 +67,9 @@ function App() {
 	// Mobile menu
 	const [menuOpen, setMenuOpen] = useState(false);
 
+	// AIモード再マウント用キー
+	const [aiGameKey, setAiGameKey] = useState(() => Date.now());
+
 	// ゲーム中のモード切り替え確認
 	const [pendingNavigation, setPendingNavigation] = useState<Page | null>(null);
 
@@ -244,10 +247,11 @@ function App() {
 				// GamePage 側で props を受け取れるようにしておく（UI表示のため）
 				return (
 					<GamePage
+						key={aiGameKey}
 						mode="ai"
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={() => setCurrentPage("home")}
+						onBack={() => setAiGameKey(Date.now())}
 					/>
 				);
 

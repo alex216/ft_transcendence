@@ -111,7 +111,12 @@
 		"clickToStart": "クリックして操作を開始",
 		"surrender": "降参",
 		"opponentDisconnected": "相手が切断しました",
-		"waitingForReconnect": "相手の再接続を待っています..."
+		"waitingForReconnect": "相手の再接続を待っています...",
+		"playAgain": "もう一度プレイ",
+		"switchConfirmTitle": "対戦中です",
+		"switchConfirmMessage": "現在の対戦を中断して移動しますか？中断した場合、敗北として記録されます。",
+		"switchConfirmOk": "中断して移動",
+		"switchConfirmCancel": "キャンセル"
 	},
 	"online": {
 		"status": "ステータス",

@@ -259,7 +259,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 								onClick={handleBackToOnline}
 								style={{ marginTop: 16 }}
 							>
-								{t("game.backToOnline")}
+								{mode === "ai" ? t("game.playAgain") : t("game.backToOnline")}
 							</button>
 						</div>
 					)}

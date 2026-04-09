@@ -111,7 +111,12 @@
 		"clickToStart": "Click to start controls",
 		"surrender": "Surrender",
 		"opponentDisconnected": "Opponent disconnected",
-		"waitingForReconnect": "Waiting for opponent to reconnect..."
+		"waitingForReconnect": "Waiting for opponent to reconnect...",
+		"playAgain": "Play Again",
+		"switchConfirmTitle": "Game in Progress",
+		"switchConfirmMessage": "Are you sure you want to leave the current game? Leaving will count as a loss.",
+		"switchConfirmOk": "Leave Game",
+		"switchConfirmCancel": "Cancel"
 	},
 	"online": {
 		"status": "Status",
