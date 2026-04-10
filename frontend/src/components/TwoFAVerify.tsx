@@ -21,7 +21,11 @@ function TwoFAVerify({ onVerified, onCancel }: TwoFAVerifyProps) {
 		setLoading(true);
 		setMessage("");
 		try {
-			await verify2FA(token);
+			const data = await verify2FA(token);
+			if (!data.success) {
+				setMessage(data.message || "twofa.verifyFailed");
+				return;
+			}
 			const userData = await getCurrentUser();
 			onVerified(userData);
 		} catch (err) {

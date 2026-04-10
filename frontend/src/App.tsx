@@ -87,8 +87,12 @@ function App() {
 		checkLoginStatus();
 	}, []);
 
-	// ログイン状態確認
+	// ログイン状態確認（logged_in cookieがない場合はAPIコールをスキップ）
 	const checkLoginStatus = async () => {
+		if (!document.cookie.includes("logged_in")) {
+			setUser(null);
+			return;
+		}
 		try {
 			const userData = await getCurrentUser();
 			setUser(userData);
@@ -101,7 +105,12 @@ function App() {
 	const handleRegister = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
-			await register(username, password);
+			const data = await register(username, password);
+			if (!data.success) {
+				// 登録失敗（200レスポンスで返却される）
+				setMessage(data.message || "auth.registerFailed");
+				return;
+			}
 			setMessage("auth.registerSuccess");
 			setIsLogin(true);
 			setUsername("");
@@ -117,6 +126,11 @@ function App() {
 		e.preventDefault();
 		try {
 			const data = await login(username, password);
+			if (!data.success) {
+				// ログイン失敗（200レスポンスで返却される）
+				setMessage(data.message || "auth.loginFailed");
+				return;
+			}
 			if (data.message === "2FA_REQUIRED") {
 				// 2FA有効ユーザー → コード入力画面へ
 				setNeeds2FA(true);

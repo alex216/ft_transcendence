@@ -51,7 +51,7 @@ export interface SendFriendRequestRequest {
 export interface SendFriendRequestResponse {
 	success: boolean;
 	message: string;
-	friendRequest: {
+	friendRequest?: {
 		id: number;
 		senderId: number;
 		receiverId: number;

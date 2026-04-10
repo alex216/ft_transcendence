@@ -6,7 +6,6 @@ import {
 	Body,
 	Param,
 	Req,
-	BadRequestException,
 } from "@nestjs/common";
 import { Request } from "express";
 import { FriendService } from "./friend.service";
@@ -39,25 +38,31 @@ export class FriendController {
 
 		const receiverIdOrUsername = body.receiverId || body.username;
 		if (!receiverIdOrUsername) {
-			throw new BadRequestException("receiverId または username が必要です");
+			return {
+				success: false,
+				message: "receiverId または username が必要です",
+			};
 		}
 
-		const request = await this.friendService.sendFriendRequest(
-			user.id,
-			receiverIdOrUsername,
-		);
-
-		return {
-			success: true,
-			message: "フレンドリクエストを送信しました",
-			friendRequest: {
-				id: request.id,
-				senderId: request.senderId,
-				receiverId: request.receiverId,
-				status: request.status,
-				createdAt: request.createdAt.toISOString(),
-			},
-		};
+		try {
+			const request = await this.friendService.sendFriendRequest(
+				user.id,
+				receiverIdOrUsername,
+			);
+			return {
+				success: true,
+				message: "フレンドリクエストを送信しました",
+				friendRequest: {
+					id: request.id,
+					senderId: request.senderId,
+					receiverId: request.receiverId,
+					status: request.status,
+					createdAt: request.createdAt.toISOString(),
+				},
+			};
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// POST /friends/accept/:requestId - フレンドリクエスト承認
@@ -70,12 +75,15 @@ export class FriendController {
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なリクエストIDです");
+			return { success: false, message: "無効なリクエストIDです" };
 		}
 
-		await this.friendService.acceptFriendRequest(id, user.id);
-
-		return { success: true, message: "フレンドリクエストを承認しました" };
+		try {
+			await this.friendService.acceptFriendRequest(id, user.id);
+			return { success: true, message: "フレンドリクエストを承認しました" };
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// POST /friends/reject/:requestId - フレンドリクエスト拒否
@@ -88,12 +96,15 @@ export class FriendController {
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なリクエストIDです");
+			return { success: false, message: "無効なリクエストIDです" };
 		}
 
-		await this.friendService.rejectFriendRequest(id, user.id);
-
-		return { success: true, message: "フレンドリクエストを拒否しました" };
+		try {
+			await this.friendService.rejectFriendRequest(id, user.id);
+			return { success: true, message: "フレンドリクエストを拒否しました" };
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// DELETE /friends/:friendId - フレンド削除
@@ -106,12 +117,15 @@ export class FriendController {
 
 		const id = parseInt(friendId, 10);
 		if (isNaN(id)) {
-			throw new BadRequestException("無効なユーザーIDです");
+			return { success: false, message: "無効なユーザーIDです" };
 		}
 
-		await this.friendService.removeFriend(user.id, id);
-
-		return { success: true, message: "フレンドを削除しました" };
+		try {
+			await this.friendService.removeFriend(user.id, id);
+			return { success: true, message: "フレンドを削除しました" };
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// GET /friends - フレンドリスト取得
@@ -142,7 +156,7 @@ export class FriendController {
 
 		const targetUserId = parseInt(userId, 10);
 		if (isNaN(targetUserId)) {
-			throw new BadRequestException("無効なユーザーIDです");
+			return { isFriend: false };
 		}
 
 		return this.friendService.getFriendStatus(user.id, targetUserId);

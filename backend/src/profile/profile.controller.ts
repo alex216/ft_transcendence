@@ -9,7 +9,6 @@ import {
 	Req,
 	UseInterceptors,
 	UploadedFile,
-	BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
@@ -49,13 +48,19 @@ export class ProfileController {
 
 	// GET /profile/:id - 他のユーザーのプロフィール取得
 	@Get(":id")
-	async getProfile(@Param("id") id: string): Promise<GetProfileResponse> {
+	async getProfile(
+		@Param("id") id: string,
+	): Promise<GetProfileResponse | { success: false; message: string }> {
 		const userId = parseInt(id, 10);
 		if (isNaN(userId)) {
-			throw new BadRequestException("無効なユーザーIDです");
+			return { success: false, message: "無効なユーザーIDです" };
 		}
 
-		return this.profileService.getProfileByUserId(userId);
+		try {
+			return await this.profileService.getProfileByUserId(userId);
+		} catch (error) {
+			return { success: false, message: (error as Error).message };
+		}
 	}
 
 	// PUT /profile/me - プロフィール更新
@@ -92,13 +97,12 @@ export class ProfileController {
 				},
 			}),
 			fileFilter: (req, file, callback) => {
+				// throwせずfalseを返すことで、不正ファイルを保存前に拒否（コンソールエラーなし）
 				if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
-					return callback(
-						new BadRequestException("画像ファイルのみアップロード可能です"),
-						false,
-					);
+					callback(null, false);
+				} else {
+					callback(null, true);
 				}
-				callback(null, true);
 			},
 			limits: { fileSize: 5 * 1024 * 1024 },
 		}),
@@ -110,7 +114,11 @@ export class ProfileController {
 		const user = req.user;
 
 		if (!file) {
-			throw new BadRequestException("ファイルがアップロードされていません");
+			// fileFilterで拒否された場合（画像以外）もここに来る
+			return {
+				success: false,
+				message: "画像ファイルのみアップロード可能です（jpg/jpeg/png/gif）",
+			};
 		}
 
 		const avatarUrl = `/uploads/avatars/${file.filename}`;
