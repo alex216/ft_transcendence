@@ -111,7 +111,12 @@
 		"clickToStart": "Cliquez pour commencer",
 		"surrender": "Abandonner",
 		"opponentDisconnected": "L'adversaire s'est déconnecté",
-		"waitingForReconnect": "En attente de la reconnexion de l'adversaire..."
+		"waitingForReconnect": "En attente de la reconnexion de l'adversaire...",
+		"playAgain": "Rejouer",
+		"switchConfirmTitle": "Partie en cours",
+		"switchConfirmMessage": "Voulez-vous quitter la partie en cours ? Quitter comptera comme une défaite.",
+		"switchConfirmOk": "Quitter la partie",
+		"switchConfirmCancel": "Annuler"
 	},
 	"online": {
 		"status": "Statut",

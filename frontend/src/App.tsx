@@ -22,6 +22,8 @@ import ChatPage from "./components/ChatPage";
 import LegalModal, { LegalType } from "./components/LegalModal";
 import StatsDashboard from "./components/StatsDashboard";
 import GdprSettings from "./components/GdprSettings";
+import ConfirmDialog from "./components/ConfirmDialog";
+import { surrender } from "./services/gameSocket";
 import "./App.css";
 import "./styles/responsive.css";
 
@@ -65,9 +67,41 @@ function App() {
 	// Mobile menu
 	const [menuOpen, setMenuOpen] = useState(false);
 
+	// AIモード再マウント用キー
+	const [aiGameKey, setAiGameKey] = useState(() => Date.now());
+
+	// ゲーム中のモード切り替え確認
+	const [pendingNavigation, setPendingNavigation] = useState<Page | null>(null);
+
 	const navigateTo = (page: Page) => {
 		setCurrentPage(page);
 		setMenuOpen(false);
+	};
+
+	// ゲーム画面にいるかどうか（SSOT: 既存ステートから導出）
+	const isInGamePage =
+		currentPage === "game" || (currentPage === "online" && gameRoomId !== null);
+
+	// ゲーム中なら確認ポップアップ、そうでなければ即遷移
+	const handleNavigation = (target: Page, resetGame = false) => {
+		if (isInGamePage && target !== currentPage) {
+			setPendingNavigation(target);
+			return;
+		}
+		if (resetGame) {
+			setGameRoomId(null);
+			setGameOpponent(null);
+		}
+		navigateTo(target);
+	};
+
+	// ポップアップ承諾: surrender → 遷移（同一ソケットを再利用し順序保証）
+	const handleConfirmLeave = () => {
+		surrender();
+		setGameRoomId(null);
+		setGameOpponent(null);
+		if (pendingNavigation) navigateTo(pendingNavigation);
+		setPendingNavigation(null);
 	};
 
 	// DM context（FriendList → ChatPage 連携用）
@@ -213,10 +247,11 @@ function App() {
 				// GamePage 側で props を受け取れるようにしておく（UI表示のため）
 				return (
 					<GamePage
+						key={aiGameKey}
 						mode="ai"
 						roomId={gameRoomId ?? undefined}
 						opponent={gameOpponent}
-						onBack={() => setCurrentPage("home")}
+						onBack={() => setAiGameKey(Date.now())}
 					/>
 				);
 
@@ -323,11 +358,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "online" ? "active" : ""}
-										onClick={() => {
-											setGameRoomId(null);
-											setGameOpponent(null);
-											navigateTo("online");
-										}}
+										onClick={() => handleNavigation("online", true)}
 									>
 										{t("nav.online")}
 									</button>
@@ -336,11 +367,7 @@ function App() {
 								<li>
 									<button
 										className={currentPage === "game" ? "active" : ""}
-										onClick={() => {
-											setGameRoomId(null);
-											setGameOpponent(null);
-											navigateTo("game");
-										}}
+										onClick={() => handleNavigation("game", true)}
 									>
 										{t("nav.ai")}
 									</button>
@@ -539,6 +566,16 @@ function App() {
 			</div>
 			{legalModal && (
 				<LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
+			)}
+			{pendingNavigation !== null && (
+				<ConfirmDialog
+					title={t("game.switchConfirmTitle")}
+					message={t("game.switchConfirmMessage")}
+					confirmLabel={t("game.switchConfirmOk")}
+					cancelLabel={t("game.switchConfirmCancel")}
+					onConfirm={handleConfirmLeave}
+					onCancel={() => setPendingNavigation(null)}
+				/>
 			)}
 		</div>
 	);
