@@ -22,3 +22,10 @@ export const SPEED_BASE = 5;
 export const ANGLE_CHANGE = SPEED_BASE * 4;
 export const SPEED_CHANGE = -1.1;
 export const MAX_SCORE = 11;
+// AI settings
+export const PREDICTION_NOT_SET = -1;
+export const RE_PREDICT_PROBABILITY = 0.1;
+export const DEFAULT_DIFFICULTY = 0.5;
+export const MAX_DIFFICULTY = 0.25;
+export const MIN_DIFFICULTY = 1.0;
+export const BASE_REACTION_DELAY = 300;
