@@ -10,10 +10,10 @@ export class MatchHistory {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ nullable: true })
+	@Column({ type: "int", nullable: true })
 	winnerUserId: number | null;
 
-	@Column({ nullable: true })
+	@Column({ type: "int", nullable: true })
 	loserUserId: number | null;
 
 	@Column()
