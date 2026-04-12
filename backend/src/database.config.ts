@@ -10,6 +10,6 @@ export const databaseConfig: TypeOrmModuleOptions = {
 	password: process.env.DATABASE_PASSWORD || "password123",
 	database: process.env.DATABASE_NAME || "transcendence_db",
 	autoLoadEntities: true, // forFeature()で登録されたエンティティを自動ロード（globパターン不要）
-	synchronize: true, // 開発時のみtrue（本番環境では危険）
+	synchronize: process.env.NODE_ENV !== "production", // 本番環境では false（マイグレーションで管理）
 	logging: process.env.NODE_ENV === "development", // 本番環境ではSQLログを無効化（テーブル構造・データの漏洩リスクを排除）
 };
