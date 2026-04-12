@@ -62,7 +62,7 @@ export interface RegisterRequest {
 export interface RegisterResponse {
 	success: boolean;
 	message: string;
-	user: GetMeResponse; // API定義を統一
+	user?: GetMeResponse; // 登録失敗時はundefined
 }
 
 // POST /auth/login

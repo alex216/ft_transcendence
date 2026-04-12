@@ -39,11 +39,22 @@ interface FortyTwoCallbackRequest extends Request {
 
 // JWTをCookieにセットするヘルパー関数
 function setJwtCookie(res: Response, token: string) {
+	const isSecure = process.env.NODE_ENV !== "development";
+	const maxAge = 24 * 60 * 60 * 1000; // 24時間
+
 	res.cookie("access_token", token, {
 		httpOnly: true, // JS から読めない（XSS対策）
 		sameSite: "strict", // 他サイトからのリクエストでは Cookie を送らない（CSRF対策）
-		secure: process.env.NODE_ENV !== "development", // 本番は HTTPS のみ
-		maxAge: 24 * 60 * 60 * 1000, // 24時間
+		secure: isSecure, // 本番は HTTPS のみ
+		maxAge,
+	});
+
+	// フロントエンドがログイン状態を判定するための補助cookie（httpOnly: false）
+	res.cookie("logged_in", "true", {
+		httpOnly: false,
+		sameSite: "strict",
+		secure: isSecure,
+		maxAge,
 	});
 }
 
@@ -128,7 +139,10 @@ export class AuthController {
 				user: { id: user.id, username: user.username },
 			};
 		} catch (error) {
-			throw new HttpException((error as Error).message, HttpStatus.BAD_REQUEST);
+			return {
+				success: false,
+				message: (error as Error).message,
+			};
 		}
 	}
 
@@ -140,10 +154,10 @@ export class AuthController {
 	): Promise<LoginResponse> {
 		const user = await this.authService.login(body.username, body.password);
 		if (!user) {
-			throw new HttpException(
-				"ユーザー名またはパスワードが間違っています",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return {
+				success: false,
+				message: "ユーザー名またはパスワードが間違っています",
+			};
 		}
 
 		// 2FAが有効なユーザーは一時トークンを発行してコード入力画面へ
@@ -183,26 +197,20 @@ export class AuthController {
 	) {
 		const tempToken = req.cookies?.temp_token;
 		if (!tempToken) {
-			throw new HttpException(
-				"セッションが無効です。再度ログインしてください",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return {
+				success: false,
+				message: "セッションが無効です。再度ログインしてください",
+			};
 		}
 
 		const payload = this.authService.verifyTempToken(tempToken);
 		if (!payload) {
-			throw new HttpException(
-				"セッションが期限切れです",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "セッションが期限切れです" };
 		}
 
 		const user = await this.authService.findById(payload.sub);
 		if (!user || !user.two_factor_secret) {
-			throw new HttpException(
-				"ユーザーが見つかりません",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "ユーザーが見つかりません" };
 		}
 
 		const isValid = this.twoFactorService.verifyToken(
@@ -210,10 +218,7 @@ export class AuthController {
 			body.token,
 		);
 		if (!isValid) {
-			throw new HttpException(
-				"コードが正しくありません",
-				HttpStatus.UNAUTHORIZED,
-			);
+			return { success: false, message: "コードが正しくありません" };
 		}
 
 		// 検証OK → 本物のJWTを発行
@@ -229,7 +234,7 @@ export class AuthController {
 	async setupTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		return this.twoFactorService.generateSecret(fullUser);
 	}
@@ -242,17 +247,14 @@ export class AuthController {
 	) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		const success = await this.twoFactorService.enableTwoFactor(
 			fullUser,
 			body.token,
 		);
 		if (!success) {
-			throw new HttpException(
-				"コードが正しくありません",
-				HttpStatus.BAD_REQUEST,
-			);
+			return { success: false, message: "コードが正しくありません" };
 		}
 
 		return { success: true, message: "2FAを有効化しました" };
@@ -263,7 +265,7 @@ export class AuthController {
 	async disableTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			throw new HttpException("ユーザーが見つかりません", HttpStatus.NOT_FOUND);
+			return { success: false, message: "ユーザーが見つかりません" };
 
 		await this.twoFactorService.disableTwoFactor(fullUser);
 		return { success: true, message: "2FAを無効化しました" };
@@ -287,6 +289,7 @@ export class AuthController {
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutResponse> {
 		res.clearCookie("access_token");
+		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");
 		return { success: true, message: "ログアウト成功" };
 	}
