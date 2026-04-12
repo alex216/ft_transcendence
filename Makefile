@@ -1,7 +1,7 @@
 # ft_transcendence Makefile
 # C++の make と同じように使える
 
-.PHONY: all setup ssl up down build clean fclean re logs reinstall
+.PHONY: all setup ssl up down build clean fclean re logs reinstall test
 
 # デフォルト: コンテナを起動
 all: up
@@ -95,6 +95,10 @@ re: fclean build
 # ログを表示
 logs:
 	docker-compose logs -f
+
+# テスト実行
+test:
+	docker-compose exec backend npm test
 
 # 本番ビルドを作成（開発には不要）
 prod-build:

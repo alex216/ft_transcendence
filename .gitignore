@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+test/node_modules/
 npm-debug.log*
 yarn-debug.log*
 
