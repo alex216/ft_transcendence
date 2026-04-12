@@ -6,7 +6,10 @@
 		"start": "node dist/app/src/main",
 		"start:dev": "nest start --watch --exec 'node dist/app/src/main'",
 		"build": "nest build",
-		"clean": "rm -rf dist && rm -f /shared/*.js /shared/*.d.ts /shared/*.map"
+		"clean": "rm -rf dist && rm -f /shared/*.js /shared/*.d.ts /shared/*.map",
+		"migration:run": "typeorm migration:run -d dist/app/src/data-source.js",
+		"migration:revert": "typeorm migration:revert -d dist/app/src/data-source.js",
+		"migration:show": "typeorm migration:show -d dist/app/src/data-source.js"
 	},
 	"dependencies": {
 		"@nestjs/common": "^11.1.17",
