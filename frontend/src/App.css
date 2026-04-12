@@ -270,6 +270,135 @@ h2 {
 	margin-bottom: 20px;
 }
 
+/* ── Home Page ─────────────────────────────────── */
+.home-content {
+	padding: 2rem 2.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 2.5rem;
+}
+
+.home-hero {
+	display: flex;
+	align-items: center;
+	gap: 2.5rem;
+	flex-wrap: wrap;
+}
+
+.home-hero-text {
+	flex: 1;
+	min-width: 280px;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.home-welcome-label {
+	font-size: 12px;
+	color: #888;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.home-welcome-name {
+	font-size: 26px;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.home-username {
+	color: #534ab7;
+}
+
+.home-desc {
+	font-size: 14px;
+	line-height: 1.7;
+	color: #666;
+	max-width: 400px;
+}
+
+.home-cta-row {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 0.25rem;
+}
+
+.home-cta-primary {
+	padding: 10px 20px;
+	background: #534ab7;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: opacity 0.15s;
+}
+
+.home-cta-primary:hover {
+	opacity: 0.85;
+}
+
+.home-cta-secondary {
+	padding: 10px 20px;
+	background: transparent;
+	color: inherit;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.home-cta-secondary:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+.home-pong-illustration {
+	flex-shrink: 0;
+}
+
+.home-info-cards {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.home-info-card {
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 1rem 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.home-card-title {
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.home-card-body {
+	font-size: 13px;
+	color: #666;
+	line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+	.home-content {
+		padding: 1.5rem 1rem;
+	}
+	.home-info-cards {
+		grid-template-columns: 1fr;
+	}
+	.home-pong-illustration svg {
+		width: 100%;
+		height: auto;
+	}
+}
+
 /* ============================================ */
 /* プロフィールページ */
 /* ============================================ */

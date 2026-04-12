@@ -212,11 +212,149 @@ function App() {
 		switch (currentPage) {
 			case "home":
 				return (
-					<div className="home">
-						<h2>{t("home.welcome", { username: user.username })}</h2>
-						<p>
-							{t("home.userId")}: {user.id}
-						</p>
+					<div className="home-content">
+						{/* ヒーローセクション */}
+						<div className="home-hero">
+							<div className="home-hero-text">
+								<p className="home-welcome-label">{t("home.welcomeLabel")}</p>
+								<h2 className="home-welcome-name">
+									{t("home.hello")}、
+									<span className="home-username">{user.username}</span>
+									{t("home.san")}
+								</h2>
+								<p className="home-desc">{t("home.description")}</p>
+								<div className="home-cta-row">
+									<button
+										type="button"
+										className="home-cta-primary"
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											navigateTo("online");
+										}}
+									>
+										{t("home.ctaOnline")}
+									</button>
+									<button
+										type="button"
+										className="home-cta-secondary"
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											navigateTo("game");
+										}}
+									>
+										{t("home.ctaAi")}
+									</button>
+								</div>
+							</div>
+
+							{/* Pongコートイラスト */}
+							<div className="home-pong-illustration">
+								<svg
+									width="300"
+									height="200"
+									viewBox="0 0 300 200"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<rect width="300" height="200" rx="12" fill="#1a1a2e" />
+									<line
+										x1="150"
+										y1="10"
+										x2="150"
+										y2="190"
+										stroke="#ffffff"
+										strokeWidth="2"
+										strokeDasharray="8 6"
+										opacity="0.3"
+									/>
+									<rect
+										x="16"
+										y="70"
+										width="10"
+										height="60"
+										rx="5"
+										fill="#AFA9EC"
+									/>
+									<rect
+										x="274"
+										y="70"
+										width="10"
+										height="60"
+										rx="5"
+										fill="#AFA9EC"
+									/>
+									<circle cx="150" cy="100" r="8" fill="white" />
+									<circle
+										cx="150"
+										cy="100"
+										r="18"
+										fill="none"
+										stroke="white"
+										strokeWidth="0.5"
+										opacity="0.15"
+									/>
+									<circle
+										cx="150"
+										cy="100"
+										r="32"
+										fill="none"
+										stroke="white"
+										strokeWidth="0.5"
+										opacity="0.08"
+									/>
+									<text
+										x="75"
+										y="30"
+										textAnchor="middle"
+										fill="#AFA9EC"
+										fontSize="18"
+										fontWeight="bold"
+										fontFamily="monospace"
+									>
+										3
+									</text>
+									<text
+										x="225"
+										y="30"
+										textAnchor="middle"
+										fill="#AFA9EC"
+										fontSize="18"
+										fontWeight="bold"
+										fontFamily="monospace"
+									>
+										5
+									</text>
+									<rect
+										x="10"
+										y="10"
+										width="280"
+										height="180"
+										rx="10"
+										fill="none"
+										stroke="#AFA9EC"
+										strokeWidth="1.5"
+										opacity="0.4"
+									/>
+								</svg>
+							</div>
+						</div>
+
+						{/* インフォカード */}
+						<div className="home-info-cards">
+							<div className="home-info-card">
+								<p className="home-card-title">{t("home.cardOnlineTitle")}</p>
+								<p className="home-card-body">{t("home.cardOnlineDesc")}</p>
+							</div>
+							<div className="home-info-card">
+								<p className="home-card-title">{t("home.cardAiTitle")}</p>
+								<p className="home-card-body">{t("home.cardAiDesc")}</p>
+							</div>
+							<div className="home-info-card">
+								<p className="home-card-title">{t("home.cardRankTitle")}</p>
+								<p className="home-card-body">{t("home.cardRankDesc")}</p>
+							</div>
+						</div>
 					</div>
 				);
 
