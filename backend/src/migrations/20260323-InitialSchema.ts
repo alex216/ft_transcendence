@@ -6,8 +6,8 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 // 現在は database.config.ts の synchronize: true で自動同期しているため
 // 開発中はこのファイルを直接実行する必要はありません。
 // 本番環境では synchronize を false にして、このマイグレーションを使用してください。
-export class InitialSchema20260323 implements MigrationInterface {
-	name = "InitialSchema20260323";
+export class InitialSchema1774270819000 implements MigrationInterface {
+	name = "InitialSchema1774270819000";
 
 	public async up(queryRunner: QueryRunner): Promise<void> {
 		// =========================================================
