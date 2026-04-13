@@ -574,6 +574,27 @@ export class GameService {
 					game.interval = null;
 				}
 
+				// if both player disconnected and nobody came back,
+				// completely abort the game.
+				if (!game.p1Connected && !game.p2Connected) {
+					console.log(
+						`[GameService] Both players were disconnected. Aborting game`,
+					);
+					server.to(roomId).emit("gameOver", {
+						winner: null,
+						reason: "both_disconnected",
+						roomId,
+					});
+					this.onlineGames.delete(roomId);
+					this.userIdToRoom.delete(game.p1UserId);
+					this.userIdToRoom.delete(game.p2UserId);
+					this.socketToPlayer.delete(game.p1SocketId);
+					this.socketToPlayer.delete(game.p2SocketId);
+					this.disconnectedPlayers.delete(game.p1UserId);
+					this.disconnectedPlayers.delete(game.p2UserId);
+					return;
+				}
+
 				const winnerSocketId = game.p1Connected
 					? game.p1SocketId
 					: game.p2SocketId;
