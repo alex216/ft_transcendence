@@ -214,7 +214,7 @@ function App() {
 				return (
 					<div className="home-content">
 						{/* ヒーローセクション */}
-						<div className="home-hero">
+						<div className="d-flex align-items-center gap-5 flex-wrap">
 							<div className="home-hero-text">
 								<p className="home-welcome-label">{t("home.welcomeLabel")}</p>
 								<h2 className="home-welcome-name">
@@ -223,10 +223,10 @@ function App() {
 									{t("home.san")}
 								</h2>
 								<p className="home-desc">{t("home.description")}</p>
-								<div className="home-cta-row">
+								<div className="d-flex gap-3 flex-wrap mt-1">
 									<button
 										type="button"
-										className="home-cta-primary"
+										className="btn btn-primary"
 										onClick={() => {
 											setGameRoomId(null);
 											setGameOpponent(null);
@@ -237,7 +237,7 @@ function App() {
 									</button>
 									<button
 										type="button"
-										className="home-cta-secondary"
+										className="btn btn-outline-secondary"
 										onClick={() => {
 											setGameRoomId(null);
 											setGameOpponent(null);
@@ -341,18 +341,45 @@ function App() {
 						</div>
 
 						{/* インフォカード */}
-						<div className="home-info-cards">
-							<div className="home-info-card">
-								<p className="home-card-title">{t("home.cardOnlineTitle")}</p>
-								<p className="home-card-body">{t("home.cardOnlineDesc")}</p>
+						<div className="row g-3">
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardOnlineTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardOnlineDesc")}
+									</p>
+								</div>
 							</div>
-							<div className="home-info-card">
-								<p className="home-card-title">{t("home.cardAiTitle")}</p>
-								<p className="home-card-body">{t("home.cardAiDesc")}</p>
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardAiTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardAiDesc")}
+									</p>
+								</div>
 							</div>
-							<div className="home-info-card">
-								<p className="home-card-title">{t("home.cardRankTitle")}</p>
-								<p className="home-card-body">{t("home.cardRankDesc")}</p>
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardRankTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardRankDesc")}
+									</p>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -477,13 +504,13 @@ function App() {
 							onClick={() => setMenuOpen(false)}
 						/>
 						<nav className={`sidebar ${menuOpen ? "open" : ""}`}>
-							<div className="sidebar-header">
-								<h1>ft_transcendence</h1>
+							<div className="mb-5">
+								<h1 className="mb-2">ft_transcendence</h1>
 								<button className="lang-toggle" onClick={cycleLanguage}>
 									{LANGUAGE_LABELS[i18n.language] || "EN"}
 								</button>
 							</div>
-							<ul className="nav-menu">
+							<ul className="list-unstyled flex-grow-1 ps-0">
 								<li>
 									<button
 										className={currentPage === "home" ? "active" : ""}
@@ -588,7 +615,7 @@ function App() {
 								</li>
 							</ul>
 
-							<div className="sidebar-footer">
+							<div className="mt-auto">
 								<button onClick={handleLogout} className="btn btn-danger w-100">
 									{t("nav.logout")}
 								</button>
@@ -596,10 +623,15 @@ function App() {
 						</nav>
 
 						<main className="main-content">
-							<div className="main-content-inner">{renderContent()}</div>
-							<footer className="app-footer">
-								<span>{t("legal.footer.rights")}</span>
-								<div className="app-footer-links">
+							<div className="flex-grow-1 p-5 overflow-auto">
+								{renderContent()}
+							</div>
+							<footer
+								className="d-flex justify-content-between align-items-center px-4 py-2 border-top bg-light flex-shrink-0"
+								style={{ fontSize: "0.75rem" }}
+							>
+								<span className="text-muted">{t("legal.footer.rights")}</span>
+								<div className="d-flex gap-3">
 									<button onClick={() => setLegalModal("privacy")}>
 										{t("legal.footer.privacy")}
 									</button>
@@ -619,8 +651,8 @@ function App() {
 							/>
 						) : (
 							<div className="auth-content">
-								<div className="auth-header">
-									<h1>ft_transcendence</h1>
+								<div className="text-center mb-5">
+									<h1 className="mb-2">ft_transcendence</h1>
 									<button className="lang-toggle" onClick={cycleLanguage}>
 										{LANGUAGE_LABELS[i18n.language] || "EN"}
 									</button>
@@ -688,9 +720,12 @@ function App() {
 								</div>
 							</div>
 						)}
-						<footer className="app-footer">
-							<span>{t("legal.footer.rights")}</span>
-							<div className="app-footer-links">
+						<footer
+							className="d-flex justify-content-between align-items-center border-top mt-4 pt-3"
+							style={{ fontSize: "0.75rem" }}
+						>
+							<span className="text-muted">{t("legal.footer.rights")}</span>
+							<div className="d-flex gap-3">
 								<button onClick={() => setLegalModal("privacy")}>
 									{t("legal.footer.privacy")}
 								</button>

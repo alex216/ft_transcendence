@@ -96,10 +96,10 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 	return (
 		<div className="online-page">
 			<div className="online-layout">
-				<section className="online-card">
+				<section className="bg-white p-5 rounded-3 shadow-sm">
 					<h3>{t("online.status")}</h3>
 
-					<div className="online-status-row">
+					<div className="d-flex align-items-center gap-3 mb-4">
 						<span className={`online-pill ${status}`}>
 							{status.toUpperCase()}
 						</span>
@@ -113,7 +113,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 						</div>
 					</div>
 
-					<div className="online-actions">
+					<div className="d-flex gap-2">
 						{status === "idle" && (
 							<button
 								type="button"
@@ -152,7 +152,11 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 						)}
 					</div>
 
-					{message && <p className="online-message">{message}</p>}
+					{message && (
+						<p className="mt-3 px-3 py-2 bg-warning bg-opacity-25 rounded text-dark small">
+							{message}
+						</p>
+					)}
 				</section>
 			</div>
 		</div>

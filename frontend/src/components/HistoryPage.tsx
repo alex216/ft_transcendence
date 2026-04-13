@@ -11,11 +11,11 @@ export default function HistoryPage() {
 	const { history, loading, error } = useStats();
 
 	if (loading) {
-		return <div style={{ padding: 24 }}>{t("common.loading")}</div>;
+		return <div className="p-4">{t("common.loading")}</div>;
 	}
 
 	if (error) {
-		return <div style={{ padding: 24 }}>{t(error)}</div>;
+		return <div className="p-4">{t(error)}</div>;
 	}
 
 	return (
@@ -50,7 +50,9 @@ export default function HistoryPage() {
 												: t("history.lose")}
 										</span>
 									</td>
-									<td>{m.myScore}-{m.opponentScore}</td>
+									<td>
+										{m.myScore}-{m.opponentScore}
+									</td>
 								</tr>
 							))}
 						</tbody>

@@ -71,7 +71,7 @@ export default function ChatPage({
 		<div className="chat-page">
 			<div className="chat-sidebar">
 				<h3>{t("chat.rooms")}</h3>
-				<ul className="chat-room-list">
+				<ul className="list-unstyled flex-grow-1 overflow-auto ps-0">
 					{rooms.map((room) => (
 						<li key={room}>
 							<button
@@ -86,7 +86,7 @@ export default function ChatPage({
 				</ul>
 
 				<h3 className="chat-section-title">{t("chat.dms")}</h3>
-				<ul className="chat-room-list">
+				<ul className="list-unstyled flex-grow-1 overflow-auto ps-0">
 					{dmRooms.length > 0 ? (
 						dmRooms.map((dm) => (
 							<li key={dm.roomId}>
@@ -105,7 +105,7 @@ export default function ChatPage({
 				</ul>
 			</div>
 
-			<div className="chat-main">
+			<div className="flex-grow-1 d-flex flex-column">
 				{currentRoomId ? (
 					<ChatRoom
 						roomId={currentRoomId}
@@ -115,7 +115,7 @@ export default function ChatPage({
 						}
 					/>
 				) : (
-					<div className="chat-placeholder">
+					<div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted fs-5">
 						<p>{t("chat.selectRoom")}</p>
 					</div>
 				)}

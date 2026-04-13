@@ -67,10 +67,10 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 	};
 
 	return (
-		<div className="twofa-settings">
-			<h3>{t("twofa.title")}</h3>
+		<div className="mt-5 px-5 py-4 bg-white rounded-3 shadow-sm text-center">
+			<h3 className="text-dark mb-2 fs-5">{t("twofa.title")}</h3>
 
-			<p className="twofa-status">
+			<p className="d-flex align-items-center justify-content-center gap-2 text-muted">
 				<span
 					className={`twofa-status-dot ${is2FAEnabled ? "enabled" : "disabled"}`}
 				/>

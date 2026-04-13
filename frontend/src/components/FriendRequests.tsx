@@ -91,11 +91,16 @@ const FriendRequests: React.FC = () => {
 					{t("friendRequests.received")} ({requests.received.length})
 				</h3>
 				{requests.received.length === 0 ? (
-					<p className="empty-state">{t("friendRequests.noRequests")}</p>
+					<p className="text-center text-muted p-5 bg-white rounded-3">
+						{t("friendRequests.noRequests")}
+					</p>
 				) : (
-					<div className="request-list">
+					<div className="d-flex flex-column gap-3">
 						{requests.received.map((request) => (
-							<div key={request.id} className="request-card">
+							<div
+								key={request.id}
+								className="bg-white p-4 rounded-3 shadow-sm d-flex align-items-center gap-3"
+							>
 								{request.sender.avatarUrl ? (
 									<img
 										src={request.sender.avatarUrl}
@@ -107,7 +112,7 @@ const FriendRequests: React.FC = () => {
 										{request.sender.username.charAt(0).toUpperCase()}
 									</div>
 								)}
-								<div className="request-info">
+								<div className="flex-grow-1">
 									<h4>
 										{request.sender.displayName || request.sender.username}
 									</h4>
@@ -116,7 +121,7 @@ const FriendRequests: React.FC = () => {
 										<p className="bio">{request.sender.bio}</p>
 									)}
 								</div>
-								<div className="request-actions">
+								<div className="d-flex gap-2">
 									<button
 										onClick={() => handleAccept(request.id)}
 										className="btn btn-primary btn-sm"
@@ -144,11 +149,16 @@ const FriendRequests: React.FC = () => {
 					{t("friendRequests.sent")} ({requests.sent.length})
 				</h3>
 				{requests.sent.length === 0 ? (
-					<p className="empty-state">{t("friendRequests.noRequests")}</p>
+					<p className="text-center text-muted p-5 bg-white rounded-3">
+						{t("friendRequests.noRequests")}
+					</p>
 				) : (
-					<div className="request-list">
+					<div className="d-flex flex-column gap-3">
 						{requests.sent.map((request) => (
-							<div key={request.id} className="request-card">
+							<div
+								key={request.id}
+								className="bg-white p-4 rounded-3 shadow-sm d-flex align-items-center gap-3"
+							>
 								{request.receiver.avatarUrl ? (
 									<img
 										src={request.receiver.avatarUrl}
@@ -160,7 +170,7 @@ const FriendRequests: React.FC = () => {
 										{request.receiver.username.charAt(0).toUpperCase()}
 									</div>
 								)}
-								<div className="request-info">
+								<div className="flex-grow-1">
 									<h4>
 										{request.receiver.displayName || request.receiver.username}
 									</h4>
@@ -170,7 +180,7 @@ const FriendRequests: React.FC = () => {
 									)}
 								</div>
 								<div className="request-status">
-									<span className="status-badge">
+									<span className="badge rounded-pill bg-info bg-opacity-25 text-primary">
 										{t("friendRequests.sentStatus")}
 									</span>
 								</div>

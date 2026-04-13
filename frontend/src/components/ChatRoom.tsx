@@ -125,8 +125,8 @@ export default function ChatRoom({
 	};
 
 	return (
-		<div className="chat-room">
-			<div className="chat-room-header">
+		<div className="d-flex flex-column h-100">
+			<div className="d-flex align-items-center justify-content-between px-4 py-3 border-bottom bg-white">
 				<h3>{displayName ? `@ ${displayName}` : `# ${roomId}`}</h3>
 				<span className={`chat-status ${isConnected ? "connected" : ""}`}>
 					{isConnected
@@ -135,9 +135,9 @@ export default function ChatRoom({
 				</span>
 			</div>
 
-			<div className="chat-messages">
+			<div className="flex-grow-1 overflow-auto p-4 bg-light">
 				{messages.length === 0 ? (
-					<p className="chat-empty">{t("chat.noMessages")}</p>
+					<p className="text-center text-muted p-5">{t("chat.noMessages")}</p>
 				) : (
 					messages.map((msg, index) => (
 						<ChatMessage
@@ -150,7 +150,7 @@ export default function ChatRoom({
 				<div ref={messagesEndRef} />
 			</div>
 
-			<div className="chat-input-area">
+			<div className="d-flex gap-2 px-4 py-3 border-top bg-white">
 				<input
 					type="text"
 					className="form-control rounded-pill chat-input"

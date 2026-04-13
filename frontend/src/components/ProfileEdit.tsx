@@ -55,11 +55,18 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 	};
 
 	if (loading) {
-		return <div className="profile-edit">{t("profile.loading")}</div>;
+		return (
+			<div
+				className="bg-white p-5 rounded-3 shadow-sm"
+				style={{ maxWidth: 600 }}
+			>
+				{t("profile.loading")}
+			</div>
+		);
 	}
 
 	return (
-		<div className="profile-edit">
+		<div className="bg-white p-5 rounded-3 shadow-sm" style={{ maxWidth: 600 }}>
 			<h2>{t("profileEdit.title")}</h2>
 
 			<form onSubmit={handleSubmit}>

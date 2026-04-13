@@ -169,7 +169,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 					{subtitle && <p className="game-subtitle">{subtitle}</p>}
 				</div>
 
-				<div style={{ display: "flex", gap: 8 }}>
+				<div className="d-flex gap-2">
 					{!gameResult && gameState && (
 						<button
 							type="button"
@@ -204,19 +204,16 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 					{/* 一時停止オーバーレイ */}
 					{isPaused && (
 						<div
+							className="position-absolute top-50 start-50 translate-middle text-center rounded-3"
 							style={{
-								position: "absolute",
-								top: "50%",
-								left: "50%",
-								transform: "translate(-50%, -50%)",
 								background: "rgba(0,0,0,0.8)",
 								padding: "24px 40px",
-								borderRadius: "16px",
-								textAlign: "center",
 								zIndex: 10,
 							}}
 						>
-							<h3 style={{ color: "#ffaa00", margin: 0 }}>{pauseMessage}</h3>
+							<h3 className="m-0" style={{ color: "#ffaa00" }}>
+								{pauseMessage}
+							</h3>
 							<p style={{ color: "#aaa", marginTop: 8 }}>
 								{t("game.waitingForReconnect")}
 							</p>
@@ -226,22 +223,17 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 					{/* ゲーム結果表示 */}
 					{gameResult && (
 						<div
+							className="position-absolute top-50 start-50 translate-middle text-center rounded-3"
 							style={{
-								position: "absolute",
-								top: "50%",
-								left: "50%",
-								transform: "translate(-50%, -50%)",
 								background: "rgba(0,0,0,0.9)",
 								padding: "32px 48px",
-								borderRadius: "16px",
-								textAlign: "center",
 								zIndex: 10,
 							}}
 						>
 							<h2
+								className="m-0"
 								style={{
 									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
-									margin: 0,
 								}}
 							>
 								{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
@@ -257,7 +249,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 							<button
 								type="button"
 								onClick={handleBackToOnline}
-								style={{ marginTop: 16 }}
+								className="btn btn-secondary mt-3"
 							>
 								{mode === "ai" ? t("game.playAgain") : t("game.backToOnline")}
 							</button>
@@ -267,7 +259,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 				<aside className="game-side-panel">
 					<h3>{t("game.controls")}</h3>
-					<p style={{ marginTop: 0 }}>
+					<p className="mt-0">
 						<code>↑ W</code> / <code>↓ S</code>
 					</p>
 				</aside>
