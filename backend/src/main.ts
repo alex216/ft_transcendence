@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { AppDataSource } from "./data-source";
 import { ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -95,9 +96,22 @@ async function loadSecretsFromVault() {
 	console.warn("⚠️  Vault に接続できませんでした。.env の値を使用します");
 }
 
+// 本番環境でマイグレーションを実行する
+// 開発環境では synchronize: true が自動でスキーマを同期するため不要
+async function runMigrationsIfProduction() {
+	if (process.env.NODE_ENV !== "production") return;
+	console.log("🗄️  Running database migrations...");
+	await AppDataSource.initialize();
+	await AppDataSource.runMigrations();
+	await AppDataSource.destroy();
+	console.log("✅ Database migrations completed");
+}
+
 // メイン関数（プログラムのエントリーポイント）
 // C++の int main() に相当
 async function bootstrap() {
+	await runMigrationsIfProduction();
+
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
 	// 静的ファイル配信の設定（アップロードされた画像など）

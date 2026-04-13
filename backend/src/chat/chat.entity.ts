@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import { ChatMessage } from "../../../shared/chat.interface";
 
-@Entity() // 「これはDBのテーブルですよ」というラベル
+@Entity("chat") // 「これはDBのテーブルですよ」というラベル
 export class Chat implements ChatMessage {
 	@PrimaryGeneratedColumn() // 自動で増えるID（1, 2, 3...）
 	id: number;
