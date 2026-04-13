@@ -26,8 +26,12 @@ import {
 	PREDICTION_NOT_SET,
 	UPPER_LIMIT,
 	RE_PREDICT_PROBABILITY,
-	DEFAULT_DIFFICULTY,
-	BASE_REACTION_DELAY,
+	MIN_REACTION_DELAY,
+	MAX_REACTION_DELAY,
+	NEGATIVE_ERROR,
+	POSITIVE_ERROR,
+	SECOND,
+	FPS,
 } from "../../../shared/game.constants";
 
 // サーバー内部でのみ管理する物理パラメータ（フロントには送らない）
@@ -120,7 +124,7 @@ export class GameService {
 
 		const interval = setInterval(() => {
 			this.AIgameLoop(roomId, server);
-		}, 1000 / 60);
+		}, SECOND / FPS);
 
 		initialState.interval = interval;
 		this.AIgames.set(roomId, initialState);
@@ -162,8 +166,7 @@ export class GameService {
 				game.dy = (hitPos - 0.5) * ANGLE_CHANGE;
 				game.dx *= SPEED_CHANGE;
 				game.AiPrediction = PREDICTION_NOT_SET;
-				const delay =
-					randomInt(0, BASE_REACTION_DELAY + 1) / DEFAULT_DIFFICULTY;
+				const delay = randomInt(MIN_REACTION_DELAY, MAX_REACTION_DELAY + 1);
 				game.AiNextReaction = Date.now() + delay;
 				console.log(
 					`[Game.Service] AINextReaction is going to be in ${delay} milli-seconds`,
@@ -240,7 +243,7 @@ export class GameService {
 			Math.random() < RE_PREDICT_PROBABILITY
 		) {
 			game.AiPrediction = this.AIMakePrediction(game);
-			console.log(`[Game.Service] AI new prediction: ${game.AiPrediction}`);
+			console.log(`[Game.Service] AI new prediction: ${game.AiPrediction}\n`);
 		}
 
 		const targetY = Math.max(game.AiPrediction - PAD_LENGTH / 2, 0);
@@ -268,13 +271,10 @@ export class GameService {
 				dy *= -1;
 			}
 		}
-		//adding error range
-		const difficulty = DEFAULT_DIFFICULTY;
-		const errorRange = Math.floor(PAD_LENGTH * difficulty);
-		const randomness = randomInt(-errorRange, errorRange + 1);
-		console.log(`[Game.Service] randomness: ${randomness}`);
+		const error = randomInt(NEGATIVE_ERROR, POSITIVE_ERROR + 1);
+		console.log(`[Game.Service] error: ${error}`);
 		console.log(`[Game.Service] real prediction: ${simY}`);
-		simY += randomness;
+		simY += error;
 
 		if (simY > FIELD_HEIGHT) {
 			return FIELD_HEIGHT;
@@ -368,7 +368,7 @@ export class GameService {
 
 		const interval = setInterval(() => {
 			this.gameLoop(roomId, server);
-		}, 1000 / 60);
+		}, SECOND / FPS);
 
 		initialState.interval = interval;
 
@@ -721,7 +721,7 @@ export class GameService {
 		if (!game.interval) {
 			game.interval = setInterval(
 				() => this.gameLoop(roomId, server),
-				1000 / 60,
+				SECOND / FPS,
 			);
 		}
 
