@@ -752,6 +752,28 @@ export class GameService {
 		}
 		const isP1 = game.p1UserId === userId;
 
+		// if somebody surrenders while the other player is not connected,
+		// completely abort the game.
+		if ((isP1 && !game.p2Connected) || (!isP1 && !game.p1Connected)) {
+			console.log(
+				`[GameService] The other player was already disconnected. Aborting game`,
+			);
+			server.to(roomId).emit("gameOver", {
+				winner: null,
+				reason: "both_disconnected",
+				roomId,
+			});
+			if (game.disconnectTimer) clearTimeout(game.disconnectTimer);
+			this.onlineGames.delete(roomId);
+			this.userIdToRoom.delete(game.p1UserId);
+			this.userIdToRoom.delete(game.p2UserId);
+			this.socketToPlayer.delete(game.p1SocketId);
+			this.socketToPlayer.delete(game.p2SocketId);
+			this.disconnectedPlayers.delete(game.p1UserId);
+			this.disconnectedPlayers.delete(game.p2UserId);
+			return;
+		}
+
 		const winnerUserId = isP1 ? game.p2UserId : game.p1UserId;
 		const loserUserId = isP1 ? game.p1UserId : game.p2UserId;
 		const winnerScore = isP1 ? game.rightScore : game.leftScore;
