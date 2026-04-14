@@ -15,7 +15,7 @@ const BALL_RADIUS = 10;
 
 // パドルのX座標（shared定数から算出）
 const LEFT_PADDLE_X = PAD_BORDER_DIST;
-const RIGHT_PADDLE_X = FIELD_WIDTH - PAD_BORDER_DIST;
+const RIGHT_PADDLE_X = FIELD_WIDTH - PAD_BORDER_DIST - PAD_WIDTH;
 
 type PongCanvasProps = {
 	gameState: GameState | null;
