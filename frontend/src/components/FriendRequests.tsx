@@ -179,7 +179,7 @@ const FriendRequests: React.FC = () => {
 										<p className="bio">{request.receiver.bio}</p>
 									)}
 								</div>
-								<div className="request-status">
+								<div>
 									<span className="badge rounded-pill bg-info bg-opacity-25 text-primary">
 										{t("friendRequests.sentStatus")}
 									</span>
