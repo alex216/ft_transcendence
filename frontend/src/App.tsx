@@ -492,13 +492,19 @@ function App() {
 									<div className="tabs">
 										<button
 											className={isLogin ? "active" : ""}
-											onClick={() => setIsLogin(true)}
+											onClick={() => {
+												setIsLogin(true);
+												setMessage("");
+											}}
 										>
 											{t("auth.login")}
 										</button>
 										<button
 											className={!isLogin ? "active" : ""}
-											onClick={() => setIsLogin(false)}
+											onClick={() => {
+												setIsLogin(false);
+												setMessage("");
+											}}
 										>
 											{t("auth.register")}
 										</button>
