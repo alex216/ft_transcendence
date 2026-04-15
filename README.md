@@ -1,3 +1,5 @@
+_このプロジェクトは 42 カリキュラムの一環として shinji-japaaaan, alex216, tenpapa1988, fceragio によって作成されました。_
+
 # ft_transcendence
 
 42 Tokyo — フルスタック Web アプリケーション（Pong ゲーム + ユーザー管理 + チャット）
@@ -17,12 +19,21 @@
 
 ## 役割分担
 
-| メンバー    | 主な担当                                                                                                         |
-| ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| sishizaw    | DB 設計・マイグレーション管理、バックエンド API（Profile / Stats / GDPR）、セキュリティ修正（Path Injection 等） |
-| alex (yliu) | ゲームバックエンド（WebSocket / AI モード / オンライン対戦）、Docker・CI 整備、統合テスト、PR 管理               |
-| tenpapa     | フロントエンド全般（UI / UX、レスポンシブ対応、i18n 多言語化、統計・履歴ページ）                                 |
-| Federico    | ゲームロジック（再接続処理・AI 難易度調整・切断判定）、shared 定数・DTO 設計                                     |
+| メンバー    | 担当領域                                                                            |
+| ----------- | ----------------------------------------------------------------------------------- |
+| sishizaw    | DB 設計・マイグレーション、バックエンド API（Profile / Stats / GDPR）、セキュリティ |
+| alex (yliu) | ゲームフロントエンド・オンラインモード、インフラ・CI、統合テスト                    |
+| tenpapa     | フロントエンド全般（UI/UX・レスポンシブ・統計ページ・多言語化）                     |
+| Federico    | ゲームバックエンド基盤、AI・再接続ロジック、shared 型定義                           |
+
+---
+
+## プロジェクト管理
+
+- **タスク管理**: GitHub Issues + Milestones（マイルストーン 1〜14）
+- **コードレビュー**: GitHub Pull Request（全マージにレビュー必須）
+- **コミュニケーション**: Discord（日次同期・レビュー依頼）
+- **ブランチ戦略**: マイルストーン/機能ごとにフィーチャーブランチを切り、PR 経由で `main` にマージ
 
 ---
 
@@ -88,9 +99,30 @@
 
 ---
 
-## モジュール一覧と選定理由
+## モジュール一覧（42 評価項目）
 
-### バックエンド（NestJS）
+Major = 2 ポイント、Minor = 1 ポイント
+
+| #   | モジュール                                     | 種別  | ポイント | 担当              |
+| --- | ---------------------------------------------- | ----- | -------- | ----------------- |
+| 1   | バックエンドフレームワーク使用（NestJS）       | Major | 2        | sishizaw, alex    |
+| 2   | フロントエンドフレームワーク使用（React）      | Minor | 1        | tenpapa, alex     |
+| 3   | バックエンド DB 使用（PostgreSQL）             | Minor | 1        | sishizaw          |
+| 4   | 標準ユーザー管理・認証                         | Major | 2        | sishizaw, alex    |
+| 5   | 2FA + JWT 実装                                 | Major | 2        | sishizaw          |
+| 6   | リモート認証（42 OAuth）                       | Major | 2        | alex              |
+| 7   | リモートプレイヤー（WebSocket オンライン対戦） | Major | 2        | Federico, alex    |
+| 8   | ゲームカスタマイズ（難易度・速度）             | Minor | 1        | Federico          |
+| 9   | AI 対戦相手の実装                              | Major | 2        | Federico, alex    |
+| 10  | ユーザー・ゲーム統計ダッシュボード             | Minor | 1        | sishizaw, tenpapa |
+| 11  | GDPR 対応                                      | Minor | 1        | sishizaw, tenpapa |
+| 12  | チャット実装                                   | Major | 2        | Federico, alex    |
+| 13  | ブラウザ互換性拡張（Chrome / Firefox 最新版）  | Minor | 1        | tenpapa           |
+| 14  | 多言語対応（日 / 英 / 仏）                     | Minor | 1        | tenpapa           |
+| 15  | SSL/TLS + HTTPS 実装                           | Minor | 1        | alex              |
+| 16  | CSRF/XSS 保護                                  | Minor | 1        | sishizaw          |
+
+### バックエンドモジュール構成（NestJS）
 
 | モジュール      | パス                   | 説明                                      |
 | --------------- | ---------------------- | ----------------------------------------- |
@@ -105,7 +137,7 @@
 
 **NestJS を採用した理由**: TypeScript ネイティブで型安全性が高く、認証チェック（Guard）・入力バリデーション（Pipe）・ルーティング（Decorator）を各モジュールから独立して定義できるため。
 
-### フロントエンド（React + Vite）
+### フロントエンド構成（React + Vite）
 
 | ディレクトリ               | 内容                                                     |
 | -------------------------- | -------------------------------------------------------- |
@@ -154,29 +186,34 @@ erDiagram
 
 ### sishizaw
 
-- **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備
-- **バックエンド API**: `ProfileModule`（プロフィール CRUD）・`StatsModule`（統計集計）・`GdprModule`（データ削除 / エクスポート）
-- **セキュリティ**: CodeQL 指摘の Path Injection 修正、2FA 関連バグ修正
+- **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備（`backend/src/migrations/`）
+- **ProfileModule**: プロフィール CRUD・アバターアップロード・XSS バリデーション追加
+- **StatsModule / GDPR バックエンド**: 勝率集計 API・試合履歴 API・データエクスポート / アカウント削除実装
+- **WebSocket 認証**: JWT によるソケット接続の認証修正
+- **セキュリティ**: CodeQL 指摘の Path Injection 修正、2FA バグ修正（401 エラー・コンソールノイズ除去）、CSRF トークン再取得問題の修正、Content-Security-Policy 導入
 
 ### alex (yliu)
 
-- **ゲームバックエンド**: WebSocket ゲートウェイ、AI モード、オンライン対戦キューイング
-- **ゲームフロントエンド**: `GamePage` 新プロトコル対応（降参・再接続・モード切替）
-- **インフラ**: Docker Compose 設定・Nginx・HashiCorp Vault 統合
-- **品質**: 統合テストスイート追加、TypeORM マイグレーション自動実行、dependabot 管理
+- **ゲームフロントエンド**: `GamePage` を新プロトコルに対応（降参・再接続・モード切替確認ダイアログ）、`ConfirmDialog` コンポーネント作成
+- **オンラインモード**: `OnlinePage` 更新、i18n キー追加（3 言語対応）
+- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定
+- **CI / 品質**: 統合テストスイート追加（`test/`）、TypeORM マイグレーション自動実行、dependabot 管理
+- **Bootstrap 移行**: 全コンポーネントの CSS フレームワーク移行
 
 ### tenpapa
 
-- **フロントエンド**: レスポンシブ対応（モバイル・タブレット・PC）
-- **UI/UX**: Bootstrap 移行、ハンバーガーナビゲーション、ホームページ UI
-- **多言語化**: 日 / 英 / 仏 の i18n 翻訳テーブル
-- **統計ページ**: `HistoryPage`・`LeaderboardPage` をバックエンド API に接続
+- **Stats Dashboard**: 勝率・勝敗数・試合履歴のフロントエンド実装（`StatsDashboard.tsx`）
+- **GDPR 設定**: データエクスポート・アカウント削除のフロントエンド実装（`GdprSettings.tsx`）
+- **統計ページ接続**: `HistoryPage`・`LeaderboardPage` をバックエンド API に接続（対戦相手名の表示修正含む）
+- **ホームページ**: ホーム UI 作成・i18n 翻訳テーブル（日 / 英 / 仏）整備
+- **レスポンシブ対応**: 全デバイス（モバイル・タブレット・PC）の CSS 修正
 
 ### Federico
 
-- **ゲームロジック**: AI 難易度調整（人間らしい動作）、再接続処理（バックエンド自動判定）
-- **切断判定**: 両プレイヤー切断時の試合無効化、相手切断後の降参処理
-- **shared 設計**: `GRACE_TIME` 等の共通定数・DTO を `shared/` に分離
+- **ゲームバックエンド基盤**: WebSocket ゲートウェイ・ゲームロジック・AI モードをゼロから実装（`game.gateway.ts` / `game.service.ts`）
+- **AI 難易度**: 人間らしい動作に調整、difficulty と delay の関係を統一
+- **再接続・切断処理**: 再接続をバックエンド自動判定に変更、両プレイヤー切断時の試合無効化、相手切断後の降参処理
+- **shared 設計**: `GRACE_TIME` 等の共通定数・GameState DTO を `shared/` に分離
 
 ---
 
@@ -344,19 +381,46 @@ lsof -i :5432  # PostgreSQL
 
 ## セキュリティについて
 
-| 対策                     | 実装方法                                                      |
-| ------------------------ | ------------------------------------------------------------- |
-| XSS 対策                 | JWT を HTTP Only Cookie で管理（JavaScript からアクセス不可） |
-| CSRF 対策                | Double Submit Cookie パターン                                 |
-| SQL インジェクション対策 | TypeORM のパラメータバインディング                            |
-| パスワード保護           | bcrypt によるハッシュ化                                       |
-| HTTPS                    | Nginx による TLS 終端                                         |
-| 二要素認証               | Google Authenticator 対応（TOTP）                             |
-| 入力バリデーション       | NestJS DTO + class-validator                                  |
+| 対策                     | 実装方法                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| XSS 対策                 | JWT を HTTP Only Cookie で管理（JavaScript からアクセス不可）、入力値サニタイズ |
+| CSRF 対策                | Double Submit Cookie パターン                                                   |
+| SQL インジェクション対策 | TypeORM のパラメータバインディング                                              |
+| パスワード保護           | bcrypt によるハッシュ化                                                         |
+| HTTPS                    | Nginx による TLS 終端                                                           |
+| 二要素認証               | Google Authenticator 対応（TOTP）                                               |
+| 入力バリデーション       | NestJS DTO + class-validator                                                    |
+
+---
+
+## 参考文献・AI 使用について
+
+### 参考文献
+
+- [NestJS ドキュメント](https://docs.nestjs.com/)
+- [React ドキュメント](https://react.dev/)
+- [TypeORM ドキュメント](https://typeorm.io/)
+- [Socket.IO ドキュメント](https://socket.io/docs/)
+- [Passport.js JWT Strategy](https://www.passportjs.org/packages/passport-jwt/)
+- [HashiCorp Vault ドキュメント](https://developer.hashicorp.com/vault/docs)
+- [42 API ドキュメント](https://api.intra.42.fr/apidoc)
+
+### AI の使用について
+
+Claude（Anthropic）を開発補助として以下の用途で使用しました。
+
+- **コードレビュー**: PR のレビューとバグ検出（CodeQL 指摘セキュリティ脆弱性の確認など）
+- **ドキュメント作成**: README・ER 図のドラフト生成と構成整理
+- **デバッグ**: WebSocket 再接続ロジック・2FA エッジケースの原因調査
+- **アーキテクチャ相談**: モジュール境界や NestJS 設計パターンの検討
+
+コードはすべてチームメンバーが記述・レビュー・理解した上で使用しています。AI の提案は評価・修正した後に採用しました。
 
 ---
 
 ---
+
+_This project has been created as part of the 42 curriculum by shinji-japaaaan, alex216, tenpapa1988, fceragio_
 
 # ft_transcendence (English)
 
@@ -377,12 +441,21 @@ lsof -i :5432  # PostgreSQL
 
 ## Roles
 
-| Member      | Main responsibilities                                                                                         |
-| ----------- | ------------------------------------------------------------------------------------------------------------- |
-| sishizaw    | DB design & migration management, backend API (Profile / Stats / GDPR), security fixes (Path Injection, etc.) |
-| alex (yliu) | Game backend (WebSocket / AI mode / online play), Docker & CI setup, integration tests, PR management         |
-| tenpapa     | Frontend (UI/UX, responsive design, i18n, stats & history pages)                                              |
-| Federico    | Game logic (reconnection, AI difficulty, disconnect handling), shared constants & DTO design                  |
+| Member      | Area of responsibility                                                    |
+| ----------- | ------------------------------------------------------------------------- |
+| sishizaw    | DB design & migrations, backend API (Profile / Stats / GDPR), security    |
+| alex (yliu) | Game frontend & online mode, infrastructure & CI, integration tests       |
+| tenpapa     | Frontend (UI/UX, responsive design, stats pages, i18n)                    |
+| Federico    | Game backend foundation, AI & reconnection logic, shared type definitions |
+
+---
+
+## Project Management
+
+- **Task tracking**: GitHub Issues and Milestones (Milestones 1–14)
+- **Code review**: Pull Requests on GitHub (all merges require review)
+- **Communication**: Discord (daily sync, review requests)
+- **Branch strategy**: Feature branches per milestone/feature, merged into `main` via PR
 
 ---
 
@@ -435,22 +508,43 @@ lsof -i :5432  # PostgreSQL
 
 ## Technical Stack
 
-| Layer             | Technology                                              | Notes                                |
-| ----------------- | ------------------------------------------------------- | ------------------------------------ |
-| Frontend          | React 18 + TypeScript + Vite                            | SPA architecture                     |
-| Backend           | NestJS (TypeScript)                                     | Modular design, Guard / Pipe pattern |
-| Database          | PostgreSQL 15                                           | Schema managed by TypeORM            |
-| Real-time         | WebSocket (Socket.IO)                                   | Game and chat                        |
-| Auth              | JWT (Passport.js) + Google Authenticator compatible 2FA | Cookie-based                         |
-| Reverse proxy     | Nginx                                                   | HTTPS termination and routing        |
-| Secret management | HashiCorp Vault                                         | Dev mode in development environment  |
-| Containerization  | Docker + Docker Compose                                 | All services managed together        |
+| Layer             | Technology                                   | Notes                                |
+| ----------------- | -------------------------------------------- | ------------------------------------ |
+| Frontend          | React 18 + TypeScript + Vite                 | SPA architecture                     |
+| Backend           | NestJS (TypeScript)                          | Modular design, Guard / Pipe pattern |
+| Database          | PostgreSQL 15                                | Schema managed by TypeORM            |
+| Real-time         | WebSocket (Socket.IO)                        | Game and chat                        |
+| Auth              | JWT (Passport.js) + Google Authenticator 2FA | Cookie-based                         |
+| Reverse proxy     | Nginx                                        | HTTPS termination and routing        |
+| Secret management | HashiCorp Vault                              | Dev mode in development environment  |
+| Containerization  | Docker + Docker Compose                      | All services managed together        |
 
 ---
 
-## Module List and Rationale
+## Modules
 
-### Backend (NestJS)
+Major = 2 points, Minor = 1 point
+
+| #   | Module                                                    | Type  | Points | Contributor(s)    |
+| --- | --------------------------------------------------------- | ----- | ------ | ----------------- |
+| 1   | Use a Framework as backend (NestJS)                       | Major | 2      | sishizaw, alex    |
+| 2   | Use a front-end framework or toolkit (React)              | Minor | 1      | tenpapa, alex     |
+| 3   | Use a database for the backend (PostgreSQL)               | Minor | 1      | sishizaw          |
+| 4   | Standard user management and authentication               | Major | 2      | sishizaw, alex    |
+| 5   | Implementing Two-Factor Authentication (2FA) and JWT      | Major | 2      | sishizaw          |
+| 6   | Implementing remote authentication (42 OAuth)             | Major | 2      | alex              |
+| 7   | Remote players (online multiplayer via WebSocket)         | Major | 2      | Federico, alex    |
+| 8   | Game customization options (difficulty, speed)            | Minor | 1      | Federico          |
+| 9   | Implementing an AI opponent                               | Major | 2      | Federico, alex    |
+| 10  | User and Game Stats Dashboards                            | Minor | 1      | sishizaw, tenpapa |
+| 11  | GDPR compliance options                                   | Minor | 1      | sishizaw, tenpapa |
+| 12  | Implementing a chat                                       | Major | 2      | Federico, alex    |
+| 13  | Expanding Browser Compatibility (Chrome / Firefox latest) | Minor | 1      | tenpapa           |
+| 14  | Multiple language support (JA / EN / FR)                  | Minor | 1      | tenpapa           |
+| 15  | Implement SSL/TLS and HTTPS                               | Minor | 1      | alex              |
+| 16  | Implement CSRF/XSS protections                            | Minor | 1      | sishizaw          |
+
+### Backend Module Structure (NestJS)
 
 | Module          | Path                   | Description                                 |
 | --------------- | ---------------------- | ------------------------------------------- |
@@ -465,7 +559,7 @@ lsof -i :5432  # PostgreSQL
 
 **Why NestJS**: TypeScript-native with strong type safety. Authentication checks (Guard), input validation (Pipe), and routing (Decorator) can each be defined independently from business logic modules.
 
-### Frontend (React + Vite)
+### Frontend Structure (React + Vite)
 
 | Directory                  | Contents                                                   |
 | -------------------------- | ---------------------------------------------------------- |
@@ -514,29 +608,34 @@ erDiagram
 
 ### sishizaw
 
-- **DB design**: ER diagram, TypeORM entity definitions, migration setup
-- **Backend API**: `ProfileModule` (profile CRUD), `StatsModule` (stats aggregation), `GdprModule` (data deletion / export)
-- **Security**: Fixed CodeQL-reported Path Injection vulnerability; fixed 2FA-related bugs
+- **DB design**: ER diagram, TypeORM entity definitions, migration setup (`backend/src/migrations/`)
+- **ProfileModule**: Profile CRUD, avatar upload, XSS input validation
+- **StatsModule / GDPR backend**: Win-rate aggregation API, match history API, data export / account deletion
+- **WebSocket auth**: JWT-based socket connection authentication fix
+- **Security**: CodeQL Path Injection fix, 2FA bug fixes (401 error, console noise), CSRF token re-fetch fix, Content-Security-Policy introduction
 
 ### alex (yliu)
 
-- **Game backend**: WebSocket gateway, AI mode, online matchmaking queue
-- **Game frontend**: Updated `GamePage` for new protocol (forfeit, reconnect, mode switch)
-- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration
-- **Quality**: Added integration test suite, TypeORM migration auto-run, dependabot management
+- **Game frontend**: Updated `GamePage` for new protocol (forfeit, reconnect, mode switch with `ConfirmDialog`)
+- **Online mode**: Updated `OnlinePage`, added i18n keys for 3 languages
+- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup
+- **CI / Quality**: Integration test suite (`test/`), TypeORM migration auto-run, dependabot management
+- **Bootstrap migration**: Migrated all components to Bootstrap CSS framework
 
 ### tenpapa
 
-- **Frontend**: Responsive design (mobile / tablet / PC)
-- **UI/UX**: Bootstrap migration, hamburger navigation, home page UI
-- **Internationalization**: Japanese / English / French translation tables
-- **Stats pages**: Connected `HistoryPage` and `LeaderboardPage` to backend API
+- **Stats Dashboard**: Frontend implementation of win rate / win-loss / match history (`StatsDashboard.tsx`)
+- **GDPR settings**: Frontend implementation of data export / account deletion (`GdprSettings.tsx`)
+- **Stats page connection**: Connected `HistoryPage` and `LeaderboardPage` to backend API (including opponent name display fix)
+- **Home page**: Created home UI and i18n translation tables (Japanese / English / French)
+- **Responsive design**: CSS fixes for all devices (mobile / tablet / PC)
 
 ### Federico
 
-- **Game logic**: AI difficulty tuning (human-like behavior), reconnection handling (auto-detection on backend)
-- **Disconnect handling**: Match invalidation when both players disconnect; forfeit handling after opponent disconnect
-- **Shared design**: Extracted common constants (`GRACE_TIME`, etc.) and DTOs into `shared/`
+- **Game backend foundation**: Built WebSocket gateway, game logic, and AI mode from scratch (`game.gateway.ts` / `game.service.ts`)
+- **AI difficulty**: Tuned AI to behave more human-like; unified difficulty/delay relationship
+- **Reconnection & disconnect handling**: Backend auto-detection of reconnect, match invalidation on both-player disconnect, forfeit handling after opponent disconnect
+- **Shared design**: Extracted common constants (`GRACE_TIME`, etc.) and GameState DTOs into `shared/`
 
 ---
 
@@ -547,9 +646,9 @@ erDiagram
 - Docker and Docker Compose must be installed
 - Node.js (required for husky / lint-staged setup)
 
-### For 42 OAuth
+### For 42 OAuth (optional)
 
-Register an application on 42 Intra Application settings and set the Redirect URI to `https://localhost/api/auth/42/callback`.
+Register an application on 42 Intra and set the Redirect URI to `https://localhost/api/auth/42/callback`.
 
 ### Steps
 
@@ -571,9 +670,8 @@ nano .env
 # 4. Build and start containers
 make build
 
-# 5. Access in browser
-#    https://localhost
-#    * Due to self-signed certificate, click "Advanced" → "Proceed to localhost"
+# 5. Open in browser: https://localhost
+#    Accept the self-signed certificate warning to proceed
 ```
 
 ### Commands
@@ -593,7 +691,7 @@ make build
 
 After startup, open `https://localhost` in your browser.
 
-> The browser will show a certificate warning because a self-signed certificate is used. Click "Advanced" → "Proceed to localhost (unsafe)" to continue.
+> The browser will show a certificate warning. Click "Advanced" → "Proceed to localhost (unsafe)" to continue.
 
 ---
 
@@ -666,7 +764,7 @@ After startup, open `https://localhost` in your browser.
 
 ### Browser shows "Your connection is not private"
 
-This is expected behavior because a self-signed certificate is used for development.
+Expected behavior — a self-signed certificate is used for development.
 Click "Advanced" → "Proceed to localhost (unsafe)" to continue.
 
 ### Containers fail to start
@@ -705,10 +803,35 @@ lsof -i :5432  # PostgreSQL
 
 | Measure                  | Implementation                                                  |
 | ------------------------ | --------------------------------------------------------------- |
-| XSS protection           | JWT stored in HTTP Only Cookie (not accessible from JavaScript) |
+| XSS protection           | JWT in HTTP Only Cookie; input sanitization via class-validator |
 | CSRF protection          | Double Submit Cookie pattern                                    |
 | SQL injection protection | TypeORM parameter binding                                       |
 | Password protection      | Hashed with bcrypt                                              |
 | HTTPS                    | TLS termination via Nginx                                       |
 | Two-factor auth          | Google Authenticator compatible (TOTP)                          |
 | Input validation         | NestJS DTO + class-validator                                    |
+
+---
+
+## Resources
+
+### References
+
+- [NestJS Documentation](https://docs.nestjs.com/)
+- [React Documentation](https://react.dev/)
+- [TypeORM Documentation](https://typeorm.io/)
+- [Socket.IO Documentation](https://socket.io/docs/)
+- [Passport.js JWT Strategy](https://www.passportjs.org/packages/passport-jwt/)
+- [HashiCorp Vault Documentation](https://developer.hashicorp.com/vault/docs)
+- [42 API Documentation](https://api.intra.42.fr/apidoc)
+
+### Use of AI
+
+Claude (Anthropic) was used as a development assistant throughout this project:
+
+- **Code review**: Reviewing pull requests and identifying bugs (e.g., security vulnerabilities flagged by CodeQL)
+- **Documentation**: Generating and structuring README and ER diagram documentation
+- **Debugging**: Diagnosing WebSocket reconnection logic and 2FA edge cases
+- **Architecture guidance**: Discussing module boundaries and NestJS design patterns
+
+All code was written, reviewed, and understood by team members. AI-generated suggestions were evaluated and modified before use.
