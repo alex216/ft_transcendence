@@ -305,6 +305,7 @@ function App() {
 						onAccountDeleted={() => {
 							setUser(null);
 							setCurrentPage("home");
+							setMessage("");
 							localStorage.removeItem("hasLoggedIn");
 						}}
 					/>
