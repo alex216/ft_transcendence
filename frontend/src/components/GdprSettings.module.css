@@ -1,129 +1,8 @@
 .container {
-	padding: var(--space-6, 24px);
+	padding: 24px;
 	max-width: 640px;
 	margin: 0 auto;
 }
-
-.title {
-	font-size: 1.5rem;
-	font-weight: 700;
-	color: #333;
-	margin-bottom: var(--space-6, 24px);
-	text-align: left;
-}
-
-/* ============================================ */
-/* セクション */
-/* ============================================ */
-
-.section {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	gap: var(--space-6, 24px);
-	padding: var(--space-5, 20px) 0;
-}
-
-.sectionHeader {
-	flex: 1;
-}
-
-.sectionTitle {
-	font-size: 1rem;
-	font-weight: 600;
-	color: #333;
-	margin: 0 0 8px;
-}
-
-.dangerTitle {
-	color: #e74c3c;
-}
-
-.sectionDesc {
-	font-size: 0.875rem;
-	color: #666;
-	line-height: 1.6;
-	margin: 0;
-}
-
-.sectionAction {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 8px;
-	flex-shrink: 0;
-}
-
-.divider {
-	border: none;
-	border-top: 1px solid #e9ecef;
-	margin: 0;
-}
-
-/* ============================================ */
-/* ボタン */
-/* ============================================ */
-
-.btnSecondary {
-	padding: 8px 20px;
-	border-radius: 6px;
-	border: 1px solid #6c757d;
-	background: white;
-	color: #6c757d;
-	font-size: 0.875rem;
-	font-weight: 500;
-	cursor: pointer;
-	transition:
-		background 0.2s,
-		color 0.2s;
-	white-space: nowrap;
-}
-
-.btnSecondary:hover:not(:disabled) {
-	background: #6c757d;
-	color: white;
-}
-
-.btnSecondary:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-}
-
-.btnDanger {
-	padding: 8px 20px;
-	border-radius: 6px;
-	border: none;
-	background: #e74c3c;
-	color: white;
-	font-size: 0.875rem;
-	font-weight: 500;
-	cursor: pointer;
-	transition: background 0.2s;
-	white-space: nowrap;
-}
-
-.btnDanger:hover:not(:disabled) {
-	background: #c0392b;
-}
-
-.btnDanger:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-}
-
-/* ============================================ */
-/* エラーテキスト */
-/* ============================================ */
-
-.errorText {
-	font-size: 0.8rem;
-	color: #e74c3c;
-	margin: 0;
-}
-
-/* ============================================ */
-/* 確認ダイアログ */
-/* ============================================ */
 
 .overlay {
 	position: fixed;
@@ -133,36 +12,7 @@
 	align-items: center;
 	justify-content: center;
 	z-index: 1000;
-	padding: var(--space-4, 16px);
-}
-
-.dialog {
-	background: white;
-	border-radius: 12px;
-	padding: var(--space-6, 24px);
-	max-width: 420px;
-	width: 100%;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.dialogTitle {
-	font-size: 1.1rem;
-	font-weight: 700;
-	color: #333;
-	margin: 0 0 12px;
-}
-
-.dialogDesc {
-	font-size: 0.875rem;
-	color: #666;
-	line-height: 1.6;
-	margin: 0 0 20px;
-}
-
-.dialogActions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 10px;
+	padding: 16px;
 }
 
 /* ============================================ */
@@ -170,17 +20,16 @@
 /* ============================================ */
 
 @media (max-width: 600px) {
-	.section {
+	.container section {
 		flex-direction: column;
 	}
 
-	.sectionAction {
+	.container section > div:last-child {
 		align-items: flex-start;
 		width: 100%;
 	}
 
-	.btnSecondary,
-	.btnDanger {
+	.container section > div:last-child .btn {
 		width: 100%;
 	}
 }

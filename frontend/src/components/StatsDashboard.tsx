@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { useStats } from "../hooks/useStats";
 import styles from "./StatsDashboard.module.css";
@@ -10,7 +9,7 @@ function WinRateChart({ winRate, label }: { winRate: number; label: string }) {
 	const progress = (winRate / 100) * CIRCUMFERENCE;
 	return (
 		<div className={styles.chartWrapper}>
-			<svg viewBox="0 0 100 100" className={styles.chart}>
+			<svg viewBox="0 0 100 100" className="w-100 h-100">
 				{/* 背景の円 */}
 				<circle
 					cx="50"
@@ -62,34 +61,46 @@ export default function StatsDashboard() {
 	const { stats, history, loading, error } = useStats();
 
 	if (loading) {
-		return <div className={styles.loading}>{t("common.loading")}</div>;
+		return (
+			<div className="p-4 text-center text-muted">{t("common.loading")}</div>
+		);
 	}
 
 	if (error) {
-		return <div className={styles.error}>{t(error)}</div>;
+		return <div className="p-4 text-center text-danger">{t(error)}</div>;
 	}
 
 	return (
 		<div className={styles.container}>
-			<h2 className={styles.title}>{t("stats.title")}</h2>
+			<h2 className="fs-4 fw-bold text-dark mb-4 text-start">
+				{t("stats.title")}
+			</h2>
 
 			{/* 上段：円グラフ + 勝敗カウンター */}
-			<div className={styles.summary}>
+			<div
+				className={`d-flex align-items-center gap-5 bg-light rounded-3 p-4 mb-4 ${styles.summary}`}
+			>
 				<WinRateChart
 					winRate={stats?.winRate ?? 0}
 					label={t("stats.winRate")}
 				/>
 
-				<div className={styles.counters}>
-					<div className={`${styles.counter} ${styles.counterWin}`}>
+				<div className="d-flex gap-3 flex-wrap">
+					<div
+						className={`d-flex flex-column align-items-center bg-white rounded-3 px-4 py-3 shadow-sm ${styles.counterWin}`}
+					>
 						<span className={styles.counterValue}>{stats?.wins ?? 0}</span>
 						<span className={styles.counterLabel}>{t("stats.wins")}</span>
 					</div>
-					<div className={`${styles.counter} ${styles.counterLoss}`}>
+					<div
+						className={`d-flex flex-column align-items-center bg-white rounded-3 px-4 py-3 shadow-sm ${styles.counterLoss}`}
+					>
 						<span className={styles.counterValue}>{stats?.losses ?? 0}</span>
 						<span className={styles.counterLabel}>{t("stats.losses")}</span>
 					</div>
-					<div className={`${styles.counter} ${styles.counterTotal}`}>
+					<div
+						className={`d-flex flex-column align-items-center bg-white rounded-3 px-4 py-3 shadow-sm ${styles.counterTotal}`}
+					>
 						<span className={styles.counterValue}>{stats?.total ?? 0}</span>
 						<span className={styles.counterLabel}>{t("stats.total")}</span>
 					</div>
@@ -97,19 +108,23 @@ export default function StatsDashboard() {
 			</div>
 
 			{/* 下段：試合履歴テーブル */}
-			<div className={styles.historySection}>
-				<h3 className={styles.historyTitle}>{t("stats.historyTitle")}</h3>
+			<div className="bg-white rounded-3 border overflow-hidden">
+				<h3 className="fs-6 fw-semibold text-muted px-4 py-3 border-bottom mb-0 text-start">
+					{t("stats.historyTitle")}
+				</h3>
 				{history.length === 0 ? (
-					<div className={styles.noHistory}>{t("history.noHistory")}</div>
+					<div className="p-4 text-center text-muted">
+						{t("history.noHistory")}
+					</div>
 				) : (
-					<div className={styles.tableWrapper}>
-						<table className={styles.table}>
-							<thead>
+					<div className="table-responsive">
+						<table className="table table-hover mb-0">
+							<thead className="table-light">
 								<tr>
-									<th>{t("history.date")}</th>
-									<th>{t("history.result")}</th>
-									<th>{t("history.score")}</th>
-									<th>{t("stats.opponentId")}</th>
+									<th className="text-nowrap">{t("history.date")}</th>
+									<th className="text-nowrap">{t("history.result")}</th>
+									<th className="text-nowrap">{t("history.score")}</th>
+									<th className="text-nowrap">{t("history.opponent")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -120,8 +135,8 @@ export default function StatsDashboard() {
 											<span
 												className={
 													m.result === "win"
-														? styles.badgeWin
-														: styles.badgeLoss
+														? "badge rounded-pill bg-success bg-opacity-25 text-success"
+														: "badge rounded-pill bg-danger bg-opacity-25 text-danger"
 												}
 											>
 												{m.result === "win"
@@ -132,7 +147,7 @@ export default function StatsDashboard() {
 										<td>
 											{m.myScore} - {m.opponentScore}
 										</td>
-										<td>{m.opponentUserId}</td>
+										<td>{m.opponentUsername ?? "-"}</td>
 									</tr>
 								))}
 							</tbody>

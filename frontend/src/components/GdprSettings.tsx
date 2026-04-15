@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGdpr } from "../hooks/useGdpr";
 import styles from "./GdprSettings.module.css";
@@ -44,39 +44,45 @@ export default function GdprSettings({
 
 	return (
 		<div className={styles.container}>
-			<h2 className={styles.title}>{t("gdpr.title")}</h2>
+			<h2 className="fs-4 fw-bold text-dark mb-4 text-start">
+				{t("gdpr.title")}
+			</h2>
 
 			{/* データエクスポート */}
-			<section className={styles.section}>
-				<div className={styles.sectionHeader}>
-					<h3 className={styles.sectionTitle}>{t("gdpr.exportTitle")}</h3>
-					<p className={styles.sectionDesc}>{t("gdpr.exportDesc")}</p>
+			<section className="d-flex justify-content-between align-items-start gap-4 py-4">
+				<div className="flex-grow-1">
+					<h3 className="fs-6 fw-semibold text-dark mb-2">
+						{t("gdpr.exportTitle")}
+					</h3>
+					<p className="small text-muted lh-lg mb-0">{t("gdpr.exportDesc")}</p>
 				</div>
-				<div className={styles.sectionAction}>
+				<div className="d-flex flex-column align-items-end gap-2 flex-shrink-0">
 					<button
-						className={styles.btnSecondary}
+						className="btn btn-outline-secondary btn-sm text-nowrap"
 						onClick={handleExport}
 						disabled={exporting}
 					>
 						{exporting ? t("gdpr.exporting") : t("gdpr.download")}
 					</button>
-					{exportError && <p className={styles.errorText}>{exportError}</p>}
+					{exportError && (
+						<p className="small text-danger mb-0">{exportError}</p>
+					)}
 				</div>
 			</section>
 
-			<hr className={styles.divider} />
+			<hr className="m-0" />
 
 			{/* アカウント削除 */}
-			<section className={styles.section}>
-				<div className={styles.sectionHeader}>
-					<h3 className={`${styles.sectionTitle} ${styles.dangerTitle}`}>
+			<section className="d-flex justify-content-between align-items-start gap-4 py-4">
+				<div className="flex-grow-1">
+					<h3 className="fs-6 fw-semibold text-danger mb-2">
 						{t("gdpr.deleteTitle")}
 					</h3>
-					<p className={styles.sectionDesc}>{t("gdpr.deleteDesc")}</p>
+					<p className="small text-muted lh-lg mb-0">{t("gdpr.deleteDesc")}</p>
 				</div>
-				<div className={styles.sectionAction}>
+				<div className="d-flex flex-column align-items-end gap-2 flex-shrink-0">
 					<button
-						className={styles.btnDanger}
+						className="btn btn-danger btn-sm text-nowrap"
 						onClick={() => setShowConfirm(true)}
 					>
 						{t("gdpr.deleteButton")}
@@ -87,13 +93,22 @@ export default function GdprSettings({
 			{/* 削除確認ダイアログ */}
 			{showConfirm && (
 				<div className={styles.overlay} role="dialog" aria-modal="true">
-					<div className={styles.dialog}>
-						<h3 className={styles.dialogTitle}>{t("gdpr.confirmTitle")}</h3>
-						<p className={styles.dialogDesc}>{t("gdpr.confirmDesc")}</p>
-						{deleteError && <p className={styles.errorText}>{deleteError}</p>}
-						<div className={styles.dialogActions}>
+					<div
+						className="bg-white rounded-3 p-4 shadow-lg w-100"
+						style={{ maxWidth: 420 }}
+					>
+						<h3 className="fs-5 fw-bold text-dark mb-3">
+							{t("gdpr.confirmTitle")}
+						</h3>
+						<p className="small text-muted lh-lg mb-4">
+							{t("gdpr.confirmDesc")}
+						</p>
+						{deleteError && (
+							<p className="small text-danger mb-3">{deleteError}</p>
+						)}
+						<div className="d-flex justify-content-end gap-2">
 							<button
-								className={styles.btnSecondary}
+								className="btn btn-outline-secondary btn-sm"
 								onClick={() => {
 									setShowConfirm(false);
 									setDeleteError(null);
@@ -103,7 +118,7 @@ export default function GdprSettings({
 								{t("common.cancel")}
 							</button>
 							<button
-								className={styles.btnDanger}
+								className="btn btn-danger btn-sm"
 								onClick={handleDeleteConfirm}
 								disabled={deleting}
 							>

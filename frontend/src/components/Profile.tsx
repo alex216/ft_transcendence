@@ -96,9 +96,9 @@ const Profile: React.FC<ProfileProps> = ({
 		<div className="profile">
 			<h2>{t("profile.title")}</h2>
 
-			<div className="profile-content">
+			<div className="d-flex gap-5 bg-white p-5 rounded-3 shadow-sm">
 				{/* アバター表示 */}
-				<div className="avatar-section">
+				<div className="d-flex flex-column align-items-center gap-3">
 					{profile.avatarUrl ? (
 						<img
 							src={profile.avatarUrl}
@@ -111,7 +111,7 @@ const Profile: React.FC<ProfileProps> = ({
 						</div>
 					)}
 
-					<div className="avatar-actions">
+					<div className="d-flex gap-2">
 						<label className="btn btn-secondary">
 							{uploading ? t("profile.uploading") : t("profile.changeAvatar")}
 							<input
@@ -135,22 +135,31 @@ const Profile: React.FC<ProfileProps> = ({
 				</div>
 
 				{/* プロフィール情報 */}
-				<div className="profile-info">
-					<div className="info-row">
-						<span className="label">{t("profile.username")}:</span>
-						<span className="value">{profile.username}</span>
+				<div className="flex-grow-1">
+					<div className="mb-4">
+						<span className="d-block fw-bold text-muted mb-1">
+							{t("profile.username")}:
+						</span>
+						<span className="d-block text-dark fs-6">{profile.username}</span>
 					</div>
 
-					<div className="info-row">
-						<span className="label">{t("profile.displayName")}:</span>
-						<span className="value">
+					<div className="mb-4">
+						<span className="d-block fw-bold text-muted mb-1">
+							{t("profile.displayName")}:
+						</span>
+						<span className="d-block text-dark fs-6">
 							{profile.displayName || t("profile.notSet")}
 						</span>
 					</div>
 
-					<div className="info-row">
-						<span className="label">{t("profile.bio")}:</span>
-						<span className="value bio">
+					<div className="mb-4">
+						<span className="d-block fw-bold text-muted mb-1">
+							{t("profile.bio")}:
+						</span>
+						<span
+							className="d-block text-dark fs-6"
+							style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}
+						>
 							{profile.bio || t("profile.notSet")}
 						</span>
 					</div>

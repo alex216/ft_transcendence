@@ -212,11 +212,176 @@ function App() {
 		switch (currentPage) {
 			case "home":
 				return (
-					<div className="home">
-						<h2>{t("home.welcome", { username: user.username })}</h2>
-						<p>
-							{t("home.userId")}: {user.id}
-						</p>
+					<div className="home-content">
+						{/* ヒーローセクション */}
+						<div className="d-flex align-items-center gap-5 flex-wrap">
+							<div className="home-hero-text">
+								<p className="home-welcome-label">{t("home.welcomeLabel")}</p>
+								<h2 className="home-welcome-name">
+									{t("home.hello")}、
+									<span className="home-username">{user.username}</span>
+									{t("home.san")}
+								</h2>
+								<p className="home-desc">{t("home.description")}</p>
+								<div className="d-flex gap-3 flex-wrap mt-1">
+									<button
+										type="button"
+										className="btn btn-primary"
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											navigateTo("online");
+										}}
+									>
+										{t("home.ctaOnline")}
+									</button>
+									<button
+										type="button"
+										className="btn btn-outline-secondary"
+										onClick={() => {
+											setGameRoomId(null);
+											setGameOpponent(null);
+											navigateTo("game");
+										}}
+									>
+										{t("home.ctaAi")}
+									</button>
+								</div>
+							</div>
+
+							{/* Pongコートイラスト */}
+							<div className="home-pong-illustration">
+								<svg
+									width="300"
+									height="200"
+									viewBox="0 0 300 200"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<rect width="300" height="200" rx="12" fill="#1a1a2e" />
+									<line
+										x1="150"
+										y1="10"
+										x2="150"
+										y2="190"
+										stroke="#ffffff"
+										strokeWidth="2"
+										strokeDasharray="8 6"
+										opacity="0.3"
+									/>
+									<rect
+										x="16"
+										y="70"
+										width="10"
+										height="60"
+										rx="5"
+										fill="#AFA9EC"
+									/>
+									<rect
+										x="274"
+										y="70"
+										width="10"
+										height="60"
+										rx="5"
+										fill="#AFA9EC"
+									/>
+									<circle cx="150" cy="100" r="8" fill="white" />
+									<circle
+										cx="150"
+										cy="100"
+										r="18"
+										fill="none"
+										stroke="white"
+										strokeWidth="0.5"
+										opacity="0.15"
+									/>
+									<circle
+										cx="150"
+										cy="100"
+										r="32"
+										fill="none"
+										stroke="white"
+										strokeWidth="0.5"
+										opacity="0.08"
+									/>
+									<text
+										x="75"
+										y="30"
+										textAnchor="middle"
+										fill="#AFA9EC"
+										fontSize="18"
+										fontWeight="bold"
+										fontFamily="monospace"
+									>
+										3
+									</text>
+									<text
+										x="225"
+										y="30"
+										textAnchor="middle"
+										fill="#AFA9EC"
+										fontSize="18"
+										fontWeight="bold"
+										fontFamily="monospace"
+									>
+										5
+									</text>
+									<rect
+										x="10"
+										y="10"
+										width="280"
+										height="180"
+										rx="10"
+										fill="none"
+										stroke="#AFA9EC"
+										strokeWidth="1.5"
+										opacity="0.4"
+									/>
+								</svg>
+							</div>
+						</div>
+
+						{/* インフォカード */}
+						<div className="row g-3">
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardOnlineTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardOnlineDesc")}
+									</p>
+								</div>
+							</div>
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardAiTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardAiDesc")}
+									</p>
+								</div>
+							</div>
+							<div className="col-12 col-md-4">
+								<div className="border rounded-3 p-3 d-flex flex-column gap-1 h-100">
+									<p className="fw-medium small mb-0">
+										{t("home.cardRankTitle")}
+									</p>
+									<p
+										className="text-muted small mb-0"
+										style={{ lineHeight: 1.6 }}
+									>
+										{t("home.cardRankDesc")}
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				);
 
@@ -339,13 +504,13 @@ function App() {
 							onClick={() => setMenuOpen(false)}
 						/>
 						<nav className={`sidebar ${menuOpen ? "open" : ""}`}>
-							<div className="sidebar-header">
-								<h1>ft_transcendence</h1>
+							<div className="mb-5">
+								<h1 className="mb-2">ft_transcendence</h1>
 								<button className="lang-toggle" onClick={cycleLanguage}>
 									{LANGUAGE_LABELS[i18n.language] || "EN"}
 								</button>
 							</div>
-							<ul className="nav-menu">
+							<ul className="list-unstyled flex-grow-1 ps-0">
 								<li>
 									<button
 										className={currentPage === "home" ? "active" : ""}
@@ -450,7 +615,7 @@ function App() {
 								</li>
 							</ul>
 
-							<div className="sidebar-footer">
+							<div className="mt-auto">
 								<button onClick={handleLogout} className="btn btn-danger w-100">
 									{t("nav.logout")}
 								</button>
@@ -458,10 +623,15 @@ function App() {
 						</nav>
 
 						<main className="main-content">
-							<div className="main-content-inner">{renderContent()}</div>
-							<footer className="app-footer">
-								<span>{t("legal.footer.rights")}</span>
-								<div className="app-footer-links">
+							<div className="flex-grow-1 p-5 overflow-auto">
+								{renderContent()}
+							</div>
+							<footer
+								className="d-flex justify-content-between align-items-center px-4 py-2 border-top bg-light flex-shrink-0"
+								style={{ fontSize: "0.75rem" }}
+							>
+								<span className="text-muted">{t("legal.footer.rights")}</span>
+								<div className="d-flex gap-3">
 									<button onClick={() => setLegalModal("privacy")}>
 										{t("legal.footer.privacy")}
 									</button>
@@ -481,8 +651,8 @@ function App() {
 							/>
 						) : (
 							<div className="auth-content">
-								<div className="auth-header">
-									<h1>ft_transcendence</h1>
+								<div className="text-center mb-5">
+									<h1 className="mb-2">ft_transcendence</h1>
 									<button className="lang-toggle" onClick={cycleLanguage}>
 										{LANGUAGE_LABELS[i18n.language] || "EN"}
 									</button>
@@ -550,9 +720,12 @@ function App() {
 								</div>
 							</div>
 						)}
-						<footer className="app-footer">
-							<span>{t("legal.footer.rights")}</span>
-							<div className="app-footer-links">
+						<footer
+							className="d-flex justify-content-between align-items-center border-top mt-4 pt-3"
+							style={{ fontSize: "0.75rem" }}
+						>
+							<span className="text-muted">{t("legal.footer.rights")}</span>
+							<div className="d-flex gap-3">
 								<button onClick={() => setLegalModal("privacy")}>
 									{t("legal.footer.privacy")}
 								</button>

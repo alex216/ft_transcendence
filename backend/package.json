@@ -7,7 +7,7 @@
 		"start:dev": "nest start --watch --exec 'node dist/app/src/main'",
 		"build": "nest build",
 		"clean": "rm -rf dist && rm -f /shared/*.js /shared/*.d.ts /shared/*.map",
-		"test": "ln -sf /app/node_modules /test/node_modules 2>/dev/null; vitest run"
+		"test": "ln -sf /app/node_modules /test/node_modules 2>/dev/null; vitest run",
 		"migration:run": "typeorm migration:run -d dist/app/src/data-source.js",
 		"migration:revert": "typeorm migration:revert -d dist/app/src/data-source.js",
 		"migration:show": "typeorm migration:show -d dist/app/src/data-source.js",

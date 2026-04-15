@@ -85,7 +85,10 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			</h2>
 
 			{/* フレンド追加フォーム */}
-			<form onSubmit={handleSendRequest} className="add-friend-form">
+			<form
+				onSubmit={handleSendRequest}
+				className="d-flex gap-3 mb-5 p-4 bg-white rounded-3 shadow-sm"
+			>
 				<input
 					className="form-control"
 					type="text"
@@ -103,11 +106,16 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 			{/* フレンドリスト */}
 			{friends.length === 0 ? (
-				<p className="empty-state">{t("friends.noFriends")}</p>
+				<p className="text-center text-muted p-5 bg-white rounded-3">
+					{t("friends.noFriends")}
+				</p>
 			) : (
 				<div className="friends-grid">
 					{friends.map((friendItem) => (
-						<div key={friendItem.id} className="friend-card">
+						<div
+							key={friendItem.id}
+							className="bg-white p-4 rounded-3 shadow-sm d-flex flex-column align-items-center gap-3"
+						>
 							{friendItem.friend.avatarUrl ? (
 								<img
 									src={friendItem.friend.avatarUrl}
@@ -128,7 +136,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 									<p className="bio">{friendItem.friend.bio}</p>
 								)}
 							</div>
-							<div className="friend-actions">
+							<div className="d-flex gap-2">
 								{onStartDM && (
 									<button
 										onClick={() =>

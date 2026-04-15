@@ -30,7 +30,19 @@
 	},
 	"home": {
 		"welcome": "Bienvenue, {{username}} !",
-		"userId": "ID utilisateur"
+		"userId": "ID utilisateur",
+		"welcomeLabel": "Bienvenue",
+		"hello": "Bonjour",
+		"san": "",
+		"description": "ft_transcendence est une plateforme de jeu Pong où vous pouvez jouer en ligne ou contre l'IA. Affrontez des joueurs du monde entier et grimpez dans le classement.",
+		"ctaOnline": "Jouer en ligne",
+		"ctaAi": "Jouer contre l'IA",
+		"cardOnlineTitle": "Match en ligne",
+		"cardOnlineDesc": "Jouez en temps réel contre d'autres joueurs. Gagnez des matchs et montez dans le classement mondial.",
+		"cardAiTitle": "Mode IA",
+		"cardAiDesc": "Entraînez-vous contre l'IA à votre rythme. Ajustez la difficulté et améliorez vos compétences.",
+		"cardRankTitle": "Classement",
+		"cardRankDesc": "Consultez le classement de tous les joueurs. Le taux de victoire et les scores déterminent votre rang mondial."
 	},
 	"profile": {
 		"title": "Profil",
