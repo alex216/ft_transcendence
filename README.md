@@ -103,24 +103,26 @@ _このプロジェクトは 42 カリキュラムの一環として shinji-japa
 
 Major = 2 ポイント、Minor = 1 ポイント
 
-| #   | モジュール                                     | 種別  | ポイント | 担当              |
-| --- | ---------------------------------------------- | ----- | -------- | ----------------- |
-| 1   | バックエンドフレームワーク使用（NestJS）       | Major | 2        | sishizaw, alex    |
-| 2   | フロントエンドフレームワーク使用（React）      | Minor | 1        | tenpapa, alex     |
-| 3   | バックエンド DB 使用（PostgreSQL）             | Minor | 1        | sishizaw          |
-| 4   | 標準ユーザー管理・認証                         | Major | 2        | sishizaw, alex    |
-| 5   | 2FA + JWT 実装                                 | Major | 2        | sishizaw          |
-| 6   | リモート認証（42 OAuth）                       | Major | 2        | alex              |
-| 7   | リモートプレイヤー（WebSocket オンライン対戦） | Major | 2        | Federico, alex    |
-| 8   | ゲームカスタマイズ（難易度・速度）             | Minor | 1        | Federico          |
-| 9   | AI 対戦相手の実装                              | Major | 2        | Federico, alex    |
-| 10  | ユーザー・ゲーム統計ダッシュボード             | Minor | 1        | sishizaw, tenpapa |
-| 11  | GDPR 対応                                      | Minor | 1        | sishizaw, tenpapa |
-| 12  | チャット実装                                   | Major | 2        | Federico, alex    |
-| 13  | ブラウザ互換性拡張（Chrome / Firefox 最新版）  | Minor | 1        | tenpapa           |
-| 14  | 多言語対応（日 / 英 / 仏）                     | Minor | 1        | tenpapa           |
-| 15  | SSL/TLS + HTTPS 実装                           | Minor | 1        | alex              |
-| 16  | CSRF/XSS 保護                                  | Minor | 1        | sishizaw          |
+> **注意**: SSL/TLS・HTTPS・CSRF/XSS 保護は Chapter III.3 の**必須要件**のため、モジュールポイントには含みません。
+
+| #        | モジュール                                                     | 種別  | ポイント | 担当                     | PDF 参照 |
+| -------- | -------------------------------------------------------------- | ----- | -------- | ------------------------ | -------- |
+| 1        | フロント + バックエンドフレームワーク（React + NestJS）        | Major | 2        | tenpapa, alex            | IV.1     |
+| 2        | WebSocket リアルタイム通信（チャット + ゲーム）                | Major | 2        | Federico, alex           | IV.1     |
+| 3        | ユーザーインタラクション（チャット + プロフィール + フレンド） | Major | 2        | Federico, alex, sishizaw | IV.1     |
+| 4        | ORM（TypeORM）                                                 | Minor | 1        | sishizaw                 | IV.1     |
+| 5        | ゲーム統計・マッチ履歴                                         | Minor | 1        | sishizaw, tenpapa        | IV.3     |
+| 6        | リモート認証（42 OAuth）                                       | Minor | 1        | alex                     | IV.3     |
+| 7        | 2FA（二要素認証）                                              | Minor | 1        | sishizaw                 | IV.3     |
+| 8        | AI 対戦相手（バックエンド自前実装・ボール軌道予測付き）        | Major | 2        | Federico, alex           | IV.4     |
+| 9        | ゲーム実装（Pong）                                             | Major | 2        | Federico, alex           | IV.6     |
+| 10       | リモートプレイヤー（WebSocket オンライン対戦）                 | Major | 2        | Federico, alex           | IV.6     |
+| 11       | 多言語対応（日 / 英 / 仏）                                     | Minor | 1        | tenpapa                  | IV.2     |
+| 12       | GDPR 対応                                                      | Minor | 1        | sishizaw, tenpapa        | IV.8     |
+| 13       | ブラウザ互換性（Chrome / Firefox）                             | Minor | 1        | tenpapa                  | IV.2     |
+| **合計** |                                                                |       | **19**   |                          |          |
+
+> **今後 +2pt の余地**: 標準ユーザー管理 Major（IV.3）はプロフィール・アバター・フレンド申請を実装済み。**フレンドのオンラインステータス表示**を追加すれば計 21pt となる予定。
 
 ### バックエンドモジュール構成（NestJS）
 
@@ -526,24 +528,26 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 
 Major = 2 points, Minor = 1 point
 
-| #   | Module                                                    | Type  | Points | Contributor(s)    |
-| --- | --------------------------------------------------------- | ----- | ------ | ----------------- |
-| 1   | Use a Framework as backend (NestJS)                       | Major | 2      | sishizaw, alex    |
-| 2   | Use a front-end framework or toolkit (React)              | Minor | 1      | tenpapa, alex     |
-| 3   | Use a database for the backend (PostgreSQL)               | Minor | 1      | sishizaw          |
-| 4   | Standard user management and authentication               | Major | 2      | sishizaw, alex    |
-| 5   | Implementing Two-Factor Authentication (2FA) and JWT      | Major | 2      | sishizaw          |
-| 6   | Implementing remote authentication (42 OAuth)             | Major | 2      | alex              |
-| 7   | Remote players (online multiplayer via WebSocket)         | Major | 2      | Federico, alex    |
-| 8   | Game customization options (difficulty, speed)            | Minor | 1      | Federico          |
-| 9   | Implementing an AI opponent                               | Major | 2      | Federico, alex    |
-| 10  | User and Game Stats Dashboards                            | Minor | 1      | sishizaw, tenpapa |
-| 11  | GDPR compliance options                                   | Minor | 1      | sishizaw, tenpapa |
-| 12  | Implementing a chat                                       | Major | 2      | Federico, alex    |
-| 13  | Expanding Browser Compatibility (Chrome / Firefox latest) | Minor | 1      | tenpapa           |
-| 14  | Multiple language support (JA / EN / FR)                  | Minor | 1      | tenpapa           |
-| 15  | Implement SSL/TLS and HTTPS                               | Minor | 1      | alex              |
-| 16  | Implement CSRF/XSS protections                            | Minor | 1      | sishizaw          |
+> **Note**: SSL/TLS, HTTPS, CSRF and XSS protections are **mandatory requirements** (Chapter III.3), not scoreable modules.
+
+| #         | Module                                                           | Type  | Points | Contributor(s)           | PDF Ref |
+| --------- | ---------------------------------------------------------------- | ----- | ------ | ------------------------ | ------- |
+| 1         | Frontend + Backend Framework (React + NestJS)                    | Major | 2      | tenpapa, alex            | IV.1    |
+| 2         | WebSocket Real-time (chat + game)                                | Major | 2      | Federico, alex           | IV.1    |
+| 3         | User Interaction (chat + profile + friends)                      | Major | 2      | Federico, alex, sishizaw | IV.1    |
+| 4         | ORM (TypeORM)                                                    | Minor | 1      | sishizaw                 | IV.1    |
+| 5         | Game Statistics and Match History                                | Minor | 1      | sishizaw, tenpapa        | IV.3    |
+| 6         | Remote Authentication (42 OAuth)                                 | Minor | 1      | alex                     | IV.3    |
+| 7         | Two-Factor Authentication (2FA)                                  | Minor | 1      | sishizaw                 | IV.3    |
+| 8         | AI Opponent (custom backend implementation with ball prediction) | Major | 2      | Federico, alex           | IV.4    |
+| 9         | Web-based Game (Pong)                                            | Major | 2      | Federico, alex           | IV.6    |
+| 10        | Remote Players (WebSocket online match)                          | Major | 2      | Federico, alex           | IV.6    |
+| 11        | Multiple Language Support (JA / EN / FR)                         | Minor | 1      | tenpapa                  | IV.2    |
+| 12        | GDPR Compliance                                                  | Minor | 1      | sishizaw, tenpapa        | IV.8    |
+| 13        | Browser Compatibility (Chrome / Firefox)                         | Minor | 1      | tenpapa                  | IV.2    |
+| **Total** |                                                                  |       | **19** |                          |         |
+
+> **Potential +2pt**: Standard User Management Major (IV.3) — profile, avatar, and friend requests are fully implemented. Once **friend online status** is added to the database, this module becomes claimable, bringing the total to 21pt.
 
 ### Backend Module Structure (NestJS)
 
