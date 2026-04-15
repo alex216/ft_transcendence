@@ -409,12 +409,13 @@ lsof -i :5432  # PostgreSQL
 
 Claude（Anthropic）を開発補助として以下の用途で使用しました。
 
+- **コード記述**: バックエンド API・セキュリティ修正・フロントエンドコンポーネント等のコード生成
 - **コードレビュー**: PR のレビューとバグ検出（CodeQL 指摘セキュリティ脆弱性の確認など）
 - **ドキュメント作成**: README・ER 図のドラフト生成と構成整理
 - **デバッグ**: WebSocket 再接続ロジック・2FA エッジケースの原因調査
 - **アーキテクチャ相談**: モジュール境界や NestJS 設計パターンの検討
 
-コードはすべてチームメンバーが記述・レビュー・理解した上で使用しています。AI の提案は評価・修正した後に採用しました。
+AI が生成したコードはすべてチームメンバーが内容を確認・理解した上で採用しています。
 
 ---
 
@@ -829,9 +830,10 @@ lsof -i :5432  # PostgreSQL
 
 Claude (Anthropic) was used as a development assistant throughout this project:
 
+- **Code writing**: Generating code for backend APIs, security fixes, frontend components, etc.
 - **Code review**: Reviewing pull requests and identifying bugs (e.g., security vulnerabilities flagged by CodeQL)
 - **Documentation**: Generating and structuring README and ER diagram documentation
 - **Debugging**: Diagnosing WebSocket reconnection logic and 2FA edge cases
 - **Architecture guidance**: Discussing module boundaries and NestJS design patterns
 
-All code was written, reviewed, and understood by team members. AI-generated suggestions were evaluated and modified before use.
+All AI-generated code was reviewed and understood by team members before being adopted.
