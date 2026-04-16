@@ -60,6 +60,10 @@ const Profile: React.FC<ProfileProps> = ({
 
 		try {
 			const response = await uploadAvatar(file);
+			if (!response.success) {
+				setMessage(response.message);
+				return;
+			}
 			setMessage(response.message);
 			// プロフィールを再読み込み
 			await loadProfile();
@@ -76,6 +80,10 @@ const Profile: React.FC<ProfileProps> = ({
 
 		try {
 			const response = await deleteAvatar();
+			if (!response.success) {
+				setMessage(response.message);
+				return;
+			}
 			setMessage(response.message);
 			await loadProfile();
 		} catch (err) {

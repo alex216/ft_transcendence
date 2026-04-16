@@ -41,6 +41,11 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 				displayName: displayName.trim() || undefined,
 				bio: bio.trim() || undefined,
 			});
+			if (!response.success) {
+				setMessage(response.message);
+				setSaving(false);
+				return;
+			}
 			setMessage(response.message);
 			setTimeout(() => {
 				onSuccess();

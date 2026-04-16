@@ -36,7 +36,11 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 		setLoading(true);
 		setMessage("");
 		try {
-			await enable2FA(token);
+			const data = await enable2FA(token);
+			if (!data.success) {
+				setMessage(data.message || "twofa.enableFailed");
+				return;
+			}
 			setMessage("twofa.enableSuccess");
 			setQrCode(null);
 			setToken("");
@@ -55,7 +59,11 @@ function TwoFASettings({ is2FAEnabled, onStatusChange }: TwoFASettingsProps) {
 		setLoading(true);
 		setMessage("");
 		try {
-			await disable2FA();
+			const data = await disable2FA();
+			if (!data.success) {
+				setMessage(data.message || "twofa.disableFailed");
+				return;
+			}
 			setMessage("twofa.disableSuccess");
 			onStatusChange();
 		} catch (err) {
