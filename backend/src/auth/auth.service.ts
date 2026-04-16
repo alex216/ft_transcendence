@@ -54,7 +54,7 @@ export class AuthService {
 		});
 
 		if (existingUser) {
-			throw new Error("ユーザー名は既に使用されています");
+			throw new Error("errors.auth.usernameAlreadyExists");
 		}
 
 		// --- 追加: パスワードのハッシュ化 ---

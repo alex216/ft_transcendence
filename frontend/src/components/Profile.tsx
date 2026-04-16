@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getMyProfile, uploadAvatar, deleteAvatar } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 import type { GetProfileResponse } from "/shared";
 import TwoFASettings from "./TwoFASettings";
 
@@ -61,7 +62,7 @@ const Profile: React.FC<ProfileProps> = ({
 		try {
 			const response = await uploadAvatar(file);
 			if (!response.success) {
-				setMessage(response.message);
+				setMessage(translateMessage(response.message));
 				return;
 			}
 			setMessage(response.message);
@@ -81,7 +82,7 @@ const Profile: React.FC<ProfileProps> = ({
 		try {
 			const response = await deleteAvatar();
 			if (!response.success) {
-				setMessage(response.message);
+			setMessage(translateMessage(response.message));
 				return;
 			}
 			setMessage(response.message);

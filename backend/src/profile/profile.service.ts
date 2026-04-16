@@ -22,7 +22,7 @@ export class ProfileService {
 		// ユーザー情報を取得
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 		if (!user) {
-			throw new NotFoundException("ユーザーが見つかりません");
+			throw new NotFoundException("errors.auth.userNotFound");
 		}
 
 		// プロフィール情報を取得（存在しない場合は自動作成）

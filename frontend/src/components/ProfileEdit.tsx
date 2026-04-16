@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getMyProfile, updateProfile } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 
 interface ProfileEditProps {
 	onCancel: () => void;
@@ -42,7 +43,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 				bio: bio.trim() || undefined,
 			});
 			if (!response.success) {
-				setMessage(response.message);
+			  setMessage(translateMessage(response.message));
 				setSaving(false);
 				return;
 			}
