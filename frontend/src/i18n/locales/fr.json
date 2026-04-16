@@ -210,7 +210,49 @@
 	},
 	"errors": {
 		"auth": {
-			"loginRequired": "Connexion requise"
+			"loginRequired": "Connexion requise",
+			"fortyTwoFailed": "Échec de l'authentification 42",
+			"invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect",
+			"sessionInvalid": "Session invalide. Veuillez vous reconnecter",
+			"sessionExpired": "La session a expiré",
+			"userNotFound": "Utilisateur introuvable",
+			"invalidCode": "Code incorrect",
+			"usernameAlreadyExists": "Ce nom d'utilisateur est déjà utilisé"
+		},
+		"validation": {
+			"username": {
+				"isString": "Le nom d'utilisateur doit être une chaîne de caractères",
+				"required": "Le nom d'utilisateur est requis",
+				"minLength": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+				"maxLength": "Le nom d'utilisateur doit contenir 20 caractères ou moins",
+				"pattern": "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, underscores et tirets"
+			},
+			"password": {
+				"isString": "Le mot de passe doit être une chaîne de caractères",
+				"required": "Le mot de passe est requis",
+				"minLength": "Le mot de passe doit contenir au moins 8 caractères",
+				"maxLength": "Le mot de passe doit contenir 64 caractères ou moins"
+			},
+			"code": {
+				"isString": "Le code doit être une chaîne de caractères",
+				"required": "Le code est requis",
+				"length": "Le code doit contenir 6 chiffres",
+				"pattern": "Le code doit être composé de 6 chiffres exactement"
+			},
+			"displayName": {
+				"isString": "Le nom d'affichage doit être une chaîne de caractères",
+				"maxLength": "Le nom d'affichage doit contenir 50 caractères ou moins",
+				"noHtml": "Le nom d'affichage ne peut pas contenir de balises HTML"
+			},
+			"bio": {
+				"isString": "La biographie doit être une chaîne de caractères",
+				"maxLength": "La biographie doit contenir 500 caractères ou moins",
+				"noHtml": "La biographie ne peut pas contenir de balises HTML"
+			}
+		},
+		"profile": {
+			"invalidUserId": "ID utilisateur invalide",
+			"avatarImageOnly": "Seuls les fichiers image sont acceptés (jpg/jpeg/png/gif)"
 		},
 		"friend": {
 			"userNotFound": "Utilisateur introuvable",
@@ -227,6 +269,19 @@
 		}
 	},
 	"success": {
+		"auth": {
+			"registered": "Inscription réussie",
+			"loggedIn": "Connexion réussie",
+			"twoFaVerified": "Vérification 2FA réussie",
+			"twoFaEnabled": "2FA activé",
+			"twoFaDisabled": "2FA désactivé",
+			"loggedOut": "Déconnecté"
+		},
+		"profile": {
+			"updated": "Profil mis à jour",
+			"avatarUploaded": "Avatar téléchargé",
+			"avatarDeleted": "Avatar supprimé"
+		},
 		"friend": {
 			"requestSent": "Demande d'ami envoyée",
 			"requestAccepted": "Demande d'ami acceptée",

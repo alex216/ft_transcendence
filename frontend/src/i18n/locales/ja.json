@@ -210,7 +210,49 @@
 	},
 	"errors": {
 		"auth": {
-			"loginRequired": "ログインが必要です"
+			"loginRequired": "ログインが必要です",
+			"fortyTwoFailed": "42認証に失敗しました",
+			"invalidCredentials": "ユーザー名またはパスワードが間違っています",
+			"sessionInvalid": "セッションが無効です。再度ログインしてください",
+			"sessionExpired": "セッションが期限切れです",
+			"userNotFound": "ユーザーが見つかりません",
+			"invalidCode": "コードが正しくありません",
+			"usernameAlreadyExists": "ユーザー名は既に使用されています"
+		},
+		"validation": {
+			"username": {
+				"isString": "ユーザー名は文字列で入力してください",
+				"required": "ユーザー名は必須です",
+				"minLength": "ユーザー名は3文字以上で入力してください",
+				"maxLength": "ユーザー名は20文字以内で入力してください",
+				"pattern": "ユーザー名は英数字・アンダースコア・ハイフンのみ使用できます"
+			},
+			"password": {
+				"isString": "パスワードは文字列で入力してください",
+				"required": "パスワードは必須です",
+				"minLength": "パスワードは8文字以上で入力してください",
+				"maxLength": "パスワードは64文字以内で入力してください"
+			},
+			"code": {
+				"isString": "コードは文字列で入力してください",
+				"required": "コードは必須です",
+				"length": "コードは6桁で入力してください",
+				"pattern": "コードは数字6桁で入力してください"
+			},
+			"displayName": {
+				"isString": "表示名は文字列で入力してください",
+				"maxLength": "表示名は50文字以内で入力してください",
+				"noHtml": "表示名にHTMLタグは使用できません"
+			},
+			"bio": {
+				"isString": "自己紹介は文字列で入力してください",
+				"maxLength": "自己紹介は500文字以内で入力してください",
+				"noHtml": "自己紹介にHTMLタグは使用できません"
+			}
+		},
+		"profile": {
+			"invalidUserId": "無効なユーザーIDです",
+			"avatarImageOnly": "画像ファイルのみアップロード可能です（jpg/jpeg/png/gif）"
 		},
 		"friend": {
 			"userNotFound": "ユーザーが見つかりません",
@@ -227,6 +269,19 @@
 		}
 	},
 	"success": {
+		"auth": {
+			"registered": "登録成功",
+			"loggedIn": "ログイン成功",
+			"twoFaVerified": "2FA認証成功",
+			"twoFaEnabled": "2FAを有効化しました",
+			"twoFaDisabled": "2FAを無効化しました",
+			"loggedOut": "ログアウト成功"
+		},
+		"profile": {
+			"updated": "プロフィールを更新しました",
+			"avatarUploaded": "アバターをアップロードしました",
+			"avatarDeleted": "アバターを削除しました"
+		},
 		"friend": {
 			"requestSent": "フレンドリクエストを送信しました",
 			"requestAccepted": "フレンドリクエストを承認しました",

@@ -40,7 +40,7 @@ export class FriendController {
 		if (!receiverIdOrUsername) {
 			return {
 				success: false,
-				message: "receiverId または username が必要です",
+				message: "errors.friend.receiverRequired",
 			};
 		}
 
@@ -51,7 +51,7 @@ export class FriendController {
 			);
 			return {
 				success: true,
-				message: "フレンドリクエストを送信しました",
+				message: "success.friend.requestSent",
 				friendRequest: {
 					id: request.id,
 					senderId: request.senderId,
@@ -75,12 +75,12 @@ export class FriendController {
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			return { success: false, message: "無効なリクエストIDです" };
+			return { success: false, message: "errors.friend.invalidRequestId" };
 		}
 
 		try {
 			await this.friendService.acceptFriendRequest(id, user.id);
-			return { success: true, message: "フレンドリクエストを承認しました" };
+			return { success: true, message: "success.friend.requestAccepted" };
 		} catch (error) {
 			return { success: false, message: (error as Error).message };
 		}
@@ -96,12 +96,12 @@ export class FriendController {
 
 		const id = parseInt(requestId, 10);
 		if (isNaN(id)) {
-			return { success: false, message: "無効なリクエストIDです" };
+			return { success: false, message: "errors.friend.invalidRequestId" };
 		}
 
 		try {
 			await this.friendService.rejectFriendRequest(id, user.id);
-			return { success: true, message: "フレンドリクエストを拒否しました" };
+			return { success: true, message: "success.friend.requestRejected" };
 		} catch (error) {
 			return { success: false, message: (error as Error).message };
 		}
@@ -117,12 +117,12 @@ export class FriendController {
 
 		const id = parseInt(friendId, 10);
 		if (isNaN(id)) {
-			return { success: false, message: "無効なユーザーIDです" };
+			return { success: false, message: "errors.friend.invalidUserId" };
 		}
 
 		try {
 			await this.friendService.removeFriend(user.id, id);
-			return { success: true, message: "フレンドを削除しました" };
+			return { success: true, message: "success.friend.friendRemoved" };
 		} catch (error) {
 			return { success: false, message: (error as Error).message };
 		}

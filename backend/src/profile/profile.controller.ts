@@ -53,7 +53,7 @@ export class ProfileController {
 	): Promise<GetProfileResponse | { success: false; message: string }> {
 		const userId = parseInt(id, 10);
 		if (isNaN(userId)) {
-			return { success: false, message: "無効なユーザーIDです" };
+			return { success: false, message: "errors.profile.invalidUserId" };
 		}
 
 		try {
@@ -77,7 +77,7 @@ export class ProfileController {
 
 		return {
 			success: true,
-			message: "プロフィールを更新しました",
+			message: "success.profile.updated",
 			profile,
 		};
 	}
@@ -117,7 +117,7 @@ export class ProfileController {
 			// fileFilterで拒否された場合（画像以外）もここに来る
 			return {
 				success: false,
-				message: "画像ファイルのみアップロード可能です（jpg/jpeg/png/gif）",
+				message: "errors.profile.avatarImageOnly",
 			};
 		}
 
@@ -126,7 +126,7 @@ export class ProfileController {
 
 		return {
 			success: true,
-			message: "アバターをアップロードしました",
+			message: "success.profile.avatarUploaded",
 			avatarUrl,
 		};
 	}
@@ -141,7 +141,7 @@ export class ProfileController {
 
 		return {
 			success: true,
-			message: "アバターを削除しました",
+			message: "success.profile.avatarDeleted",
 		};
 	}
 }

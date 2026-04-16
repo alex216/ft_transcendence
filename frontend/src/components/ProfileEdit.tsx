@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getMyProfile, updateProfile } from "../api";
+import { translateMessage } from "../utils/translateMessage";
 
 interface ProfileEditProps {
 	onCancel: () => void;
@@ -41,7 +42,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 				displayName: displayName.trim() || undefined,
 				bio: bio.trim() || undefined,
 			});
-			setMessage(response.message);
+			setMessage(translateMessage(response.message));
 			setTimeout(() => {
 				onSuccess();
 			}, 1000);
