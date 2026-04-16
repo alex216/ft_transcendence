@@ -54,7 +54,7 @@ _このプロジェクトは 42 カリキュラムの一環として shinji-japa
 
 ### Pong ゲーム
 
-- AI 対戦モード（難易度調整可能）
+- AI 対戦モード
 - オンライン対戦モード（WebSocket リアルタイム通信）
 - ゲーム中のモード切替時確認ダイアログ
 - 再接続処理（相手切断後の自動判定）
@@ -290,31 +290,37 @@ make build
 | `/auth/me`          | GET      | ログイン中のユーザー情報取得      |
 | `/auth/42`          | GET      | 42 OAuth ログイン開始             |
 | `/auth/42/callback` | GET      | 42 OAuth コールバック             |
-| `/auth/2fa/setup`   | GET      | 2FA セットアップ（QR コード取得） |
+| `/auth/2fa/setup`   | POST     | 2FA セットアップ（QR コード取得） |
+| `/auth/2fa/enable`  | POST     | 2FA 有効化                        |
 | `/auth/2fa/verify`  | POST     | 2FA コード検証                    |
 | `/auth/2fa/disable` | POST     | 2FA 無効化                        |
 
 ### プロフィール・フレンド・統計
 
-| エンドポイント           | メソッド    | 説明                         |
-| ------------------------ | ----------- | ---------------------------- |
-| `/profile/me`            | GET / PATCH | 自プロフィール取得・更新     |
-| `/profile/:id`           | GET         | 他ユーザーのプロフィール取得 |
-| `/profile/avatar`        | POST        | アバター画像アップロード     |
-| `/friend`                | GET         | フレンド一覧                 |
-| `/friend/requests`       | GET         | フレンド申請一覧             |
-| `/friend/request/:id`    | POST        | フレンド申請送信             |
-| `/friend/accept/:id`     | POST        | フレンド申請承認             |
-| `/stats/:userId`         | GET         | ユーザー統計（勝率・試合数） |
-| `/stats/history/:userId` | GET         | 試合履歴一覧                 |
-| `/stats/leaderboard`     | GET         | リーダーボード               |
+| エンドポイント               | メソッド | 説明                         |
+| ---------------------------- | -------- | ---------------------------- |
+| `/profile/me`                | GET      | 自プロフィール取得           |
+| `/profile/me`                | PUT      | 自プロフィール更新           |
+| `/profile/:id`               | GET      | 他ユーザーのプロフィール取得 |
+| `/profile/avatar`            | POST     | アバター画像アップロード     |
+| `/profile/avatar`            | DELETE   | アバター画像削除             |
+| `/friends`                   | GET      | フレンド一覧                 |
+| `/friends/requests`          | GET      | フレンド申請一覧             |
+| `/friends/request`           | POST     | フレンド申請送信             |
+| `/friends/accept/:requestId` | POST     | フレンド申請承認             |
+| `/friends/reject/:requestId` | POST     | フレンド申請拒否             |
+| `/friends/:friendId`         | DELETE   | フレンド削除                 |
+| `/friends/status/:userId`    | GET      | フレンドステータス確認       |
+| `/stats/me`                  | GET      | 自分の統計（勝率・試合数）   |
+| `/stats/me/match-history`    | GET      | 自分の試合履歴               |
+| `/stats/leaderboard`         | GET      | リーダーボード               |
 
 ### GDPR
 
-| エンドポイント | メソッド | 説明                             |
-| -------------- | -------- | -------------------------------- |
-| `/gdpr/export` | GET      | 個人データを JSON でエクスポート |
-| `/gdpr/delete` | DELETE   | アカウントと全関連データを削除   |
+| エンドポイント  | メソッド | 説明                             |
+| --------------- | -------- | -------------------------------- |
+| `/gdpr/export`  | GET      | 個人データを JSON でエクスポート |
+| `/gdpr/account` | DELETE   | アカウントと全関連データを削除   |
 
 ---
 
@@ -479,7 +485,7 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 
 ### Pong Game
 
-- AI match mode (adjustable difficulty)
+- AI match mode
 - Online match mode (WebSocket real-time)
 - Confirmation dialog when switching modes mid-game
 - Reconnection handling (auto-detection after opponent disconnects)
@@ -713,31 +719,37 @@ After startup, open `https://localhost` in your browser.
 | `/auth/me`          | GET    | Get current user info     |
 | `/auth/42`          | GET    | Start 42 OAuth login      |
 | `/auth/42/callback` | GET    | 42 OAuth callback         |
-| `/auth/2fa/setup`   | GET    | 2FA setup (get QR code)   |
+| `/auth/2fa/setup`   | POST   | 2FA setup (get QR code)   |
+| `/auth/2fa/enable`  | POST   | Enable 2FA                |
 | `/auth/2fa/verify`  | POST   | Verify 2FA code           |
 | `/auth/2fa/disable` | POST   | Disable 2FA               |
 
 ### Profile, Friends & Stats
 
-| Endpoint                 | Method      | Description                        |
-| ------------------------ | ----------- | ---------------------------------- |
-| `/profile/me`            | GET / PATCH | Get or update own profile          |
-| `/profile/:id`           | GET         | Get another user's profile         |
-| `/profile/avatar`        | POST        | Upload avatar image                |
-| `/friend`                | GET         | Friend list                        |
-| `/friend/requests`       | GET         | Friend request list                |
-| `/friend/request/:id`    | POST        | Send friend request                |
-| `/friend/accept/:id`     | POST        | Accept friend request              |
-| `/stats/:userId`         | GET         | User stats (win rate, match count) |
-| `/stats/history/:userId` | GET         | Match history list                 |
-| `/stats/leaderboard`     | GET         | Leaderboard                        |
+| Endpoint                     | Method | Description                       |
+| ---------------------------- | ------ | --------------------------------- |
+| `/profile/me`                | GET    | Get own profile                   |
+| `/profile/me`                | PUT    | Update own profile                |
+| `/profile/:id`               | GET    | Get another user's profile        |
+| `/profile/avatar`            | POST   | Upload avatar image               |
+| `/profile/avatar`            | DELETE | Delete avatar image               |
+| `/friends`                   | GET    | Friend list                       |
+| `/friends/requests`          | GET    | Friend request list               |
+| `/friends/request`           | POST   | Send friend request               |
+| `/friends/accept/:requestId` | POST   | Accept friend request             |
+| `/friends/reject/:requestId` | POST   | Reject friend request             |
+| `/friends/:friendId`         | DELETE | Remove friend                     |
+| `/friends/status/:userId`    | GET    | Check friend status               |
+| `/stats/me`                  | GET    | Own stats (win rate, match count) |
+| `/stats/me/match-history`    | GET    | Own match history                 |
+| `/stats/leaderboard`         | GET    | Leaderboard                       |
 
 ### GDPR
 
-| Endpoint       | Method | Description                            |
-| -------------- | ------ | -------------------------------------- |
-| `/gdpr/export` | GET    | Export personal data as JSON           |
-| `/gdpr/delete` | DELETE | Delete account and all associated data |
+| Endpoint        | Method | Description                            |
+| --------------- | ------ | -------------------------------------- |
+| `/gdpr/export`  | GET    | Export personal data as JSON           |
+| `/gdpr/account` | DELETE | Delete account and all associated data |
 
 ---
 
