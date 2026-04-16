@@ -93,7 +93,10 @@ export class AuthController {
 	) {
 		const user = req.user;
 		if (!user) {
-			throw new HttpException("42認証に失敗しました", HttpStatus.UNAUTHORIZED);
+			throw new HttpException(
+				"errors.auth.fortyTwoFailed",
+				HttpStatus.UNAUTHORIZED,
+			);
 		}
 
 		const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
@@ -135,7 +138,7 @@ export class AuthController {
 			setJwtCookie(res, token);
 			return {
 				success: true,
-				message: "登録成功",
+				message: "success.auth.registered",
 				user: { id: user.id, username: user.username },
 			};
 		} catch (error) {
@@ -156,7 +159,7 @@ export class AuthController {
 		if (!user) {
 			return {
 				success: false,
-				message: "ユーザー名またはパスワードが間違っています",
+				message: "errors.auth.invalidCredentials",
 			};
 		}
 
@@ -180,7 +183,7 @@ export class AuthController {
 		setJwtCookie(res, token);
 		return {
 			success: true,
-			message: "ログイン成功",
+			message: "success.auth.loggedIn",
 			user: { id: user.id, username: user.username },
 		};
 	}
@@ -199,18 +202,18 @@ export class AuthController {
 		if (!tempToken) {
 			return {
 				success: false,
-				message: "セッションが無効です。再度ログインしてください",
+				message: "errors.auth.sessionInvalid",
 			};
 		}
 
 		const payload = this.authService.verifyTempToken(tempToken);
 		if (!payload) {
-			return { success: false, message: "セッションが期限切れです" };
+			return { success: false, message: "errors.auth.sessionExpired" };
 		}
 
 		const user = await this.authService.findById(payload.sub);
 		if (!user || !user.two_factor_secret) {
-			return { success: false, message: "ユーザーが見つかりません" };
+			return { success: false, message: "errors.auth.userNotFound" };
 		}
 
 		const isValid = this.twoFactorService.verifyToken(
@@ -218,7 +221,7 @@ export class AuthController {
 			body.token,
 		);
 		if (!isValid) {
-			return { success: false, message: "コードが正しくありません" };
+			return { success: false, message: "errors.auth.invalidCode" };
 		}
 
 		// 検証OK → 本物のJWTを発行
@@ -226,7 +229,7 @@ export class AuthController {
 		const accessToken = this.authService.generateToken(user);
 		setJwtCookie(res, accessToken);
 
-		return { success: true, message: "2FA認証成功" };
+		return { success: true, message: "success.auth.twoFaVerified" };
 	}
 
 	// POST /auth/2fa/setup - QRコードを生成して返す
@@ -234,7 +237,7 @@ export class AuthController {
 	async setupTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			return { success: false, message: "ユーザーが見つかりません" };
+			return { success: false, message: "errors.auth.userNotFound" };
 
 		return this.twoFactorService.generateSecret(fullUser);
 	}
@@ -247,17 +250,17 @@ export class AuthController {
 	) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			return { success: false, message: "ユーザーが見つかりません" };
+			return { success: false, message: "errors.auth.userNotFound" };
 
 		const success = await this.twoFactorService.enableTwoFactor(
 			fullUser,
 			body.token,
 		);
 		if (!success) {
-			return { success: false, message: "コードが正しくありません" };
+			return { success: false, message: "errors.auth.invalidCode" };
 		}
 
-		return { success: true, message: "2FAを有効化しました" };
+		return { success: true, message: "success.auth.twoFaEnabled" };
 	}
 
 	// POST /auth/2fa/disable - 2FAを無効化
@@ -265,10 +268,10 @@ export class AuthController {
 	async disableTwoFactor(@Req() req: AuthenticatedRequest) {
 		const fullUser = await this.authService.findById(req.user.id);
 		if (!fullUser)
-			return { success: false, message: "ユーザーが見つかりません" };
+			return { success: false, message: "errors.auth.userNotFound" };
 
 		await this.twoFactorService.disableTwoFactor(fullUser);
-		return { success: true, message: "2FAを無効化しました" };
+		return { success: true, message: "success.auth.twoFaDisabled" };
 	}
 
 	// --- その他 ---
@@ -291,6 +294,6 @@ export class AuthController {
 		res.clearCookie("access_token");
 		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");
-		return { success: true, message: "ログアウト成功" };
+		return { success: true, message: "success.auth.loggedOut" };
 	}
 }

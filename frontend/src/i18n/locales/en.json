@@ -210,7 +210,49 @@
 	},
 	"errors": {
 		"auth": {
-			"loginRequired": "Login required"
+			"loginRequired": "Login required",
+			"fortyTwoFailed": "42 authentication failed",
+			"invalidCredentials": "Invalid username or password",
+			"sessionInvalid": "Session is invalid. Please log in again",
+			"sessionExpired": "Session has expired",
+			"userNotFound": "User not found",
+			"invalidCode": "Invalid code",
+			"usernameAlreadyExists": "Username is already taken"
+		},
+		"validation": {
+			"username": {
+				"isString": "Username must be a string",
+				"required": "Username is required",
+				"minLength": "Username must be at least 3 characters",
+				"maxLength": "Username must be 20 characters or less",
+				"pattern": "Username can only contain letters, numbers, underscores, and hyphens"
+			},
+			"password": {
+				"isString": "Password must be a string",
+				"required": "Password is required",
+				"minLength": "Password must be at least 8 characters",
+				"maxLength": "Password must be 64 characters or less"
+			},
+			"code": {
+				"isString": "Code must be a string",
+				"required": "Code is required",
+				"length": "Code must be 6 digits",
+				"pattern": "Code must be exactly 6 digits"
+			},
+			"displayName": {
+				"isString": "Display name must be a string",
+				"maxLength": "Display name must be 50 characters or less",
+				"noHtml": "Display name cannot contain HTML tags"
+			},
+			"bio": {
+				"isString": "Bio must be a string",
+				"maxLength": "Bio must be 500 characters or less",
+				"noHtml": "Bio cannot contain HTML tags"
+			}
+		},
+		"profile": {
+			"invalidUserId": "Invalid user ID",
+			"avatarImageOnly": "Only image files can be uploaded (jpg/jpeg/png/gif)"
 		},
 		"friend": {
 			"userNotFound": "User not found",
@@ -227,6 +269,19 @@
 		}
 	},
 	"success": {
+		"auth": {
+			"registered": "Registration successful",
+			"loggedIn": "Login successful",
+			"twoFaVerified": "2FA verification successful",
+			"twoFaEnabled": "2FA has been enabled",
+			"twoFaDisabled": "2FA has been disabled",
+			"loggedOut": "Logged out"
+		},
+		"profile": {
+			"updated": "Profile updated",
+			"avatarUploaded": "Avatar uploaded",
+			"avatarDeleted": "Avatar deleted"
+		},
 		"friend": {
 			"requestSent": "Friend request sent",
 			"requestAccepted": "Friend request accepted",
