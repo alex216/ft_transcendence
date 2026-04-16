@@ -42,7 +42,12 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ onCancel, onSuccess }) => {
 				displayName: displayName.trim() || undefined,
 				bio: bio.trim() || undefined,
 			});
-			setMessage(translateMessage(response.message));
+			if (!response.success) {
+			  setMessage(translateMessage(response.message));
+				setSaving(false);
+				return;
+			}
+			setMessage(response.message);
 			setTimeout(() => {
 				onSuccess();
 			}, 1000);

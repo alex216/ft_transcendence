@@ -61,7 +61,11 @@ const Profile: React.FC<ProfileProps> = ({
 
 		try {
 			const response = await uploadAvatar(file);
-			setMessage(translateMessage(response.message));
+			if (!response.success) {
+				setMessage(translateMessage(response.message));
+				return;
+			}
+			setMessage(response.message);
 			// プロフィールを再読み込み
 			await loadProfile();
 		} catch (err) {
@@ -77,7 +81,11 @@ const Profile: React.FC<ProfileProps> = ({
 
 		try {
 			const response = await deleteAvatar();
+			if (!response.success) {
 			setMessage(translateMessage(response.message));
+				return;
+			}
+			setMessage(response.message);
 			await loadProfile();
 		} catch (err) {
 			const error = err as { response?: { data?: { message?: string } } };

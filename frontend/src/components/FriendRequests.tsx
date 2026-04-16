@@ -41,6 +41,10 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await acceptFriendRequest(requestId);
+			if (!response.success) {
+				setMessage(translateMessage(response.message));
+				return;
+			}
 			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();
@@ -61,6 +65,10 @@ const FriendRequests: React.FC = () => {
 
 		try {
 			const response = await rejectFriendRequest(requestId);
+			if (!response.success) {
+				setMessage(translateMessage(response.message));
+				return;
+			}
 			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadRequests();

@@ -44,6 +44,10 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 			const response = await sendFriendRequest({
 				username: newFriendUsername.trim(),
 			});
+			if (!response.success) {
+				setMessage(translateMessage(response.message));
+				return;
+			}
 			setMessage(translateMessage(response.message));
 			setNewFriendUsername("");
 		} catch (err) {
@@ -62,6 +66,10 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 		try {
 			const response = await removeFriend(friendId);
+			if (!response.success) {
+				setMessage(translateMessage(response.message));
+				return;
+			}
 			setMessage(translateMessage(response.message));
 			// リストを再読み込み
 			await loadFriends();
