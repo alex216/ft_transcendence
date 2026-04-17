@@ -3,6 +3,7 @@ import {
 	Column,
 	PrimaryGeneratedColumn,
 	CreateDateColumn,
+	UpdateDateColumn,
 } from "typeorm";
 
 @Entity("users")
@@ -29,7 +30,18 @@ export class User {
 	@Column({ nullable: true })
 	two_factor_secret?: string;
 
+	// オンラインステータス（WebSocket接続時に更新）
+	@Column({ default: false })
+	is_online: boolean;
+
+	// 最終オンライン日時（切断時に更新）
+	@Column({ type: "timestamp", nullable: true })
+	last_seen_at?: Date;
+
 	// 【修正】CreateDateColumnを使うとスッキリ書けます
 	@CreateDateColumn({ type: "timestamp" })
 	created_at: Date;
+
+	@UpdateDateColumn({ type: "timestamp" })
+	updated_at: Date;
 }

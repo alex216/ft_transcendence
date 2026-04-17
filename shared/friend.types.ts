@@ -86,6 +86,7 @@ export interface GetFriendsResponse {
 		friendId: number;
 		createdAt: string;
 		friend: GetProfileResponse; // フレンドのプロフィール情報
+		isOnline: boolean; // オンラインステータス（IV.3 User Management Major 要件）
 	}>;
 }
 
