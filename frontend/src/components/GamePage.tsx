@@ -51,6 +51,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
 	const gameStartedRef = useRef(false);
 	// Added to handle victory in case of double disconnection and single reconnection
+	// 二重切断と単一再接続のケースでの勝敗処理を扱うために追加
 	const isPausedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
@@ -67,7 +68,10 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		};
 		socket.on("connect", handleConnect);
 
-		// in case it was already connected to the mount
+		// If the socket is already connected at mount time,
+		// manually trigger the same logic as "connect"
+		// マウント時点ですでにソケットが接続済みの場合を考慮し、
+		// "connect" イベントと同じ処理を手動で実行する
 		if (socket.connected) {
 			handleConnect();
 		}
