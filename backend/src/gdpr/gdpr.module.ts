@@ -7,10 +7,12 @@ import { Chat } from "../chat/chat.entity";
 import { Friend } from "../friend/friend.entity";
 import { GdprController } from "./gdpr.controller";
 import { GdprService } from "./gdpr.service";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User, Profile, MatchHistory, Chat, Friend]),
+		MailModule,
 	],
 	controllers: [GdprController],
 	providers: [GdprService],
