@@ -118,6 +118,7 @@
 		"controls": "Controls",
 		"youWin": "YOU WIN!",
 		"youLose": "YOU LOSE",
+		"nobodyWin": "DRAW",
 		"backToOnline": "Back to Online",
 		"waitingForGame": "Waiting for game to start...",
 		"clickToStart": "Click to start controls",

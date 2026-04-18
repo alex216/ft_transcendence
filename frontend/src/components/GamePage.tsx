@@ -256,7 +256,11 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
 								}}
 							>
-								{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
+								{!gameResult.winner
+									? t("game.nobodyWin")
+									: gameResult.isWinner
+										? t("game.youWin")
+										: t("game.youLose")}
 							</h2>
 							{gameResult.reason && (
 								<p style={{ color: "#888", marginTop: 4, fontSize: 14 }}>

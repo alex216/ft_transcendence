@@ -118,6 +118,7 @@
 		"controls": "Contrôles",
 		"youWin": "VICTOIRE !",
 		"youLose": "DÉFAITE",
+		"nobodyWin": "Aucun gagnant",
 		"backToOnline": "Retour en ligne",
 		"waitingForGame": "En attente du début de la partie...",
 		"clickToStart": "Cliquez pour commencer",
