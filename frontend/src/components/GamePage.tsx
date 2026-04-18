@@ -90,10 +90,14 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomIdRef.current = dto.roomId;
 			gameStartedRef.current = true;
 			// 一時停止解除
-			if (isPausedRef.current) {
-				setIsPaused(false);
-				isPausedRef.current = false;
+			// getting the pause situation truth from the server
+			setIsPaused(dto.state.isPaused);
+			isPausedRef.current = dto.state.isPaused;
+
+			if (!dto.state.isPaused) {
 				setPauseMessage("");
+			} else {
+				setPauseMessage(t("game.opponentDisconnected"));
 			}
 		};
 		onUpdateState(handleUpdateState);
