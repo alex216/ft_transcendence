@@ -13,6 +13,7 @@ import {
 	onPlayerDisconnected,
 	onPlayerReconnected,
 	onReconnectFailed,
+	reconnectGame,
 } from "../services/gameSocket";
 import type { GameState, GameStateDto } from "/shared/game.interface";
 import { AI_SOCKET_ID } from "/shared/game.constants";
@@ -49,6 +50,8 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
 	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
 	const gameStartedRef = useRef(false);
+	// Added to handle victory in case of double disconnection and single reconnection
+	const isPausedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
@@ -56,8 +59,18 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		const handleConnect = () => {
 			console.log("[GamePage] WebSocket接続成功");
+			if (mode === "online" && roomIdRef.current) {
+				console.log("[GamePage] reconnectGame:", roomIdRef.current);
+				reconnectGame(roomIdRef.current);
+				gameStartedRef.current = true;
+			}
 		};
 		socket.on("connect", handleConnect);
+
+		// in case it was already connected to the mount
+		if (socket.connected) {
+			handleConnect();
+		}
 
 		// AI対戦の場合、接続完了後にjoinAIGameを送信
 		if (mode === "ai") {
@@ -77,8 +90,9 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomIdRef.current = dto.roomId;
 			gameStartedRef.current = true;
 			// 一時停止解除
-			if (isPaused) {
+			if (isPausedRef.current) {
 				setIsPaused(false);
+				isPausedRef.current = false;
 				setPauseMessage("");
 			}
 		};
@@ -108,6 +122,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		const handlePlayerDisconnected = () => {
 			console.log("[GamePage] 対戦相手が切断");
 			setIsPaused(true);
+			isPausedRef.current = true;
 			setPauseMessage(t("game.opponentDisconnected"));
 		};
 		onPlayerDisconnected(handlePlayerDisconnected);
@@ -116,6 +131,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		const handlePlayerReconnected = () => {
 			console.log("[GamePage] 対戦相手が再接続");
 			setIsPaused(false);
+			isPausedRef.current = false;
 			setPauseMessage("");
 		};
 		onPlayerReconnected(handlePlayerReconnected);
@@ -134,7 +150,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			socket.off("playerReconnected", handlePlayerReconnected);
 			socket.off("reconnectFailed", handleReconnectFailed);
 		};
-	}, [mode, isPaused]);
+	}, [mode]);
 
 	// パドル操作コールバック
 	const handleMoveUp = useCallback(() => {
