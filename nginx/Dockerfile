@@ -13,3 +13,8 @@ COPY modsecurity-tuning.conf /etc/nginx/templates/modsecurity.d/modsecurity-over
 
 # nginx ユーザーに戻す
 USER nginx
+
+# ヘルスチェック: 実際のリスニングポート443で /healthz を確認
+# （OWASPイメージのデフォルトは8443を参照するため上書き）
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -sk https://localhost:443/healthz || exit 1
