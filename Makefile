@@ -51,30 +51,8 @@ ssl:
 		echo "   「詳細設定」→「localhost にアクセスする（安全でない）」で続行できます"; \
 	fi
 
-# Vault にシークレットを登録する（初回 or Vault 再起動後に実行）
-# .env の JWT_SECRET / FORTY_TWO_CLIENT_ID / FORTY_TWO_CLIENT_SECRET を Vault に書き込む
-# アプリ本体はこれらを .env から直接読まず、Vault 経由でのみ取得する
-vault-setup:
-	@echo "⏳ Vault の起動を待機中（最大30秒）..."
-	@i=0; until docker exec trans_vault sh -c "VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=$$(grep '^VAULT_TOKEN=' .env | cut -d= -f2) vault status" > /dev/null 2>&1; do \
-		i=$$((i+1)); if [ $$i -ge 30 ]; then echo "❌ Vault の起動がタイムアウトしました"; exit 1; fi; sleep 1; \
-	done
-	@echo "🔐 Vault にシークレットを登録中..."
-	@docker exec trans_vault sh -c " \
-		VAULT_ADDR=http://127.0.0.1:8200 \
-		VAULT_TOKEN=$$(grep '^VAULT_TOKEN=' .env | cut -d= -f2) \
-		vault kv put secret/transcendence \
-		jwt_secret=$$(grep '^JWT_SECRET=' .env | cut -d= -f2) \
-		forty_two_client_id=$$(grep '^FORTY_TWO_CLIENT_ID=' .env | cut -d= -f2) \
-		forty_two_client_secret=$$(grep '^FORTY_TWO_CLIENT_SECRET=' .env | cut -d= -f2) \
-	"
-	@echo "✅ Vault へのシークレット登録が完了しました"
-
 # コンテナを起動
-# Vault を先に起動してシークレットを登録してから backend/frontend を起動する
 up: _prepare-dirs
-	docker-compose up -d vault
-	@$(MAKE) vault-setup
 	docker-compose up -d
 
 # コンテナを停止

@@ -41,17 +41,6 @@ services:
       - "8200:8200"
     cap_add:
       - IPC_LOCK
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "sh",
-          "-c",
-          "VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=${VAULT_TOKEN} vault status",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - trans_network
 
