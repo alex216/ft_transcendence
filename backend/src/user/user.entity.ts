@@ -19,6 +19,10 @@ export class User {
 	@Column({ nullable: true })
 	password?: string;
 
+	// メールアドレス（GDPRメール通知用。42 OAuthログイン時に取得して保存）
+	@Column({ nullable: true })
+	email?: string;
+
 	// 【新規追加】マイルストーン6: 42 OAuth連携用
 	@Column({ unique: true, nullable: true })
 	forty_two_id?: string;

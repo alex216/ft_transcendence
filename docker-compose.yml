@@ -79,6 +79,11 @@ services:
       # Vault 接続設定
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_TOKEN: ${VAULT_TOKEN}
+      # --- メール設定（GDPR通知メール用）---
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     volumes:
