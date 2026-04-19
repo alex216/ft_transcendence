@@ -13,6 +13,7 @@ import {
 	onPlayerDisconnected,
 	onPlayerReconnected,
 	onReconnectFailed,
+	reconnectGame,
 } from "../services/gameSocket";
 import type { GameState, GameStateDto } from "/shared/game.interface";
 import { AI_SOCKET_ID } from "/shared/game.constants";
@@ -49,6 +50,9 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
 	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
 	const gameStartedRef = useRef(false);
+	// Added to handle victory in case of double disconnection and single reconnection
+	// 二重切断と単一再接続のケースでの勝敗処理を扱うために追加
+	const isPausedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
@@ -56,8 +60,21 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		const handleConnect = () => {
 			console.log("[GamePage] WebSocket接続成功");
+			if (mode === "online" && roomIdRef.current) {
+				console.log("[GamePage] reconnectGame:", roomIdRef.current);
+				reconnectGame(roomIdRef.current);
+				gameStartedRef.current = true;
+			}
 		};
 		socket.on("connect", handleConnect);
+
+		// If the socket is already connected at mount time,
+		// manually trigger the same logic as "connect"
+		// マウント時点ですでにソケットが接続済みの場合を考慮し、
+		// "connect" イベントと同じ処理を手動で実行する
+		if (socket.connected) {
+			handleConnect();
+		}
 
 		// AI対戦の場合、接続完了後にjoinAIGameを送信
 		if (mode === "ai") {
@@ -77,9 +94,14 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomIdRef.current = dto.roomId;
 			gameStartedRef.current = true;
 			// 一時停止解除
-			if (isPaused) {
-				setIsPaused(false);
+			// getting the pause situation truth from the server
+			setIsPaused(dto.state.isPaused);
+			isPausedRef.current = dto.state.isPaused;
+
+			if (!dto.state.isPaused) {
 				setPauseMessage("");
+			} else {
+				setPauseMessage(t("game.opponentDisconnected"));
 			}
 		};
 		onUpdateState(handleUpdateState);
@@ -108,6 +130,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		const handlePlayerDisconnected = () => {
 			console.log("[GamePage] 対戦相手が切断");
 			setIsPaused(true);
+			isPausedRef.current = true;
 			setPauseMessage(t("game.opponentDisconnected"));
 		};
 		onPlayerDisconnected(handlePlayerDisconnected);
@@ -116,6 +139,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		const handlePlayerReconnected = () => {
 			console.log("[GamePage] 対戦相手が再接続");
 			setIsPaused(false);
+			isPausedRef.current = false;
 			setPauseMessage("");
 		};
 		onPlayerReconnected(handlePlayerReconnected);
@@ -134,7 +158,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			socket.off("playerReconnected", handlePlayerReconnected);
 			socket.off("reconnectFailed", handleReconnectFailed);
 		};
-	}, [mode, isPaused]);
+	}, [mode]);
 
 	// パドル操作コールバック
 	const handleMoveUp = useCallback(() => {
@@ -236,7 +260,11 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
 								}}
 							>
-								{gameResult.isWinner ? t("game.youWin") : t("game.youLose")}
+								{!gameResult.winner
+									? t("game.nobodyWin")
+									: gameResult.isWinner
+										? t("game.youWin")
+										: t("game.youLose")}
 							</h2>
 							{gameResult.reason && (
 								<p style={{ color: "#888", marginTop: 4, fontSize: 14 }}>

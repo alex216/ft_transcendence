@@ -118,6 +118,7 @@
 		"controls": "操作方法",
 		"youWin": "勝利！",
 		"youLose": "敗北",
+		"nobodyWin": "勝者なし",
 		"backToOnline": "オンラインに戻る",
 		"waitingForGame": "ゲーム開始を待っています...",
 		"clickToStart": "クリックして操作を開始",
