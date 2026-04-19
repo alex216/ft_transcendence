@@ -24,8 +24,8 @@ interface VaultResponse {
 }
 
 // Vault から秘密情報を取得して process.env に上書きする
-// 未登録の場合は .env の値を Vault に登録する
-// NestJS が起動する前に実行することで、全モジュールが最新の値を使える
+// Vault にシークレットが未登録の場合は起動を中止する
+// （登録は `make vault-setup` で行う。アプリが自動登録することはない）
 async function loadSecretsFromVault() {
 	const vaultAddr = process.env.VAULT_ADDR || "http://vault:8200";
 	const vaultToken = process.env.VAULT_TOKEN || "myroot";
@@ -42,31 +42,11 @@ async function loadSecretsFromVault() {
 				},
 			);
 
-			// ② 未登録（404）なら .env の値を Vault に登録する
+			// ② 未登録（404）→ 自動登録せず起動を中止する
 			if (response.status === 404) {
-				console.log("🔑 Vault にシークレットが未登録のため登録します");
-				const postResponse = await fetch(
-					`${vaultAddr}/v1/secret/data/transcendence`,
-					{
-						method: "POST",
-						headers: {
-							"X-Vault-Token": vaultToken,
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							data: {
-								jwt_secret: process.env.JWT_SECRET,
-								forty_two_client_id: process.env.FORTY_TWO_CLIENT_ID,
-								forty_two_client_secret: process.env.FORTY_TWO_CLIENT_SECRET,
-							},
-						}),
-					},
-				);
-				if (!postResponse.ok) {
-					throw new Error(`Vault への登録失敗: HTTP ${postResponse.status}`);
-				}
-				console.log("🔐 Vault にシークレットを登録しました");
-				return;
+				console.error("❌ Vault にシークレットが登録されていません。");
+				console.error("   先に以下を実行してください: make vault-setup");
+				process.exit(1);
 			}
 
 			if (!response.ok) {
@@ -93,7 +73,11 @@ async function loadSecretsFromVault() {
 		}
 	}
 
-	console.warn("⚠️  Vault に接続できませんでした。.env の値を使用します");
+	console.error("❌ Vault に接続できませんでした（10回リトライ後）。");
+	console.error(
+		"   Vault が起動しているか確認してください: docker compose up vault",
+	);
+	process.exit(1);
 }
 
 // 本番環境でマイグレーションを実行する
