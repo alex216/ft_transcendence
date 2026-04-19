@@ -10,6 +10,7 @@ type DmTarget = {
 type DmRoom = {
 	roomId: string;
 	username: string;
+	otherUserId: number;
 };
 
 type ChatPageProps = {
@@ -54,7 +55,14 @@ export default function ChatPage({
 			setDmRooms((prev) => {
 				const exists = prev.some((dm) => dm.roomId === roomId);
 				if (!exists) {
-					return [...prev, { roomId, username: dmTarget.username }];
+					return [
+						...prev,
+						{
+							roomId,
+							username: dmTarget.username,
+							otherUserId: dmTarget.odersId,
+						},
+					];
 				}
 				return prev;
 			});
@@ -107,13 +115,17 @@ export default function ChatPage({
 
 			<div className="flex-grow-1 d-flex flex-column">
 				{currentRoomId ? (
-					<ChatRoom
-						roomId={currentRoomId}
-						username={username}
-						displayName={
-							dmRooms.find((dm) => dm.roomId === currentRoomId)?.username
-						}
-					/>
+					(() => {
+						const currentDm = dmRooms.find((dm) => dm.roomId === currentRoomId);
+						return (
+							<ChatRoom
+								roomId={currentRoomId}
+								username={username}
+								displayName={currentDm?.username}
+								otherUserId={currentDm?.otherUserId}
+							/>
+						);
+					})()
 				) : (
 					<div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted fs-5">
 						<p>{t("chat.selectRoom")}</p>

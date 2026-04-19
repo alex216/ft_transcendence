@@ -9,12 +9,14 @@ import {
 	removeAllChatListeners,
 } from "../services/chatSocket";
 import ChatMessage from "./ChatMessage";
+import UserProfileModal from "./UserProfileModal";
 import type { ChatMessage as ChatMessageType } from "/shared/chat.interface";
 
 type ChatRoomProps = {
 	roomId: string;
 	username: string;
 	displayName?: string; // ヘッダーに表示する名前（DMの場合は相手のユーザー名）
+	otherUserId?: number; // DM 相手のユーザーID。設定時はヘッダーからプロフィール閲覧可能
 };
 
 /**
@@ -27,11 +29,13 @@ export default function ChatRoom({
 	roomId,
 	username,
 	displayName,
+	otherUserId,
 }: ChatRoomProps) {
 	const { t } = useTranslation();
 	const [messages, setMessages] = useState<ChatMessageType[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [isConnected, setIsConnected] = useState(false);
+	const [viewingProfile, setViewingProfile] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const socketIdRef = useRef<string | null>(null);
 
@@ -127,7 +131,21 @@ export default function ChatRoom({
 	return (
 		<div className="d-flex flex-column h-100">
 			<div className="d-flex align-items-center justify-content-between px-4 py-3 border-bottom bg-white">
-				<h3>{displayName ? `@ ${displayName}` : `# ${roomId}`}</h3>
+				{displayName && otherUserId !== undefined ? (
+					<h3 className="mb-0">
+						<button
+							type="button"
+							className="btn btn-link p-0 text-decoration-none text-reset"
+							style={{ fontSize: "inherit", fontWeight: "inherit" }}
+							onClick={() => setViewingProfile(true)}
+							title={t("friends.viewProfile")}
+						>
+							@ {displayName}
+						</button>
+					</h3>
+				) : (
+					<h3>{displayName ? `@ ${displayName}` : `# ${roomId}`}</h3>
+				)}
 				<span className={`chat-status ${isConnected ? "connected" : ""}`}>
 					{isConnected
 						? `● ${t("chat.connected")}`
@@ -171,6 +189,13 @@ export default function ChatRoom({
 					{t("chat.send")}
 				</button>
 			</div>
+
+			{viewingProfile && otherUserId !== undefined && (
+				<UserProfileModal
+					userId={otherUserId}
+					onClose={() => setViewingProfile(false)}
+				/>
+			)}
 		</div>
 	);
 }
