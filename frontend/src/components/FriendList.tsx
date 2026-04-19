@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
 import { translateMessage } from "../utils/translateMessage";
 import type { GetFriendsResponse } from "/shared";
+import UserProfileModal from "./UserProfileModal";
 
 type FriendListProps = {
 	onStartDM?: (friendId: number, friendUsername: string) => void;
@@ -15,6 +16,7 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 	const [message, setMessage] = useState("");
 	const [newFriendUsername, setNewFriendUsername] = useState("");
 	const [sending, setSending] = useState(false);
+	const [viewingUserId, setViewingUserId] = useState<number | null>(null);
 
 	// アバター画像はnginxの /uploads/ ルートから直接配信
 
@@ -144,7 +146,13 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 									<p className="bio">{friendItem.friend.bio}</p>
 								)}
 							</div>
-							<div className="d-flex gap-2">
+							<div className="d-flex gap-2 flex-wrap justify-content-center">
+								<button
+									onClick={() => setViewingUserId(friendItem.friendId)}
+									className="btn btn-outline-secondary btn-sm"
+								>
+									{t("friends.viewProfile")}
+								</button>
 								{onStartDM && (
 									<button
 										onClick={() =>
@@ -170,6 +178,13 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 						</div>
 					))}
 				</div>
+			)}
+
+			{viewingUserId !== null && (
+				<UserProfileModal
+					userId={viewingUserId}
+					onClose={() => setViewingUserId(null)}
+				/>
 			)}
 		</div>
 	);

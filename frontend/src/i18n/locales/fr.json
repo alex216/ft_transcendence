@@ -85,6 +85,7 @@
 		"sendFailed": "Échec de l'envoi de la demande",
 		"noFriends": "Pas encore d'amis",
 		"dm": "MP",
+		"viewProfile": "Profil",
 		"delete": "Supprimer",
 		"deleteConfirm": "Retirer {{username}} de vos amis ?",
 		"deleteFailed": "Échec de la suppression"
