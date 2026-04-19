@@ -11,6 +11,7 @@ import { Server, Socket } from "socket.io";
 import { parse } from "cookie";
 import { JwtService } from "@nestjs/jwt";
 import { GameService } from "./game.service";
+import { UserStatusService } from "../user/user-status.service";
 import { corsConfig } from "../cors.config";
 
 interface AuthenticatedSocket extends Socket {
@@ -33,11 +34,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private readonly gameService: GameService,
 		private readonly jwtService: JwtService,
+		private readonly userStatusService: UserStatusService,
 	) {}
 
 	// WebSocket 接続時に一度だけ認証し、user を client.data に保存する
 	// これにより各イベントハンドラで毎回 Cookie を読み直す必要がなくなる
-	handleConnection(client: AuthenticatedSocket) {
+	async handleConnection(client: AuthenticatedSocket) {
 		const cookieHeader = client.handshake.headers.cookie;
 		if (!cookieHeader) {
 			console.warn(`[GameGateway] Cookie なし → 切断 (socket=${client.id})`);
@@ -60,6 +62,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log(
 				`[GameGateway] 接続認証OK userId=${client.data.user.id} (socket=${client.id})`,
 			);
+			// オンラインステータスをONに更新
+			await this.userStatusService.connect(payload.sub, client.id);
 		} catch (err) {
 			console.warn(
 				`[GameGateway] JWT 検証失敗 → 切断 (socket=${client.id}):`,
@@ -102,6 +106,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (!userId) return;
 		console.log(`[GameGateway] 切断 userId=${userId} (socket=${client.id})`);
 		this.gameService.handleDisconnect(client, this.server, userId);
+		// オンラインステータスをOFFに更新（全接続が切れた場合のみ）
+		void this.userStatusService.disconnect(userId, client.id);
 	}
 
 	@SubscribeMessage("reconnectGame")

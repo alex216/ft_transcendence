@@ -10,6 +10,7 @@ import { FriendRequest } from "./friend-request.entity";
 import { Friend } from "./friend.entity";
 import { User } from "../user/user.entity";
 import { ProfileService } from "../profile/profile.service";
+import { UserStatusService } from "../user/user-status.service";
 import {
 	FriendRequestStatus,
 	GetFriendsResponse,
@@ -27,6 +28,7 @@ export class FriendService {
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		private profileService: ProfileService,
+		private userStatusService: UserStatusService,
 	) {}
 
 	// フレンドリクエスト送信
@@ -171,6 +173,7 @@ export class FriendService {
 					friendId: relation.friendId,
 					createdAt: relation.createdAt.toISOString(),
 					friend: profile,
+					isOnline: this.userStatusService.isOnline(relation.friendId),
 				};
 			}),
 		);
