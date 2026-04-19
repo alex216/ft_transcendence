@@ -87,7 +87,9 @@
 		"dm": "DM",
 		"delete": "Delete",
 		"deleteConfirm": "Remove {{username}} from friends?",
-		"deleteFailed": "Failed to delete"
+		"deleteFailed": "Failed to delete",
+		"online": "Online",
+		"offline": "Offline"
 	},
 	"friendRequests": {
 		"title": "Friend Requests",

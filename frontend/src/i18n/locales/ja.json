@@ -87,7 +87,9 @@
 		"dm": "DM",
 		"delete": "削除",
 		"deleteConfirm": "{{username}}をフレンドから削除しますか？",
-		"deleteFailed": "削除に失敗しました"
+		"deleteFailed": "削除に失敗しました",
+		"online": "オンライン",
+		"offline": "オフライン"
 	},
 	"friendRequests": {
 		"title": "フレンドリクエスト",

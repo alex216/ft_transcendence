@@ -139,6 +139,13 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 								<h3>
 									{friendItem.friend.displayName || friendItem.friend.username}
 								</h3>
+								<span
+									className={`badge ${friendItem.isOnline ? "bg-success" : "bg-secondary"}`}
+								>
+									{t(
+										friendItem.isOnline ? "friends.online" : "friends.offline",
+									)}
+								</span>
 								<p className="username">@{friendItem.friend.username}</p>
 								{friendItem.friend.bio && (
 									<p className="bio">{friendItem.friend.bio}</p>
