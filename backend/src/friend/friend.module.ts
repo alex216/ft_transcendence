@@ -6,13 +6,11 @@ import { FriendRequest } from "./friend-request.entity";
 import { Friend } from "./friend.entity";
 import { User } from "../user/user.entity";
 import { ProfileModule } from "../profile/profile.module";
-import { UserModule } from "../user/user.module";
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([FriendRequest, Friend, User]),
 		ProfileModule, // ProfileServiceを使用するためimport
-		UserModule, // UserStatusServiceを使用するためimport
 	],
 	controllers: [FriendController],
 	providers: [FriendService],
