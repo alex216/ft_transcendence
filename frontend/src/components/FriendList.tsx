@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
 import { translateMessage } from "../utils/translateMessage";
+import {
+	onUserStatusChanged,
+	offUserStatusChanged,
+} from "../services/chatSocket";
 import type { GetFriendsResponse } from "/shared";
+import type { UserStatusChangedEvent } from "/shared/chat.interface";
 
 type FriendListProps = {
 	onStartDM?: (friendId: number, friendUsername: string) => void;
@@ -20,6 +25,21 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 	useEffect(() => {
 		loadFriends();
+
+		// WebSocket経由でフレンドの online/offline 変化をリアルタイム反映
+		const handleStatusChange = (payload: UserStatusChangedEvent) => {
+			setFriends((prev) =>
+				prev.map((f) =>
+					f.friendId === payload.userId
+						? { ...f, isOnline: payload.isOnline }
+						: f,
+				),
+			);
+		};
+		onUserStatusChanged(handleStatusChange);
+		return () => {
+			offUserStatusChanged(handleStatusChange);
+		};
 	}, []);
 
 	const loadFriends = async () => {
