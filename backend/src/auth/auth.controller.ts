@@ -13,6 +13,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { TwoFactorService } from "./two-factor.service";
+import { UserStatusService } from "../user/user-status.service";
 import { Public } from "./decorators/public.decorator";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -63,6 +64,7 @@ export class AuthController {
 	constructor(
 		private authService: AuthService,
 		private twoFactorService: TwoFactorService,
+		private userStatusService: UserStatusService,
 	) {}
 
 	// --- CSRFトークン発行 ---
@@ -115,6 +117,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
+		await this.userStatusService.setOnline(user.id);
 		console.log(
 			`✅ User ${user.username} (ID: ${user.id}) logged in via 42 OAuth`,
 		);
@@ -136,6 +139,7 @@ export class AuthController {
 			);
 			const token = this.authService.generateToken(user);
 			setJwtCookie(res, token);
+			await this.userStatusService.setOnline(user.id);
 			return {
 				success: true,
 				message: "success.auth.registered",
@@ -181,6 +185,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
+		await this.userStatusService.setOnline(user.id);
 		return {
 			success: true,
 			message: "success.auth.loggedIn",
@@ -228,6 +233,7 @@ export class AuthController {
 		res.clearCookie("temp_token");
 		const accessToken = this.authService.generateToken(user);
 		setJwtCookie(res, accessToken);
+		await this.userStatusService.setOnline(user.id);
 
 		return { success: true, message: "success.auth.twoFaVerified" };
 	}
@@ -289,8 +295,10 @@ export class AuthController {
 
 	@Post("logout")
 	async logout(
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutResponse> {
+		await this.userStatusService.setOffline(req.user.id);
 		res.clearCookie("access_token");
 		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");

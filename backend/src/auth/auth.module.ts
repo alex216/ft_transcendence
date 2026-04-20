@@ -8,6 +8,7 @@ import { TwoFactorService } from "./two-factor.service";
 import { User } from "../user/user.entity";
 import { FortyTwoStrategy } from "./strategies/forty-two.strategy";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { UserModule } from "../user/user.module";
 
 @Module({
 	imports: [
@@ -17,6 +18,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 			secret: process.env.JWT_SECRET || "fallback-jwt-secret",
 			signOptions: { expiresIn: "24h" },
 		}),
+		UserModule, // UserStatusService をログイン/ログアウトで使うため
 	],
 	controllers: [AuthController],
 	providers: [AuthService, TwoFactorService, FortyTwoStrategy, JwtStrategy],
