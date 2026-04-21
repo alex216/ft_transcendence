@@ -3,6 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { JwtService } from "@nestjs/jwt";
 import { Repository } from "typeorm";
 import { User } from "../user/user.entity";
+import { UserStatusService } from "../user/user-status.service";
+import { PresenceService } from "../chat/presence.service";
 import * as bcrypt from "bcrypt";
 
 // 認証サービス
@@ -13,7 +15,21 @@ export class AuthService {
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		private jwtService: JwtService,
+		private userStatusService: UserStatusService,
+		private presenceService: PresenceService,
 	) {}
+
+	// ログイン成功時にステータスをonlineにしてフレンドへ配信
+	async notifyOnline(userId: number): Promise<void> {
+		await this.userStatusService.setOnline(userId);
+		await this.presenceService.broadcastStatusToFriends(userId, true);
+	}
+
+	// ログアウト時にステータスをofflineにしてフレンドへ配信
+	async notifyOffline(userId: number): Promise<void> {
+		await this.userStatusService.setOffline(userId);
+		await this.presenceService.broadcastStatusToFriends(userId, false);
+	}
 
 	// JWTトークンを生成する（24時間有効）
 	generateToken(user: User): string {

@@ -13,11 +13,6 @@ import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { TwoFactorService } from "./two-factor.service";
-import { UserStatusService } from "../user/user-status.service";
-import { ChatGateway } from "../chat/chat.gateway";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Friend } from "../friend/friend.entity";
 import { Public } from "./decorators/public.decorator";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -68,29 +63,7 @@ export class AuthController {
 	constructor(
 		private authService: AuthService,
 		private twoFactorService: TwoFactorService,
-		private userStatusService: UserStatusService,
-		private chatGateway: ChatGateway,
-		@InjectRepository(Friend)
-		private friendRepository: Repository<Friend>,
 	) {}
-
-	// ログイン/ログアウト時、自分の友達全員にオンライン状態変化を配信
-	// WebSocket経由で friend.isOnline を即座に更新させるため
-	private async broadcastStatusChange(
-		userId: number,
-		isOnline: boolean,
-	): Promise<void> {
-		const relations = await this.friendRepository.find({
-			where: { userId },
-			select: ["friendId"],
-		});
-		const friendIds = relations.map((r) => r.friendId);
-		if (friendIds.length === 0) return;
-		this.chatGateway.emitToUsers(friendIds, "userStatusChanged", {
-			userId,
-			isOnline,
-		});
-	}
 
 	// --- CSRFトークン発行 ---
 
@@ -142,8 +115,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
-		await this.userStatusService.setOnline(user.id);
-		await this.broadcastStatusChange(user.id, true);
+		await this.authService.notifyOnline(user.id);
 		console.log(
 			`✅ User ${user.username} (ID: ${user.id}) logged in via 42 OAuth`,
 		);
@@ -165,8 +137,7 @@ export class AuthController {
 			);
 			const token = this.authService.generateToken(user);
 			setJwtCookie(res, token);
-			await this.userStatusService.setOnline(user.id);
-			await this.broadcastStatusChange(user.id, true);
+			await this.authService.notifyOnline(user.id);
 			return {
 				success: true,
 				message: "success.auth.registered",
@@ -212,8 +183,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
-		await this.userStatusService.setOnline(user.id);
-		await this.broadcastStatusChange(user.id, true);
+		await this.authService.notifyOnline(user.id);
 		return {
 			success: true,
 			message: "success.auth.loggedIn",
@@ -261,8 +231,7 @@ export class AuthController {
 		res.clearCookie("temp_token");
 		const accessToken = this.authService.generateToken(user);
 		setJwtCookie(res, accessToken);
-		await this.userStatusService.setOnline(user.id);
-		await this.broadcastStatusChange(user.id, true);
+		await this.authService.notifyOnline(user.id);
 
 		return { success: true, message: "success.auth.twoFaVerified" };
 	}
@@ -327,8 +296,7 @@ export class AuthController {
 		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutResponse> {
-		await this.userStatusService.setOffline(req.user.id);
-		await this.broadcastStatusChange(req.user.id, false);
+		await this.authService.notifyOffline(req.user.id);
 		res.clearCookie("access_token");
 		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");

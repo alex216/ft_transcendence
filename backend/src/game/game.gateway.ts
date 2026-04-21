@@ -37,7 +37,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	// WebSocket 接続時に一度だけ認証し、user を client.data に保存する
 	// これにより各イベントハンドラで毎回 Cookie を読み直す必要がなくなる
-	async handleConnection(client: AuthenticatedSocket) {
+	handleConnection(client: AuthenticatedSocket) {
 		const cookieHeader = client.handshake.headers.cookie;
 		if (!cookieHeader) {
 			console.warn(`[GameGateway] Cookie なし → 切断 (socket=${client.id})`);

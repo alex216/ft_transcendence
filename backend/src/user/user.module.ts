@@ -10,6 +10,6 @@ import { UserStatusService } from "./user-status.service";
 		TypeOrmModule.forFeature([User]),
 	],
 	providers: [UserService, UserStatusService],
-	exports: [UserService, UserStatusService, TypeOrmModule], // TypeOrmModule をエクスポートして User リポジトリを他モジュールで使えるようにする
+	exports: [UserService, UserStatusService],
 })
 export class UserModule {}

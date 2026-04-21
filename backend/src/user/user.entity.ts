@@ -34,7 +34,7 @@ export class User {
 	@Column({ nullable: true })
 	two_factor_secret?: string;
 
-	// オンラインステータス（WebSocket接続時に更新）
+	// オンラインステータス（ログイン/ログアウト時に更新）
 	@Column({ default: false })
 	is_online: boolean;
 
