@@ -8,6 +8,8 @@ import { TwoFactorService } from "./two-factor.service";
 import { User } from "../user/user.entity";
 import { FortyTwoStrategy } from "./strategies/forty-two.strategy";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { UserModule } from "../user/user.module";
+import { ChatModule } from "../chat/chat.module";
 
 @Module({
 	imports: [
@@ -17,6 +19,8 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 			secret: process.env.JWT_SECRET || "fallback-jwt-secret",
 			signOptions: { expiresIn: "24h" },
 		}),
+		UserModule, // UserStatusService をログイン/ログアウトで使うため
+		ChatModule, // PresenceService.broadcastStatusToFriends でプレゼンス通知を送るため
 	],
 	controllers: [AuthController],
 	providers: [AuthService, TwoFactorService, FortyTwoStrategy, JwtStrategy],

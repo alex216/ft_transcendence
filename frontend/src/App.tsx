@@ -24,6 +24,7 @@ import StatsDashboard from "./components/StatsDashboard";
 import GdprSettings from "./components/GdprSettings";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { surrender } from "./services/gameSocket";
+import { getChatSocket, disconnectChatSocket } from "./services/chatSocket";
 import "./App.css";
 import "./styles/responsive.css";
 
@@ -120,6 +121,17 @@ function App() {
 	useEffect(() => {
 		checkLoginStatus();
 	}, []);
+
+	// ログイン中は ChatSocket を常時接続してプレゼンス信号を維持する
+	// （バックエンドは ChatSocket の全切断後 grace period 経過で offline 扱いにするため、
+	// どのページにいても online を保つには App レベルで接続を張り続ける必要がある）
+	useEffect(() => {
+		if (!user) return;
+		getChatSocket();
+		return () => {
+			disconnectChatSocket();
+		};
+	}, [user]);
 
 	// ログイン状態確認（logged_in cookieがない場合はAPIコールをスキップ）
 	const checkLoginStatus = async () => {

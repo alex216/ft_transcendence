@@ -115,6 +115,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
+		await this.authService.notifyOnline(user.id);
 		console.log(
 			`✅ User ${user.username} (ID: ${user.id}) logged in via 42 OAuth`,
 		);
@@ -136,6 +137,7 @@ export class AuthController {
 			);
 			const token = this.authService.generateToken(user);
 			setJwtCookie(res, token);
+			await this.authService.notifyOnline(user.id);
 			return {
 				success: true,
 				message: "success.auth.registered",
@@ -181,6 +183,7 @@ export class AuthController {
 
 		const token = this.authService.generateToken(user);
 		setJwtCookie(res, token);
+		await this.authService.notifyOnline(user.id);
 		return {
 			success: true,
 			message: "success.auth.loggedIn",
@@ -228,6 +231,7 @@ export class AuthController {
 		res.clearCookie("temp_token");
 		const accessToken = this.authService.generateToken(user);
 		setJwtCookie(res, accessToken);
+		await this.authService.notifyOnline(user.id);
 
 		return { success: true, message: "success.auth.twoFaVerified" };
 	}
@@ -289,8 +293,10 @@ export class AuthController {
 
 	@Post("logout")
 	async logout(
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutResponse> {
+		await this.authService.notifyOffline(req.user.id);
 		res.clearCookie("access_token");
 		res.clearCookie("logged_in");
 		res.clearCookie("temp_token");

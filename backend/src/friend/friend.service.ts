@@ -173,7 +173,7 @@ export class FriendService {
 					friendId: relation.friendId,
 					createdAt: relation.createdAt.toISOString(),
 					friend: profile,
-					isOnline: this.userStatusService.isOnline(relation.friendId),
+					isOnline: await this.userStatusService.isOnline(relation.friendId),
 				};
 			}),
 		);
