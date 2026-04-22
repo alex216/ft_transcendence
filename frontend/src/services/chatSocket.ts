@@ -4,7 +4,10 @@
  */
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL, SOCKET_OPTIONS } from "./socketManager";
-import type { ChatMessage } from "/shared/chat.interface";
+import type {
+	ChatMessage,
+	UserStatusChangedEvent,
+} from "/shared/chat.interface";
 
 // チャット用のSocket.IOクライアント（シングルトン）
 let chatSocket: Socket | null = null;
@@ -96,4 +99,24 @@ export const removeAllChatListeners = (): void => {
 	const socket = getChatSocket();
 	socket.off("loadHistory");
 	socket.off("newMessage");
+};
+
+/**
+ * フレンドのオンライン状態変化を購読
+ */
+export const onUserStatusChanged = (
+	callback: (payload: UserStatusChangedEvent) => void,
+): void => {
+	const socket = getChatSocket();
+	socket.on("userStatusChanged", callback);
+};
+
+/**
+ * フレンドのオンライン状態変化の購読を解除
+ */
+export const offUserStatusChanged = (
+	callback: (payload: UserStatusChangedEvent) => void,
+): void => {
+	const socket = getChatSocket();
+	socket.off("userStatusChanged", callback);
 };

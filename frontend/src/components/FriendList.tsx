@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getFriends, removeFriend, sendFriendRequest } from "../api";
 import { translateMessage } from "../utils/translateMessage";
+import {
+	onUserStatusChanged,
+	offUserStatusChanged,
+} from "../services/chatSocket";
 import type { GetFriendsResponse } from "/shared";
-import UserProfileModal from "./UserProfileModal";
+import type { UserStatusChangedEvent } from "/shared/chat.interface";
 
 type FriendListProps = {
 	onStartDM?: (friendId: number, friendUsername: string) => void;
@@ -22,6 +26,21 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 
 	useEffect(() => {
 		loadFriends();
+
+		// WebSocket経由でフレンドの online/offline 変化をリアルタイム反映
+		const handleStatusChange = (payload: UserStatusChangedEvent) => {
+			setFriends((prev) =>
+				prev.map((f) =>
+					f.friendId === payload.userId
+						? { ...f, isOnline: payload.isOnline }
+						: f,
+				),
+			);
+		};
+		onUserStatusChanged(handleStatusChange);
+		return () => {
+			offUserStatusChanged(handleStatusChange);
+		};
 	}, []);
 
 	const loadFriends = async () => {
@@ -141,6 +160,13 @@ const FriendList: React.FC<FriendListProps> = ({ onStartDM }) => {
 								<h3>
 									{friendItem.friend.displayName || friendItem.friend.username}
 								</h3>
+								<span
+									className={`badge ${friendItem.isOnline ? "bg-success" : "bg-secondary"}`}
+								>
+									{t(
+										friendItem.isOnline ? "friends.online" : "friends.offline",
+									)}
+								</span>
 								<p className="username">@{friendItem.friend.username}</p>
 								{friendItem.friend.bio && (
 									<p className="bio">{friendItem.friend.bio}</p>

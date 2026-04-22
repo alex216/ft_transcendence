@@ -88,7 +88,9 @@
 		"viewProfile": "Profil",
 		"delete": "Supprimer",
 		"deleteConfirm": "Retirer {{username}} de vos amis ?",
-		"deleteFailed": "Échec de la suppression"
+		"deleteFailed": "Échec de la suppression",
+		"online": "En ligne",
+		"offline": "Hors ligne"
 	},
 	"friendRequests": {
 		"title": "Demandes d'amis",
