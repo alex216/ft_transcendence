@@ -8,6 +8,7 @@ import {
 } from "../services/chatSocket";
 import type { GetFriendsResponse } from "/shared";
 import type { UserStatusChangedEvent } from "/shared/chat.interface";
+import UserProfileModal from "./UserProfileModal";
 
 type FriendListProps = {
 	onStartDM?: (friendId: number, friendUsername: string) => void;
