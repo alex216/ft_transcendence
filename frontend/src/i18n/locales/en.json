@@ -85,6 +85,7 @@
 		"sendFailed": "Failed to send request",
 		"noFriends": "No friends yet",
 		"dm": "DM",
+		"viewProfile": "Profile",
 		"delete": "Delete",
 		"deleteConfirm": "Remove {{username}} from friends?",
 		"deleteFailed": "Failed to delete",

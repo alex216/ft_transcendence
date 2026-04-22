@@ -98,7 +98,7 @@ logs:
 
 # テスト実行
 test:
-	docker-compose exec backend npm test
+	docker-compose exec -T backend npm test
 
 # 本番ビルドを作成（開発には不要）
 prod-build:

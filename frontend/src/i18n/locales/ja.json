@@ -85,6 +85,7 @@
 		"sendFailed": "リクエスト送信に失敗しました",
 		"noFriends": "まだフレンドがいません",
 		"dm": "DM",
+		"viewProfile": "プロフィール",
 		"delete": "削除",
 		"deleteConfirm": "{{username}}をフレンドから削除しますか？",
 		"deleteFailed": "削除に失敗しました",

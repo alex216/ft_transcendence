@@ -1,5 +1,7 @@
 status=0
 
+make test
+
 echo "=========== npm audit --audit-level=high --omit=dev ==========="
 npm audit --audit-level=high --omit=dev || status=1
 cd frontend && npm audit --audit-level=high --omit=dev || status=1
