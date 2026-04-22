@@ -9,6 +9,7 @@ import { ChatModule } from "./chat/chat.module";
 import { GameModule } from "./game/game.module";
 import { StatsModule } from "./stats/stats.module";
 import { GdprModule } from "./gdpr/gdpr.module";
+import { HealthController } from "./health.controller";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
@@ -26,6 +27,7 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 		StatsModule, // ユーザー統計 API（マイルストーン#8）
 		GdprModule, // GDPR対応 API（マイルストーン#8）
 	],
+	controllers: [HealthController],
 	providers: [
 		{
 			provide: APP_GUARD,
