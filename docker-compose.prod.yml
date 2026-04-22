@@ -1,0 +1,48 @@
+# ============================================================
+# 本番モード用 override ファイル
+# ------------------------------------------------------------
+# 使い方 (Makefile の make prod-up が内部で実行):
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# このファイルは docker-compose.yml の上に重ねて適用され、
+# 同名キーを本番用に差し替える:
+#   - backend の build.target を runtime に切替え、volume から dev 用の
+#     source bind mount を外し、command を node dist/... に変更
+#   - frontend サービスを profiles で無効化 (nginx が静的配信を担う)
+#   - nginx の build.target を prod に切替え、depends_on から frontend を外す
+# ============================================================
+
+services:
+  backend:
+    build:
+      target: runtime # multi-stage の runtime stage を利用
+    environment:
+      NODE_ENV: production
+      SKIP_AUTH: "false" # 本番では認証バイパスを強制無効化
+    # dev 用の source bind mount (./backend:/app など) が残ると
+    # runtime image の /app/dist をホスト側の空 backend/ でマスクして
+    # "Cannot find module /app/dist/app/src/main" エラーになる。
+    # compose の volumes は配列キーのため override で追加マージされる挙動の
+    # ため、!override で完全置換し uploads のみに限定する
+    # (!reset は値を削除するだけで置換後の値を受け付けない)
+    volumes: !override
+      - ./backend/uploads:/app/uploads
+    command: node dist/app/src/main
+
+  frontend:
+    # 本番では nginx が /usr/share/nginx/html から静的配信するため不要
+    profiles: ["disabled"]
+
+  nginx:
+    build:
+      target: prod # multi-stage の prod stage を利用 (静的配信 + CSP 強化)
+      # frontend-builder stage に Vite のビルド時環境変数を渡す
+      # (未設定だと Dockerfile の ARG デフォルト https://localhost/api が効く)
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://localhost/api}
+    # dev 側の depends_on は map 形式で deep merge されるため、
+    # !override で完全置換して backend のみ指定する
+    # (本番では frontend サービスが起動しないため、dev の frontend 待ちは不要)
+    depends_on: !override
+      backend:
+        condition: service_healthy

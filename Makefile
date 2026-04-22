@@ -1,7 +1,7 @@
 # ft_transcendence Makefile
 # C++の make と同じように使える
 
-.PHONY: all setup ssl up down build clean fclean re logs reinstall test
+.PHONY: all setup ssl up down build clean fclean re logs reinstall test prod-build prod-up prod-down prod
 
 # デフォルト: コンテナを起動
 all: up
@@ -100,8 +100,26 @@ logs:
 test:
 	docker-compose exec backend npm test
 
-# 本番ビルドを作成（開発には不要）
+# 本番ビルドの検証（multi-stage Dockerfile の builder stage を単独で走らせる）
+# 起動中コンテナに依存せず、ビルドが通ることだけを確認したい時に使用
 prod-build:
-	docker-compose exec backend npm run build
-	docker-compose exec frontend npm run build
-	@echo "本番ビルド完了: backend/dist/, frontend/dist/"
+	@echo "📦 本番ビルドを検証しています..."
+	docker build -f backend/Dockerfile --target builder -t trans_backend_builder .
+	docker build -f frontend/Dockerfile --target builder -t trans_frontend_builder .
+	@echo "✅ 本番ビルド検証完了"
+
+# 本番モードでコンテナを起動
+# nginx/Dockerfile の frontend-builder stage が vite build を実行し、
+# 結果を prod stage の /usr/share/nginx/html に COPY する
+prod-up: ssl _prepare-dirs
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+	@echo "✅ 本番モードで起動しました (https://localhost)"
+
+# 本番モードを停止
+prod-down:
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+# 本番モードを停止して再起動
+# fclean は docker system prune -f を含み他プロジェクトのイメージまで削除するため使わない
+# 完全クリーンしたい場合は `make fclean && make prod-up` を明示的に実行する
+prod: prod-down prod-up
