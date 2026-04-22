@@ -68,7 +68,7 @@ clean:
 	docker-compose exec backend npm run clean || true
 	docker-compose exec frontend npm run clean || true
 	rm -rf backend/dist
-	rm -rf frontend/build  # 本番ビルド時のみ生成される
+	rm -rf frontend/dist   # Vite のビルド出力
 	rm -f shared/*.js shared/*.d.ts shared/*.map
 
 # node_modules ボリュームを再作成してコンテナを再ビルド
@@ -85,7 +85,7 @@ fclean: down
 	docker-compose down -v
 	docker-compose rm -f
 	rm -rf backend/dist backend/node_modules backend/uploads
-	rm -rf frontend/build frontend/node_modules  # build/は通常存在しない
+	rm -rf frontend/dist frontend/node_modules
 	rm -f shared/*.js shared/*.d.ts shared/*.map
 	docker system prune -f
 
@@ -104,4 +104,4 @@ test:
 prod-build:
 	docker-compose exec backend npm run build
 	docker-compose exec frontend npm run build
-	@echo "本番ビルド完了: backend/dist/, frontend/build/"
+	@echo "本番ビルド完了: backend/dist/, frontend/dist/"
