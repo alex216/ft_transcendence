@@ -2,8 +2,9 @@ services:
   # Nginxリバースプロキシ（HTTPS終端）+ ModSecurity WAF
   nginx:
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
+      target: dev
     container_name: trans_nginx
     restart: unless-stopped
     environment:
