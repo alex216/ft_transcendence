@@ -82,6 +82,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      target: dev
     container_name: trans_backend
     restart: unless-stopped
     environment:
@@ -136,6 +137,7 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      target: dev
     container_name: trans_frontend
     restart: unless-stopped
     env_file:
