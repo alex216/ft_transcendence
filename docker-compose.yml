@@ -41,6 +41,19 @@ services:
       - "8200:8200"
     cap_add:
       - IPC_LOCK
+    healthcheck:
+      # /v1/sys/health は vault の状態によって異なる HTTP ステータスを返す:
+      #   200=active, 429=standby, 501=uninitialized, 503=sealed
+      # 現状は dev モードで auto-unseal されるが、将来 prod vault へ切替時の
+      # 回帰を防ぐためクエリパラメータで sealed/standby/uninit も 200 扱いにする
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- 'http://127.0.0.1:8200/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200' || exit 1",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - trans_network
 
@@ -58,6 +71,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./test/init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - trans_network
 
@@ -103,6 +121,12 @@ services:
     depends_on:
       - postgres
       - vault
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - trans_network
     command: npm run start:dev
@@ -127,6 +151,12 @@ services:
       - frontend_node_modules:/app/node_modules
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
       - trans_network
     command: npm run dev
