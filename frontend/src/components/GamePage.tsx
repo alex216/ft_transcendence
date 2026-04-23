@@ -115,6 +115,10 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			reason?: string;
 		}) => {
 			console.log("[GamePage] ゲーム終了:", data);
+			if (roomIdRef.current !== data.roomId) {
+				console.log("[GamePage] Ignored gameOver (room mismatch)");
+				return;
+			}
 			const myId = socket.id;
 			const isWinner =
 				data.winner === myId || (mode === "ai" && data.winner !== AI_SOCKET_ID);
