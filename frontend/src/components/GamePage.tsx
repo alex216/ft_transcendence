@@ -264,7 +264,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
 								}}
 							>
-								{!gameResult.winner
+								{!gameResult.winner && gameResult.reason == "both_disconnected"
 									? t("game.nobodyWin")
 									: gameResult.isWinner
 										? t("game.youWin")
