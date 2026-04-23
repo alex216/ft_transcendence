@@ -48,8 +48,6 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 	// 再接続用にroomIdを保持
 	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
-	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
-	const gameStartedRef = useRef(false);
 	// Added to handle victory in case of double disconnection and single reconnection
 	// 二重切断と単一再接続のケースでの勝敗処理を扱うために追加
 	const isPausedRef = useRef(false);
@@ -93,10 +91,10 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		// ゲーム状態の更新を受信
 		const handleUpdateState = (dto: GameStateDto) => {
+			console.log("[GamePage] received updatestate");
 			setGameState(dto.state);
 			// roomIdを保存（再接続に使用）
 			roomIdRef.current = dto.roomId;
-			gameStartedRef.current = true;
 			// 一時停止解除
 			// getting the pause situation truth from the server
 			setIsPaused(dto.state.isPaused);
@@ -116,8 +114,6 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomId: string;
 			reason?: string;
 		}) => {
-			// 前のゲームのgameOverを無視（updateStateを受信する前のgameOverは自分のゲームではない）
-			if (!gameStartedRef.current) return;
 			console.log("[GamePage] ゲーム終了:", data);
 			const myId = socket.id;
 			const isWinner =
@@ -133,6 +129,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		// 対戦相手の切断通知
 		const handlePlayerDisconnected = () => {
 			console.log("[GamePage] 対戦相手が切断");
+			console.log("[GamePage] received playerdisconnected");
 			setIsPaused(true);
 			isPausedRef.current = true;
 			setPauseMessage(t("game.opponentDisconnected"));
@@ -142,6 +139,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		// 対戦相手の再接続通知
 		const handlePlayerReconnected = () => {
 			console.log("[GamePage] 対戦相手が再接続");
+			console.log("[GamePage] received playerReconnected");
 			setIsPaused(false);
 			isPausedRef.current = false;
 			setPauseMessage("");

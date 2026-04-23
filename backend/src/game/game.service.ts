@@ -401,7 +401,12 @@ export class GameService {
 
 	private gameLoop(roomId: string, server: Server) {
 		const game = this.onlineGames.get(roomId);
-		if (!game || game.isPaused) return;
+		if (!game || (!game.p1Connected && !game.p2Connected)) return;
+
+		if (game.isPaused) {
+			server.to(roomId).emit("updateState", this.toDto(game));
+			return;
+		}
 
 		// 1. ボールの移動
 		game.ball.x += game.dx;
