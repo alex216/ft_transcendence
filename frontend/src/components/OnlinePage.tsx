@@ -4,7 +4,7 @@ import {
 	getGameSocket,
 	joinQueue,
 	onUpdateState,
-	disconnectGameSocket,
+	leaveQueue,
 } from "../services/gameSocket";
 import type { GameStateDto } from "/shared/game.interface";
 
@@ -90,7 +90,7 @@ export default function OnlinePage({ onStart }: OnlinePageProps) {
 	const cancelMatching = () => {
 		setMessage(t("online.cancelled"));
 		setStatus("idle");
-		disconnectGameSocket();
+		leaveQueue();
 	};
 
 	return (

@@ -57,6 +57,12 @@ export const joinQueue = (): void => {
 	console.log("[GameSocket] キューに参加");
 };
 
+export const leaveQueue = (): void => {
+	const socket = getGameSocket();
+	socket.emit("leaveQueue");
+	console.log("[GameSocket] キューから出ます");
+};
+
 /**
  * AI対戦を開始
  */
