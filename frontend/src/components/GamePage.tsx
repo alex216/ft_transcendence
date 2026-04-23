@@ -53,6 +53,9 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 	// Added to handle victory in case of double disconnection and single reconnection
 	// 二重切断と単一再接続のケースでの勝敗処理を扱うために追加
 	const isPausedRef = useRef(false);
+	// avoid double reconnections
+	const hasReconnectedRef = useRef(false);
+	const hasInitializedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
@@ -60,21 +63,22 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		const handleConnect = () => {
 			console.log("[GamePage] WebSocket接続成功");
-			if (mode === "online" && roomIdRef.current) {
+			if (!hasInitializedRef.current) {
+				hasInitializedRef.current = true;
+			}
+
+			if (
+				mode === "online" &&
+				roomIdRef.current &&
+				!hasReconnectedRef.current
+			) {
 				console.log("[GamePage] reconnectGame:", roomIdRef.current);
+
 				reconnectGame(roomIdRef.current);
-				gameStartedRef.current = true;
+				hasReconnectedRef.current = true;
 			}
 		};
 		socket.on("connect", handleConnect);
-
-		// If the socket is already connected at mount time,
-		// manually trigger the same logic as "connect"
-		// マウント時点ですでにソケットが接続済みの場合を考慮し、
-		// "connect" イベントと同じ処理を手動で実行する
-		if (socket.connected) {
-			handleConnect();
-		}
 
 		// AI対戦の場合、接続完了後にjoinAIGameを送信
 		if (mode === "ai") {
