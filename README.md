@@ -129,7 +129,7 @@ Major = 2 points, Minor = 1 point
 | 12        | GDPR Compliance (data export, account deletion, email notification)   | Minor | 1      | sishizaw, tenpapa        | IV.8    |
 | 13        | Browser Compatibility (Chrome / Firefox)                              | Minor | 1      | tenpapa                  | IV.2    |
 | 14        | Standard User Management (profile, avatar, online status, friends)    | Major | 2      | alex, sishizaw           | IV.3    |
-| 15        | WAF Integration (ModSecurity + OWASP Core Rule Set via Nginx)         | Major | 2      | alex                     | IV.5    |
+| 15        | WAF + Secret Management (ModSecurity + OWASP CRS / HashiCorp Vault)   | Major | 2      | sishizaw                 | IV.5    |
 | **Total** |                                                                       |       | **23** |                          |         |
 
 ### Module Selection Rationale
@@ -150,7 +150,7 @@ Major = 2 points, Minor = 1 point
 | GDPR Compliance                 | Mandatory EU data regulation; data export and account deletion are low-overhead to implement |
 | Browser Compatibility           | Ensures evaluators on any campus machine (Chrome/Firefox) can test without issues            |
 | Standard User Management        | Profile, avatar, online status, and friend list together satisfy all IV.3 Major requirements |
-| WAF / ModSecurity               | Adds an application-layer firewall (OWASP CRS) without extra services; tuned for our stack   |
+| WAF + Vault (IV.5)              | ModSecurity/OWASP CRS blocks common attacks; Vault already manages all secrets — together they satisfy the single IV.5 Major requirement |
 
 ### Backend Module Structure (NestJS)
 
@@ -220,8 +220,10 @@ erDiagram
 - **DB design**: ER diagram, TypeORM entity definitions, migration setup (`backend/src/migrations/`); added `email`, `is_online`, `last_seen_at` columns to `users`
 - **ProfileModule**: Profile CRUD, avatar upload, XSS input validation
 - **StatsModule / GDPR backend**: Win-rate aggregation API, match history API, data export / account deletion
-- **GDPR email notification**: Created `MailModule` / `mail.service.ts`; sends confirmation email on data export and account deletion (Ethereal fallback when MAIL_HOST is unset)
-- **Online status backend**: Implemented `UserStatusService` (setOnline / setOffline), integrated with login / logout flows
+- **GDPR email notification**: Created `MailModule` / `mail.service.ts`; sends confirmation email on data export and account deletion (Ethereal fallback when MAIL_HOST is unset) (`5c73a36`)
+- **Online status backend**: Added `is_online` / `last_seen_at` to `users` entity and migration; implemented `UserStatusService` (setOnline / setOffline) (`b44c93e`); refactored backend responsibility (`cb032b4`)
+- **WAF / ModSecurity**: Integrated ModSecurity + OWASP CRS into Nginx (`nginx/Dockerfile`, `nginx/modsecurity-tuning.conf`) (`6ac1f83`); fixed false positives for PUT / PATCH / DELETE (`49829b9`); added Nginx `/healthz` endpoint (`05ae20d`)
+- **Vault**: Version pin and SSL certificate permission fix (`c2a3c3b`); migration consolidation (`e0bb68a`)
 - **WebSocket auth**: JWT-based socket connection authentication fix
 - **Security**: CodeQL Path Injection fix, 2FA bug fixes (401 error, console noise), CSRF token re-fetch fix, Content-Security-Policy introduction
 
@@ -229,9 +231,9 @@ erDiagram
 
 - **Game frontend**: Updated `GamePage` for new protocol (forfeit, reconnect, mode switch with `ConfirmDialog`)
 - **Online mode**: Updated `OnlinePage`, added i18n keys for 3 languages
-- **Online status frontend**: Real-time WebSocket broadcast of status changes; online badge in friend list; view other user profile modal (from friend list and DM header)
-- **WAF / ModSecurity**: Integrated ModSecurity + OWASP CRS into Nginx (`nginx/Dockerfile`, `nginx/nginx.conf`, `nginx/modsecurity-tuning.conf`); fixed false positives for PUT / PATCH / DELETE
-- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup (version pin + permission fix in PR #100)
+- **Online status frontend**: Real-time WebSocket broadcast of status changes (`f85a812`); DB-centralized status with login/logout integration (`73f44db`); online badge in friend list (`1906f29`)
+- **View other user profile**: Modal display from friend list (`f05f0ea`) and DM header (`cf8ead9`)
+- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup; dev-environment `/@fs/` 403 fix (`e5b4fd4`)
 - **CI / Quality**: Integration test suite (`test/`), TypeORM migration auto-run, dependabot management
 - **Bootstrap migration**: Migrated all components to Bootstrap CSS framework
 
@@ -248,6 +250,7 @@ erDiagram
 - **Game backend foundation**: Built WebSocket gateway, game logic, and AI mode from scratch (`game.gateway.ts` / `game.service.ts`)
 - **AI difficulty**: Tuned AI to behave more human-like; unified difficulty/delay relationship
 - **Reconnection & disconnect handling**: Backend auto-detection of reconnect, match invalidation on both-player disconnect, forfeit handling after opponent disconnect
+- **Game message fixes (PR #93)**: Correct game-over + message when reconnected player wins on grace-time expiry (`e7ddaad`); "waiting for opponent reconnect" message shown to reconnected player too (`844b45b`); unified cancel message for both players (`ea9a835`)
 - **Shared design**: Extracted common constants (`GRACE_TIME`, etc.) and GameState DTOs into `shared/`
 
 ---
@@ -433,7 +436,8 @@ lsof -i :5432  # PostgreSQL
 | HTTPS                    | TLS termination via Nginx                                       |
 | Two-factor auth          | Google Authenticator compatible (TOTP)                          |
 | Input validation         | NestJS DTO + class-validator                                    |
-| WAF                      | ModSecurity + OWASP Core Rule Set integrated into Nginx         |
+| WAF                      | ModSecurity + OWASP Core Rule Set integrated into Nginx (IV.5)  |
+| Secret management        | HashiCorp Vault manages all credentials and env secrets (IV.5)  |
 
 ---
 
@@ -597,7 +601,7 @@ Major = 2 ポイント、Minor = 1 ポイント
 | 12       | GDPR 対応（データエクスポート・アカウント削除・メール通知）                         | Minor | 1        | sishizaw, tenpapa        | IV.8     |
 | 13       | ブラウザ互換性（Chrome / Firefox）                                                 | Minor | 1        | tenpapa                  | IV.2     |
 | 14       | 標準ユーザー管理（プロフィール・アバター・オンラインステータス・フレンド）          | Major | 2        | alex, sishizaw           | IV.3     |
-| 15       | WAF 統合（ModSecurity + OWASP Core Rule Set）                                      | Major | 2        | alex                     | IV.5     |
+| 15       | WAF + 秘密情報管理（ModSecurity + OWASP CRS / HashiCorp Vault）                    | Major | 2        | sishizaw                 | IV.5     |
 | **合計** |                                                                                    |       | **23**   |                          |          |
 
 ### モジュール選定理由
@@ -618,7 +622,7 @@ Major = 2 ポイント、Minor = 1 ポイント
 | GDPR 対応                        | EU データ規制への対応。データエクスポート・削除は低コストで実装可能                      |
 | ブラウザ互換性                   | 評価者がどのキャンパスのマシン（Chrome/Firefox）でもテストできるように確保               |
 | 標準ユーザー管理                 | プロフィール・アバター・オンラインステータス・フレンドリストで IV.3 Major の全要件を充足  |
-| WAF / ModSecurity               | Nginx に OWASP CRS を統合。追加サービス不要で WAF 要件を満たし、誤検知は除外ルールで対処 |
+| WAF + Vault (IV.5)              | ModSecurity/OWASP CRS で一般的な攻撃をブロック、Vault で全シークレットを管理。両方の組み合わせで IV.5 Major 1つを充足 |
 
 ### バックエンドモジュール構成（NestJS）
 
@@ -688,8 +692,10 @@ erDiagram
 - **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備（`backend/src/migrations/`）; `email` / `is_online` / `last_seen_at` カラムを `users` に追加
 - **ProfileModule**: プロフィール CRUD・アバターアップロード・XSS バリデーション追加
 - **StatsModule / GDPR バックエンド**: 勝率集計 API・試合履歴 API・データエクスポート / アカウント削除実装
-- **GDPR メール通知**: `MailModule` / `mail.service.ts` を新規作成；データエクスポート・アカウント削除時にメール送信（MAIL_HOST 未設定時は Ethereal テストアカウントで自動動作）
-- **オンラインステータス バックエンド**: `UserStatusService`（setOnline / setOffline）を実装；ログイン・ログアウト処理に統合
+- **GDPR メール通知**: `MailModule` / `mail.service.ts` を新規作成；データエクスポート・アカウント削除時にメール送信（MAIL_HOST 未設定時は Ethereal テストアカウントで自動動作）(`5c73a36`)
+- **オンラインステータス バックエンド**: `is_online` / `last_seen_at` を `users` エンティティとマイグレーションに追加；`UserStatusService`（setOnline / setOffline）を実装 (`b44c93e`)；バックエンド責務をリファクタリング (`cb032b4`)
+- **WAF / ModSecurity**: ModSecurity + OWASP CRS を Nginx に統合（`nginx/Dockerfile`・`nginx/modsecurity-tuning.conf`）(`6ac1f83`)；PUT / PATCH / DELETE の誤検知を除外ルールで修正 (`49829b9`)；Nginx `/healthz` エンドポイント追加 (`05ae20d`)
+- **Vault**: バージョン固定と SSL 証明書パーミッション修正 (`c2a3c3b`)；マイグレーションを1ファイルに統合 (`e0bb68a`)
 - **WebSocket 認証**: JWT によるソケット接続の認証修正
 - **セキュリティ**: CodeQL 指摘の Path Injection 修正、2FA バグ修正（401 エラー・コンソールノイズ除去）、CSRF トークン再取得問題の修正、Content-Security-Policy 導入
 
@@ -697,9 +703,9 @@ erDiagram
 
 - **ゲームフロントエンド**: `GamePage` を新プロトコルに対応（降参・再接続・モード切替確認ダイアログ）、`ConfirmDialog` コンポーネント作成
 - **オンラインモード**: `OnlinePage` 更新、i18n キー追加（3 言語対応）
-- **オンラインステータス フロントエンド**: ステータス変化を WebSocket でリアルタイム配信；フレンドリストにオンラインバッジを表示；フレンド一覧・DM ヘッダーから他ユーザーのプロフィールをモーダル表示
-- **WAF / ModSecurity**: ModSecurity + OWASP CRS を Nginx に統合（`nginx/Dockerfile`・`nginx/nginx.conf`・`nginx/modsecurity-tuning.conf`）；PUT / PATCH / DELETE の誤検知（403）を除外ルールで修正
-- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定（PR #100 でバージョン固定とパーミッション修正）
+- **オンラインステータス フロントエンド**: ステータス変化を WebSocket でリアルタイム配信 (`f85a812`)；DB 一元化とログイン契機更新 (`73f44db`)；フレンドリストにオンラインバッジを表示 (`1906f29`)
+- **他ユーザープロフィール表示**: フレンド一覧からモーダル表示 (`f05f0ea`)；DM ヘッダーからモーダル表示 (`cf8ead9`)
+- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定；dev 環境 `/@fs/` 403 修正 (`e5b4fd4`)
 - **CI / 品質**: 統合テストスイート追加（`test/`）、TypeORM マイグレーション自動実行、dependabot 管理
 - **Bootstrap 移行**: 全コンポーネントの CSS フレームワーク移行
 
@@ -716,6 +722,7 @@ erDiagram
 - **ゲームバックエンド基盤**: WebSocket ゲートウェイ・ゲームロジック・AI モードをゼロから実装（`game.gateway.ts` / `game.service.ts`）
 - **AI 難易度**: 人間らしい動作に調整、difficulty と delay の関係を統一
 - **再接続・切断処理**: 再接続をバックエンド自動判定に変更、両プレイヤー切断時の試合無効化、相手切断後の降参処理
+- **ゲームメッセージ修正 (PR #93)**: 再接続プレイヤーが猶予時間切れで勝った際の正常なゲームオーバー表示 (`e7ddaad`)；再接続プレイヤーへの「相手の再接続待ち」メッセージ表示 (`844b45b`)；試合キャンセル時のメッセージ統一 (`ea9a835`)
 - **shared 設計**: `GRACE_TIME` 等の共通定数・GameState DTO を `shared/` に分離
 
 ---
@@ -903,7 +910,8 @@ lsof -i :5432  # PostgreSQL
 | HTTPS                    | Nginx による TLS 終端                                                           |
 | 二要素認証               | Google Authenticator 対応（TOTP）                                               |
 | 入力バリデーション       | NestJS DTO + class-validator                                                    |
-| WAF                      | ModSecurity + OWASP Core Rule Set を Nginx に統合                               |
+| WAF                      | ModSecurity + OWASP Core Rule Set を Nginx に統合（IV.5）                       |
+| 秘密情報管理             | HashiCorp Vault で全クレデンシャル・環境変数を管理（IV.5）                      |
 
 ---
 
