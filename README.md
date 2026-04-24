@@ -51,6 +51,8 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 
 - Edit display name, bio, and avatar image _(sishizaw, alex)_
 - Friend requests / approval / list _(sishizaw, alex)_
+- Online status badge in friend list (real-time WebSocket updates) _(alex, sishizaw)_
+- View other user's profile in a modal (from friend list and DM header) _(alex)_
 
 ### Pong Game
 
@@ -75,6 +77,12 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 
 - Personal data export (JSON download) _(sishizaw, tenpapa)_
 - Account deletion (removes all associated data) _(sishizaw, tenpapa)_
+- Email notification sent on data export / account deletion _(sishizaw)_
+
+### Security / WAF
+
+- ModSecurity WAF (OWASP Core Rule Set) integrated into Nginx _(alex)_
+- Tuning rules to prevent false positives (PUT / PATCH / DELETE methods) _(alex)_
 
 ### Other
 
@@ -105,24 +113,24 @@ Major = 2 points, Minor = 1 point
 
 > **Note**: SSL/TLS, HTTPS, CSRF and XSS protections are **mandatory requirements** (Chapter III.3), not scoreable modules.
 
-| #         | Module                                                           | Type  | Points | Contributor(s)           | PDF Ref |
-| --------- | ---------------------------------------------------------------- | ----- | ------ | ------------------------ | ------- |
-| 1         | Frontend + Backend Framework (React + NestJS)                    | Major | 2      | tenpapa, alex            | IV.1    |
-| 2         | WebSocket Real-time (chat + game)                                | Major | 2      | Federico, alex           | IV.1    |
-| 3         | User Interaction (chat + profile + friends)                      | Major | 2      | Federico, alex, sishizaw | IV.1    |
-| 4         | ORM (TypeORM)                                                    | Minor | 1      | sishizaw                 | IV.1    |
-| 5         | Game Statistics and Match History                                | Minor | 1      | sishizaw, tenpapa        | IV.3    |
-| 6         | Remote Authentication (42 OAuth)                                 | Minor | 1      | alex                     | IV.3    |
-| 7         | Two-Factor Authentication (2FA)                                  | Minor | 1      | sishizaw                 | IV.3    |
-| 8         | AI Opponent (custom backend implementation with ball prediction) | Major | 2      | Federico, alex           | IV.4    |
-| 9         | Web-based Game (Pong)                                            | Major | 2      | Federico, alex           | IV.6    |
-| 10        | Remote Players (WebSocket online match)                          | Major | 2      | Federico, alex           | IV.6    |
-| 11        | Multiple Language Support (JA / EN / FR)                         | Minor | 1      | tenpapa                  | IV.2    |
-| 12        | GDPR Compliance                                                  | Minor | 1      | sishizaw, tenpapa        | IV.8    |
-| 13        | Browser Compatibility (Chrome / Firefox)                         | Minor | 1      | tenpapa                  | IV.2    |
-| **Total** |                                                                  |       | **19** |                          |         |
-
-> **Potential +2pt**: Standard User Management Major (IV.3) — profile, avatar, and friend requests are fully implemented. Once **friend online status** is added to the database, this module becomes claimable, bringing the total to 21pt.
+| #         | Module                                                                | Type  | Points | Contributor(s)           | PDF Ref |
+| --------- | --------------------------------------------------------------------- | ----- | ------ | ------------------------ | ------- |
+| 1         | Frontend + Backend Framework (React + NestJS)                         | Major | 2      | tenpapa, alex            | IV.1    |
+| 2         | WebSocket Real-time (chat + game)                                     | Major | 2      | Federico, alex           | IV.1    |
+| 3         | User Interaction (chat + profile + friends)                           | Major | 2      | Federico, alex, sishizaw | IV.1    |
+| 4         | ORM (TypeORM)                                                         | Minor | 1      | sishizaw                 | IV.1    |
+| 5         | Game Statistics and Match History                                     | Minor | 1      | sishizaw, tenpapa        | IV.3    |
+| 6         | Remote Authentication (42 OAuth)                                      | Minor | 1      | alex                     | IV.3    |
+| 7         | Two-Factor Authentication (2FA)                                       | Minor | 1      | sishizaw                 | IV.3    |
+| 8         | AI Opponent (custom backend implementation with ball prediction)      | Major | 2      | Federico, alex           | IV.4    |
+| 9         | Web-based Game (Pong)                                                 | Major | 2      | Federico, alex           | IV.6    |
+| 10        | Remote Players (WebSocket online match)                               | Major | 2      | Federico, alex           | IV.6    |
+| 11        | Multiple Language Support (JA / EN / FR)                              | Minor | 1      | tenpapa                  | IV.2    |
+| 12        | GDPR Compliance (data export, account deletion, email notification)   | Minor | 1      | sishizaw, tenpapa        | IV.8    |
+| 13        | Browser Compatibility (Chrome / Firefox)                              | Minor | 1      | tenpapa                  | IV.2    |
+| 14        | Standard User Management (profile, avatar, online status, friends)    | Major | 2      | alex, sishizaw           | IV.3    |
+| 15        | WAF Integration (ModSecurity + OWASP Core Rule Set via Nginx)         | Major | 2      | alex                     | IV.5    |
+| **Total** |                                                                       |       | **23** |                          |         |
 
 ### Module Selection Rationale
 
@@ -141,6 +149,8 @@ Major = 2 points, Minor = 1 point
 | Multiple Language Support       | French translation required for 42 Paris compatibility; Japanese/English for our team        |
 | GDPR Compliance                 | Mandatory EU data regulation; data export and account deletion are low-overhead to implement |
 | Browser Compatibility           | Ensures evaluators on any campus machine (Chrome/Firefox) can test without issues            |
+| Standard User Management        | Profile, avatar, online status, and friend list together satisfy all IV.3 Major requirements |
+| WAF / ModSecurity               | Adds an application-layer firewall (OWASP CRS) without extra services; tuned for our stack   |
 
 ### Backend Module Structure (NestJS)
 
@@ -168,13 +178,14 @@ Major = 2 points, Minor = 1 point
 
 ### Infrastructure
 
-| File                      | Role                                                               |
-| ------------------------- | ------------------------------------------------------------------ |
-| `docker-compose.yml`      | Defines 5 services (nginx / vault / postgres / backend / frontend) |
-| `nginx/nginx.conf`        | HTTPS termination and `/api` → backend reverse proxy               |
-| `Makefile`                | Aggregates dev commands: `make setup`, `make build`, etc.          |
-| `backend/src/migrations/` | TypeORM migration files                                            |
-| `shared/`                 | Type definitions and constants shared between frontend and backend |
+| File                           | Role                                                               |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `docker-compose.yml`           | Defines 5 services (nginx / vault / postgres / backend / frontend) |
+| `nginx/nginx.conf`             | HTTPS termination, `/api` → backend reverse proxy, WAF activation  |
+| `nginx/modsecurity-tuning.conf`| ModSecurity false-positive exclusions for our app                  |
+| `Makefile`                     | Aggregates dev commands: `make setup`, `make build`, etc.          |
+| `backend/src/migrations/`      | TypeORM migration files                                            |
+| `shared/`                      | Type definitions and constants shared between frontend and backend |
 
 ---
 
@@ -182,14 +193,14 @@ Major = 2 points, Minor = 1 point
 
 See [`docs/er-diagram.md`](./docs/er-diagram.md) for the full ER diagram and constraints.
 
-| Table             | Description                                                 |
-| ----------------- | ----------------------------------------------------------- |
-| `users`           | Auth info (username, password hash, 42 ID, 2FA settings)    |
-| `profiles`        | Profile info (displayName, bio, avatarUrl) — 1:1 with users |
-| `friends`         | Confirmed friend relationships                              |
-| `friend_requests` | Friend requests (pending / accepted / rejected)             |
-| `chat`            | Chat messages (per roomId)                                  |
-| `match_history`   | Match results (winnerUserId, loserUserId, scores)           |
+| Table             | Description                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `users`           | Auth info (username, password hash, 42 ID, 2FA settings, email, is_online, last_seen_at) |
+| `profiles`        | Profile info (displayName, bio, avatarUrl) — 1:1 with users                             |
+| `friends`         | Confirmed friend relationships                                                           |
+| `friend_requests` | Friend requests (pending / accepted / rejected)                                          |
+| `chat`            | Chat messages (per roomId)                                                               |
+| `match_history`   | Match results (winnerUserId, loserUserId, scores)                                        |
 
 ```mermaid
 erDiagram
@@ -206,9 +217,11 @@ erDiagram
 
 ### sishizaw
 
-- **DB design**: ER diagram, TypeORM entity definitions, migration setup (`backend/src/migrations/`)
+- **DB design**: ER diagram, TypeORM entity definitions, migration setup (`backend/src/migrations/`); added `email`, `is_online`, `last_seen_at` columns to `users`
 - **ProfileModule**: Profile CRUD, avatar upload, XSS input validation
 - **StatsModule / GDPR backend**: Win-rate aggregation API, match history API, data export / account deletion
+- **GDPR email notification**: Created `MailModule` / `mail.service.ts`; sends confirmation email on data export and account deletion (Ethereal fallback when MAIL_HOST is unset)
+- **Online status backend**: Implemented `UserStatusService` (setOnline / setOffline), integrated with login / logout flows
 - **WebSocket auth**: JWT-based socket connection authentication fix
 - **Security**: CodeQL Path Injection fix, 2FA bug fixes (401 error, console noise), CSRF token re-fetch fix, Content-Security-Policy introduction
 
@@ -216,7 +229,9 @@ erDiagram
 
 - **Game frontend**: Updated `GamePage` for new protocol (forfeit, reconnect, mode switch with `ConfirmDialog`)
 - **Online mode**: Updated `OnlinePage`, added i18n keys for 3 languages
-- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup
+- **Online status frontend**: Real-time WebSocket broadcast of status changes; online badge in friend list; view other user profile modal (from friend list and DM header)
+- **WAF / ModSecurity**: Integrated ModSecurity + OWASP CRS into Nginx (`nginx/Dockerfile`, `nginx/nginx.conf`, `nginx/modsecurity-tuning.conf`); fixed false positives for PUT / PATCH / DELETE
+- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup (version pin + permission fix in PR #100)
 - **CI / Quality**: Integration test suite (`test/`), TypeORM migration auto-run, dependabot management
 - **Bootstrap migration**: Migrated all components to Bootstrap CSS framework
 
@@ -361,6 +376,10 @@ After startup, open `https://localhost` in your browser.
 | `FORTY_TWO_CALLBACK_URL`  | 42 OAuth callback URL                                   | `https://localhost/api/auth/42/callback` |
 | `VAULT_ADDR`              | Vault address                                           | `http://vault:8200`                      |
 | `VAULT_TOKEN`             | Vault token                                             | —                                        |
+| `MAIL_HOST`               | SMTP server host (leave blank to use Ethereal test)     | —                                        |
+| `MAIL_PORT`               | SMTP server port                                        | `587`                                    |
+| `MAIL_USER`               | SMTP username                                           | —                                        |
+| `MAIL_PASS`               | SMTP password                                           | —                                        |
 
 ---
 
@@ -414,6 +433,7 @@ lsof -i :5432  # PostgreSQL
 | HTTPS                    | TLS termination via Nginx                                       |
 | Two-factor auth          | Google Authenticator compatible (TOTP)                          |
 | Input validation         | NestJS DTO + class-validator                                    |
+| WAF                      | ModSecurity + OWASP Core Rule Set integrated into Nginx         |
 
 ---
 
@@ -499,6 +519,8 @@ All AI-generated code was reviewed and understood by team members before being a
 
 - 表示名・自己紹介・アバター画像の編集 _(sishizaw, alex)_
 - フレンド申請 / 承認 / 一覧表示 _(sishizaw, alex)_
+- フレンドリストへのオンラインステータスバッジ表示（WebSocket リアルタイム更新） _(alex, sishizaw)_
+- フレンド一覧・DM ヘッダーから他ユーザーのプロフィールをモーダル表示 _(alex)_
 
 ### Pong ゲーム
 
@@ -523,6 +545,12 @@ All AI-generated code was reviewed and understood by team members before being a
 
 - 個人データのエクスポート（JSON ダウンロード） _(sishizaw, tenpapa)_
 - アカウント削除（全関連データの消去） _(sishizaw, tenpapa)_
+- データエクスポート・アカウント削除時のメール通知送信 _(sishizaw)_
+
+### セキュリティ / WAF
+
+- ModSecurity WAF（OWASP Core Rule Set）を Nginx に統合 _(alex)_
+- PUT / PATCH / DELETE メソッドの誤検知（403）を除外ルールで対処 _(alex)_
 
 ### その他
 
@@ -553,24 +581,24 @@ Major = 2 ポイント、Minor = 1 ポイント
 
 > **注意**: SSL/TLS・HTTPS・CSRF/XSS 保護は Chapter III.3 の**必須要件**のため、モジュールポイントには含みません。
 
-| #        | モジュール                                                     | 種別  | ポイント | 担当                     | PDF 参照 |
-| -------- | -------------------------------------------------------------- | ----- | -------- | ------------------------ | -------- |
-| 1        | フロント + バックエンドフレームワーク（React + NestJS）        | Major | 2        | tenpapa, alex            | IV.1     |
-| 2        | WebSocket リアルタイム通信（チャット + ゲーム）                | Major | 2        | Federico, alex           | IV.1     |
-| 3        | ユーザーインタラクション（チャット + プロフィール + フレンド） | Major | 2        | Federico, alex, sishizaw | IV.1     |
-| 4        | ORM（TypeORM）                                                 | Minor | 1        | sishizaw                 | IV.1     |
-| 5        | ゲーム統計・マッチ履歴                                         | Minor | 1        | sishizaw, tenpapa        | IV.3     |
-| 6        | リモート認証（42 OAuth）                                       | Minor | 1        | alex                     | IV.3     |
-| 7        | 2FA（二要素認証）                                              | Minor | 1        | sishizaw                 | IV.3     |
-| 8        | AI 対戦相手（バックエンド自前実装・ボール軌道予測付き）        | Major | 2        | Federico, alex           | IV.4     |
-| 9        | ゲーム実装（Pong）                                             | Major | 2        | Federico, alex           | IV.6     |
-| 10       | リモートプレイヤー（WebSocket オンライン対戦）                 | Major | 2        | Federico, alex           | IV.6     |
-| 11       | 多言語対応（日 / 英 / 仏）                                     | Minor | 1        | tenpapa                  | IV.2     |
-| 12       | GDPR 対応                                                      | Minor | 1        | sishizaw, tenpapa        | IV.8     |
-| 13       | ブラウザ互換性（Chrome / Firefox）                             | Minor | 1        | tenpapa                  | IV.2     |
-| **合計** |                                                                |       | **19**   |                          |          |
-
-> **今後 +2pt の余地**: 標準ユーザー管理 Major（IV.3）はプロフィール・アバター・フレンド申請を実装済み。**フレンドのオンラインステータス表示**を追加すれば計 21pt となる予定。
+| #        | モジュール                                                                         | 種別  | ポイント | 担当                     | PDF 参照 |
+| -------- | ---------------------------------------------------------------------------------- | ----- | -------- | ------------------------ | -------- |
+| 1        | フロント + バックエンドフレームワーク（React + NestJS）                            | Major | 2        | tenpapa, alex            | IV.1     |
+| 2        | WebSocket リアルタイム通信（チャット + ゲーム）                                    | Major | 2        | Federico, alex           | IV.1     |
+| 3        | ユーザーインタラクション（チャット + プロフィール + フレンド）                     | Major | 2        | Federico, alex, sishizaw | IV.1     |
+| 4        | ORM（TypeORM）                                                                     | Minor | 1        | sishizaw                 | IV.1     |
+| 5        | ゲーム統計・マッチ履歴                                                             | Minor | 1        | sishizaw, tenpapa        | IV.3     |
+| 6        | リモート認証（42 OAuth）                                                           | Minor | 1        | alex                     | IV.3     |
+| 7        | 2FA（二要素認証）                                                                  | Minor | 1        | sishizaw                 | IV.3     |
+| 8        | AI 対戦相手（バックエンド自前実装・ボール軌道予測付き）                            | Major | 2        | Federico, alex           | IV.4     |
+| 9        | ゲーム実装（Pong）                                                                 | Major | 2        | Federico, alex           | IV.6     |
+| 10       | リモートプレイヤー（WebSocket オンライン対戦）                                     | Major | 2        | Federico, alex           | IV.6     |
+| 11       | 多言語対応（日 / 英 / 仏）                                                         | Minor | 1        | tenpapa                  | IV.2     |
+| 12       | GDPR 対応（データエクスポート・アカウント削除・メール通知）                         | Minor | 1        | sishizaw, tenpapa        | IV.8     |
+| 13       | ブラウザ互換性（Chrome / Firefox）                                                 | Minor | 1        | tenpapa                  | IV.2     |
+| 14       | 標準ユーザー管理（プロフィール・アバター・オンラインステータス・フレンド）          | Major | 2        | alex, sishizaw           | IV.3     |
+| 15       | WAF 統合（ModSecurity + OWASP Core Rule Set）                                      | Major | 2        | alex                     | IV.5     |
+| **合計** |                                                                                    |       | **23**   |                          |          |
 
 ### モジュール選定理由
 
@@ -589,6 +617,8 @@ Major = 2 ポイント、Minor = 1 ポイント
 | 多言語対応                       | 42 Paris の評価者向けにフランス語が必要。日本語・英語はチームの使用言語                  |
 | GDPR 対応                        | EU データ規制への対応。データエクスポート・削除は低コストで実装可能                      |
 | ブラウザ互換性                   | 評価者がどのキャンパスのマシン（Chrome/Firefox）でもテストできるように確保               |
+| 標準ユーザー管理                 | プロフィール・アバター・オンラインステータス・フレンドリストで IV.3 Major の全要件を充足  |
+| WAF / ModSecurity               | Nginx に OWASP CRS を統合。追加サービス不要で WAF 要件を満たし、誤検知は除外ルールで対処 |
 
 ### バックエンドモジュール構成（NestJS）
 
@@ -616,13 +646,14 @@ Major = 2 ポイント、Minor = 1 ポイント
 
 ### インフラ
 
-| ファイル                  | 役割                                                              |
-| ------------------------- | ----------------------------------------------------------------- |
-| `docker-compose.yml`      | 5 サービス（nginx / vault / postgres / backend / frontend）の定義 |
-| `nginx/nginx.conf`        | HTTPS 終端・`/api` → バックエンドへのリバースプロキシ             |
-| `Makefile`                | `make setup` / `make build` など開発用コマンドの集約              |
-| `backend/src/migrations/` | TypeORM マイグレーションファイル                                  |
-| `shared/`                 | フロントエンド・バックエンド共通の型定義・定数                    |
+| ファイル                          | 役割                                                              |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `docker-compose.yml`              | 5 サービス（nginx / vault / postgres / backend / frontend）の定義 |
+| `nginx/nginx.conf`                | HTTPS 終端・`/api` → バックエンドへのリバースプロキシ・WAF 有効化 |
+| `nginx/modsecurity-tuning.conf`   | ModSecurity 誤検知除外ルール（アプリ固有チューニング）            |
+| `Makefile`                        | `make setup` / `make build` など開発用コマンドの集約              |
+| `backend/src/migrations/`         | TypeORM マイグレーションファイル                                  |
+| `shared/`                         | フロントエンド・バックエンド共通の型定義・定数                    |
 
 ---
 
@@ -630,14 +661,14 @@ Major = 2 ポイント、Minor = 1 ポイント
 
 詳細は [`docs/er-diagram.md`](./docs/er-diagram.md) を参照してください。
 
-| テーブル          | 説明                                                             |
-| ----------------- | ---------------------------------------------------------------- |
-| `users`           | 認証情報（username, password hash, 42 ID, 2FA 設定）             |
-| `profiles`        | プロフィール情報（displayName, bio, avatarUrl）— users と 1 対 1 |
-| `friends`         | 承認済みフレンド関係                                             |
-| `friend_requests` | フレンド申請（pending / accepted / rejected）                    |
-| `chat`            | チャットメッセージ（roomId 単位）                                |
-| `match_history`   | 対戦履歴（winnerUserId, loserUserId, スコア）                    |
+| テーブル          | 説明                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| `users`           | 認証情報（username, password hash, 42 ID, 2FA 設定, email, is_online, last_seen_at）             |
+| `profiles`        | プロフィール情報（displayName, bio, avatarUrl）— users と 1 対 1                                |
+| `friends`         | 承認済みフレンド関係                                                                             |
+| `friend_requests` | フレンド申請（pending / accepted / rejected）                                                    |
+| `chat`            | チャットメッセージ（roomId 単位）                                                                |
+| `match_history`   | 対戦履歴（winnerUserId, loserUserId, スコア）                                                    |
 
 ```mermaid
 erDiagram
@@ -654,9 +685,11 @@ erDiagram
 
 ### sishizaw
 
-- **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備（`backend/src/migrations/`）
+- **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備（`backend/src/migrations/`）; `email` / `is_online` / `last_seen_at` カラムを `users` に追加
 - **ProfileModule**: プロフィール CRUD・アバターアップロード・XSS バリデーション追加
 - **StatsModule / GDPR バックエンド**: 勝率集計 API・試合履歴 API・データエクスポート / アカウント削除実装
+- **GDPR メール通知**: `MailModule` / `mail.service.ts` を新規作成；データエクスポート・アカウント削除時にメール送信（MAIL_HOST 未設定時は Ethereal テストアカウントで自動動作）
+- **オンラインステータス バックエンド**: `UserStatusService`（setOnline / setOffline）を実装；ログイン・ログアウト処理に統合
 - **WebSocket 認証**: JWT によるソケット接続の認証修正
 - **セキュリティ**: CodeQL 指摘の Path Injection 修正、2FA バグ修正（401 エラー・コンソールノイズ除去）、CSRF トークン再取得問題の修正、Content-Security-Policy 導入
 
@@ -664,7 +697,9 @@ erDiagram
 
 - **ゲームフロントエンド**: `GamePage` を新プロトコルに対応（降参・再接続・モード切替確認ダイアログ）、`ConfirmDialog` コンポーネント作成
 - **オンラインモード**: `OnlinePage` 更新、i18n キー追加（3 言語対応）
-- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定
+- **オンラインステータス フロントエンド**: ステータス変化を WebSocket でリアルタイム配信；フレンドリストにオンラインバッジを表示；フレンド一覧・DM ヘッダーから他ユーザーのプロフィールをモーダル表示
+- **WAF / ModSecurity**: ModSecurity + OWASP CRS を Nginx に統合（`nginx/Dockerfile`・`nginx/nginx.conf`・`nginx/modsecurity-tuning.conf`）；PUT / PATCH / DELETE の誤検知（403）を除外ルールで修正
+- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定（PR #100 でバージョン固定とパーミッション修正）
 - **CI / 品質**: 統合テストスイート追加（`test/`）、TypeORM マイグレーション自動実行、dependabot 管理
 - **Bootstrap 移行**: 全コンポーネントの CSS フレームワーク移行
 
@@ -811,6 +846,10 @@ make build
 | `FORTY_TWO_CALLBACK_URL`  | 42 OAuth コールバック URL                        | `https://localhost/api/auth/42/callback` |
 | `VAULT_ADDR`              | Vault アドレス                                   | `http://vault:8200`                      |
 | `VAULT_TOKEN`             | Vault トークン                                   | —                                        |
+| `MAIL_HOST`               | SMTP サーバーホスト（未設定時は Ethereal 自動生成） | —                                       |
+| `MAIL_PORT`               | SMTP サーバーポート                              | `587`                                    |
+| `MAIL_USER`               | SMTP ユーザー名                                  | —                                        |
+| `MAIL_PASS`               | SMTP パスワード                                  | —                                        |
 
 ---
 
@@ -864,6 +903,7 @@ lsof -i :5432  # PostgreSQL
 | HTTPS                    | Nginx による TLS 終端                                                           |
 | 二要素認証               | Google Authenticator 対応（TOTP）                                               |
 | 入力バリデーション       | NestJS DTO + class-validator                                                    |
+| WAF                      | ModSecurity + OWASP Core Rule Set を Nginx に統合                               |
 
 ---
 
