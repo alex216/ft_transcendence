@@ -46,11 +46,11 @@ ssl:
 			-keyout nginx/ssl/server.key \
 			-out nginx/ssl/server.crt \
 			-subj "/C=JP/ST=Tokyo/L=Tokyo/O=42Tokyo/CN=localhost"; \
-		chmod 644 nginx/ssl/server.key nginx/ssl/server.crt; \
 		echo "✅ SSL証明書を生成しました (nginx/ssl/)"; \
 		echo "⚠️  ブラウザで https://localhost を開くと警告が出ます"; \
 		echo "   「詳細設定」→「localhost にアクセスする（安全でない）」で続行できます"; \
 	fi
+	chmod 644 nginx/ssl/server.key nginx/ssl/server.crt;
 
 # コンテナを起動
 up: _prepare-dirs
