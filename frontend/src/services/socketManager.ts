@@ -3,8 +3,10 @@
  * HTTPクライアント(api.ts)と同じAPI_URLを使用
  */
 
-// 環境変数からAPIのURLを取得（デフォルトはlocalhost:3000）
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// 環境変数からAPIのURLを取得
+// デフォルトは api.ts と同じ https://localhost/api で統一する
+// (VITE_API_URL が未伝搬の場合でも CSP 準拠の URL を使うフォールバック)
+const API_URL = import.meta.env.VITE_API_URL || "https://localhost/api";
 
 // WebSocket接続用のベースURL
 // REST APIは https://localhost/api だが、Socket.IOのネームスペースは /game, /chat
