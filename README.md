@@ -81,8 +81,8 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 
 ### Security / WAF
 
-- ModSecurity WAF (OWASP Core Rule Set) integrated into Nginx _(alex)_
-- Tuning rules to prevent false positives (PUT / PATCH / DELETE methods) _(alex)_
+- ModSecurity WAF (OWASP Core Rule Set) integrated into Nginx _(sishizaw)_
+- Tuning rules to prevent false positives (PUT / PATCH / DELETE methods) _(sishizaw)_
 
 ### Other
 
@@ -220,10 +220,10 @@ erDiagram
 - **DB design**: ER diagram, TypeORM entity definitions, migration setup (`backend/src/migrations/`); added `email`, `is_online`, `last_seen_at` columns to `users`
 - **ProfileModule**: Profile CRUD, avatar upload, XSS input validation
 - **StatsModule / GDPR backend**: Win-rate aggregation API, match history API, data export / account deletion
-- **GDPR email notification**: Created `MailModule` / `mail.service.ts`; sends confirmation email on data export and account deletion (Ethereal fallback when MAIL_HOST is unset) (`5c73a36`)
-- **Online status backend**: Added `is_online` / `last_seen_at` to `users` entity and migration; implemented `UserStatusService` (setOnline / setOffline) (`b44c93e`); refactored backend responsibility (`cb032b4`)
-- **WAF / ModSecurity**: Integrated ModSecurity + OWASP CRS into Nginx (`nginx/Dockerfile`, `nginx/modsecurity-tuning.conf`) (`6ac1f83`); fixed false positives for PUT / PATCH / DELETE (`49829b9`); added Nginx `/healthz` endpoint (`05ae20d`)
-- **Vault**: Version pin and SSL certificate permission fix (`c2a3c3b`); migration consolidation (`e0bb68a`)
+- **GDPR email notification**: Created `MailModule` / `mail.service.ts`; sends confirmation email on data export and account deletion (Ethereal fallback when MAIL_HOST is unset)
+- **Online status backend**: Added `is_online` / `last_seen_at` to `users` entity and migration; implemented `UserStatusService` (setOnline / setOffline); refactored backend responsibility
+- **WAF / ModSecurity**: Integrated ModSecurity + OWASP CRS into Nginx (`nginx/Dockerfile`, `nginx/modsecurity-tuning.conf`); fixed false positives for PUT / PATCH / DELETE; added Nginx `/healthz` endpoint
+- **Vault**: Version pin and SSL certificate permission fix; migration consolidation
 - **WebSocket auth**: JWT-based socket connection authentication fix
 - **Security**: CodeQL Path Injection fix, 2FA bug fixes (401 error, console noise), CSRF token re-fetch fix, Content-Security-Policy introduction
 
@@ -231,9 +231,9 @@ erDiagram
 
 - **Game frontend**: Updated `GamePage` for new protocol (forfeit, reconnect, mode switch with `ConfirmDialog`)
 - **Online mode**: Updated `OnlinePage`, added i18n keys for 3 languages
-- **Online status frontend**: Real-time WebSocket broadcast of status changes (`f85a812`); DB-centralized status with login/logout integration (`73f44db`); online badge in friend list (`1906f29`)
-- **View other user profile**: Modal display from friend list (`f05f0ea`) and DM header (`cf8ead9`)
-- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup; dev-environment `/@fs/` 403 fix (`e5b4fd4`)
+- **Online status frontend**: Real-time WebSocket broadcast of status changes; DB-centralized status with login/logout integration; online badge in friend list
+- **View other user profile**: Modal display from friend list and DM header
+- **Infrastructure**: Docker Compose, Nginx, HashiCorp Vault integration, SSL certificate setup; dev-environment `/@fs/` 403 fix
 - **CI / Quality**: Integration test suite (`test/`), TypeORM migration auto-run, dependabot management
 - **Bootstrap migration**: Migrated all components to Bootstrap CSS framework
 
@@ -250,7 +250,7 @@ erDiagram
 - **Game backend foundation**: Built WebSocket gateway, game logic, and AI mode from scratch (`game.gateway.ts` / `game.service.ts`)
 - **AI difficulty**: Tuned AI to behave more human-like; unified difficulty/delay relationship
 - **Reconnection & disconnect handling**: Backend auto-detection of reconnect, match invalidation on both-player disconnect, forfeit handling after opponent disconnect
-- **Game message fixes (PR #93)**: Correct game-over + message when reconnected player wins on grace-time expiry (`e7ddaad`); "waiting for opponent reconnect" message shown to reconnected player too (`844b45b`); unified cancel message for both players (`ea9a835`)
+- **Game message fixes (PR #93)**: Correct game-over and message when reconnected player wins on grace-time expiry; "waiting for opponent reconnect" message shown to reconnected player too; unified cancel message for both players
 - **Shared design**: Extracted common constants (`GRACE_TIME`, etc.) and GameState DTOs into `shared/`
 
 ---
@@ -553,8 +553,8 @@ All AI-generated code was reviewed and understood by team members before being a
 
 ### セキュリティ / WAF
 
-- ModSecurity WAF（OWASP Core Rule Set）を Nginx に統合 _(alex)_
-- PUT / PATCH / DELETE メソッドの誤検知（403）を除外ルールで対処 _(alex)_
+- ModSecurity WAF（OWASP Core Rule Set）を Nginx に統合 _(sishizaw)_
+- PUT / PATCH / DELETE メソッドの誤検知（403）を除外ルールで対処 _(sishizaw)_
 
 ### その他
 
@@ -692,10 +692,10 @@ erDiagram
 - **DB 設計**: ER 図作成・TypeORM エンティティ定義・マイグレーション整備（`backend/src/migrations/`）; `email` / `is_online` / `last_seen_at` カラムを `users` に追加
 - **ProfileModule**: プロフィール CRUD・アバターアップロード・XSS バリデーション追加
 - **StatsModule / GDPR バックエンド**: 勝率集計 API・試合履歴 API・データエクスポート / アカウント削除実装
-- **GDPR メール通知**: `MailModule` / `mail.service.ts` を新規作成；データエクスポート・アカウント削除時にメール送信（MAIL_HOST 未設定時は Ethereal テストアカウントで自動動作）(`5c73a36`)
-- **オンラインステータス バックエンド**: `is_online` / `last_seen_at` を `users` エンティティとマイグレーションに追加；`UserStatusService`（setOnline / setOffline）を実装 (`b44c93e`)；バックエンド責務をリファクタリング (`cb032b4`)
-- **WAF / ModSecurity**: ModSecurity + OWASP CRS を Nginx に統合（`nginx/Dockerfile`・`nginx/modsecurity-tuning.conf`）(`6ac1f83`)；PUT / PATCH / DELETE の誤検知を除外ルールで修正 (`49829b9`)；Nginx `/healthz` エンドポイント追加 (`05ae20d`)
-- **Vault**: バージョン固定と SSL 証明書パーミッション修正 (`c2a3c3b`)；マイグレーションを1ファイルに統合 (`e0bb68a`)
+- **GDPR メール通知**: `MailModule` / `mail.service.ts` を新規作成；データエクスポート・アカウント削除時にメール送信（MAIL_HOST 未設定時は Ethereal テストアカウントで自動動作）
+- **オンラインステータス バックエンド**: `is_online` / `last_seen_at` を `users` エンティティとマイグレーションに追加；`UserStatusService`（setOnline / setOffline）を実装；バックエンド責務をリファクタリング
+- **WAF / ModSecurity**: ModSecurity + OWASP CRS を Nginx に統合（`nginx/Dockerfile`・`nginx/modsecurity-tuning.conf`）；PUT / PATCH / DELETE の誤検知を除外ルールで修正；Nginx `/healthz` エンドポイント追加
+- **Vault**: バージョン固定と SSL 証明書パーミッション修正；マイグレーションを1ファイルに統合
 - **WebSocket 認証**: JWT によるソケット接続の認証修正
 - **セキュリティ**: CodeQL 指摘の Path Injection 修正、2FA バグ修正（401 エラー・コンソールノイズ除去）、CSRF トークン再取得問題の修正、Content-Security-Policy 導入
 
@@ -703,9 +703,9 @@ erDiagram
 
 - **ゲームフロントエンド**: `GamePage` を新プロトコルに対応（降参・再接続・モード切替確認ダイアログ）、`ConfirmDialog` コンポーネント作成
 - **オンラインモード**: `OnlinePage` 更新、i18n キー追加（3 言語対応）
-- **オンラインステータス フロントエンド**: ステータス変化を WebSocket でリアルタイム配信 (`f85a812`)；DB 一元化とログイン契機更新 (`73f44db`)；フレンドリストにオンラインバッジを表示 (`1906f29`)
-- **他ユーザープロフィール表示**: フレンド一覧からモーダル表示 (`f05f0ea`)；DM ヘッダーからモーダル表示 (`cf8ead9`)
-- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定；dev 環境 `/@fs/` 403 修正 (`e5b4fd4`)
+- **オンラインステータス フロントエンド**: ステータス変化を WebSocket でリアルタイム配信；DB 一元化とログイン契機更新；フレンドリストにオンラインバッジを表示
+- **他ユーザープロフィール表示**: フレンド一覧からモーダル表示；DM ヘッダーからモーダル表示
+- **インフラ**: Docker Compose・Nginx・HashiCorp Vault 統合・SSL 証明書設定；dev 環境 `/@fs/` 403 修正
 - **CI / 品質**: 統合テストスイート追加（`test/`）、TypeORM マイグレーション自動実行、dependabot 管理
 - **Bootstrap 移行**: 全コンポーネントの CSS フレームワーク移行
 
@@ -722,7 +722,7 @@ erDiagram
 - **ゲームバックエンド基盤**: WebSocket ゲートウェイ・ゲームロジック・AI モードをゼロから実装（`game.gateway.ts` / `game.service.ts`）
 - **AI 難易度**: 人間らしい動作に調整、difficulty と delay の関係を統一
 - **再接続・切断処理**: 再接続をバックエンド自動判定に変更、両プレイヤー切断時の試合無効化、相手切断後の降参処理
-- **ゲームメッセージ修正 (PR #93)**: 再接続プレイヤーが猶予時間切れで勝った際の正常なゲームオーバー表示 (`e7ddaad`)；再接続プレイヤーへの「相手の再接続待ち」メッセージ表示 (`844b45b`)；試合キャンセル時のメッセージ統一 (`ea9a835`)
+- **ゲームメッセージ修正 (PR #93)**: 再接続プレイヤーが猶予時間切れで勝った際の正常なゲームオーバー表示；再接続プレイヤーへの「相手の再接続待ち」メッセージ表示；試合キャンセル時のメッセージ統一
 - **shared 設計**: `GRACE_TIME` 等の共通定数・GameState DTO を `shared/` に分離
 
 ---
