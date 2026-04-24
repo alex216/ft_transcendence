@@ -102,7 +102,7 @@ _This project has been created as part of the 42 curriculum by shinji-japaaaan, 
 | Real-time         | WebSocket (Socket.IO)                        | Game and chat                        |
 | Auth              | JWT (Passport.js) + Google Authenticator 2FA | Cookie-based                         |
 | Reverse proxy     | Nginx                                        | HTTPS termination and routing        |
-| Secret management | HashiCorp Vault                              | Dev mode in development environment  |
+| Secret management | HashiCorp Vault                              | Manages credentials and env secrets  |
 | Containerization  | Docker + Docker Compose                      | All services managed together        |
 
 ---
@@ -574,7 +574,7 @@ All AI-generated code was reviewed and understood by team members before being a
 | リアルタイム通信 | WebSocket（Socket.IO）                            | ゲーム・チャット                      |
 | 認証             | JWT (Passport.js) + Google Authenticator 対応 2FA | Cookie ベース                         |
 | リバースプロキシ | Nginx                                             | HTTPS 終端・ルーティング              |
-| 秘密情報管理     | HashiCorp Vault                                   | 開発環境では dev モード               |
+| 秘密情報管理     | HashiCorp Vault                                   | クレデンシャル・環境変数を一元管理    |
 | コンテナ         | Docker + Docker Compose                           | 全サービス一括管理                    |
 
 ---
