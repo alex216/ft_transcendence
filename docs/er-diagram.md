@@ -4,7 +4,7 @@
 
 | テーブル名        | 対応 Entity     | 説明                              |
 | ----------------- | --------------- | --------------------------------- |
-| `users`           | `User`          | 認証情報・アカウント              |
+| `users`           | `User`          | 認証情報・アカウント（email / is_online / last_seen_at 追加済み） |
 | `profiles`        | `Profile`       | プロフィール情報（users と 1対1） |
 | `friends`         | `Friend`        | フレンド関係（承認済み）          |
 | `friend_requests` | `FriendRequest` | フレンドリクエスト（申請中）      |
@@ -20,8 +20,11 @@ erDiagram
         varchar username UK "ユーザー名（一意）"
         varchar password "パスワードハッシュ（42OAuthは null）"
         varchar forty_two_id UK "42のユーザーID（オプション）"
+        varchar email "メールアドレス（nullable）GDPRメール通知用"
         boolean is_2fa_enabled "2FA有効フラグ（default: false）"
         varchar two_factor_secret "2FAシークレット（nullable）"
+        boolean is_online "オンラインステータス（default: false）"
+        timestamp last_seen_at "最終オフライン日時（nullable）"
         timestamp created_at "作成日時（自動）"
     }
 
@@ -91,6 +94,7 @@ erDiagram
 | ----------------- | -------------- | ------------------------------------------- |
 | `users`           | UNIQUE         | `username`                                  |
 | `users`           | UNIQUE         | `forty_two_id`                              |
+| `users`           | DEFAULT false  | `is_online`（ログアウト時 / サーバー起動時）|
 | `profiles`        | UNIQUE（暗黙） | `user_id`（OneToOneのため）                 |
 | `friends`         | UNIQUE         | `(user_id, friend_id)`                      |
 | `friend_requests` | ENUM           | `status`: `pending`, `accepted`, `rejected` |
