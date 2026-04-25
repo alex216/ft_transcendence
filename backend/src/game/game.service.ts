@@ -336,6 +336,26 @@ export class GameService {
 		}
 	}
 
+	removeFromQueue(client: Socket, server: Server, userId: number) {
+		console.log(`[Game.Service] try removeFromQueue: ${userId}`);
+		const index = this.queue.findIndex(
+			(q) => q.socket.id === client.id || q.userId === userId,
+		);
+
+		if (index === -1) {
+			console.log(`[Game.Service] Player ${userId} not found in queue`);
+			return;
+		}
+
+		this.queue.splice(index, 1);
+
+		console.log(`[Game.Service] Player ${userId} removed from queue`);
+		console.log(
+			"[Game.Service] Queue: ",
+			this.queue.map((q) => q.userId),
+		);
+	}
+
 	// ゲームの初期化
 	initGame(
 		roomId: string,
@@ -381,7 +401,12 @@ export class GameService {
 
 	private gameLoop(roomId: string, server: Server) {
 		const game = this.onlineGames.get(roomId);
-		if (!game || game.isPaused) return;
+		if (!game || (!game.p1Connected && !game.p2Connected)) return;
+
+		if (game.isPaused) {
+			server.to(roomId).emit("updateState", this.toDto(game));
+			return;
+		}
 
 		// 1. ボールの移動
 		game.ball.x += game.dx;
@@ -674,6 +699,11 @@ export class GameService {
 		const game = this.onlineGames.get(roomId);
 		if (!game) {
 			client.emit("reconnectFailed", { reason: "game_not_found" });
+			return;
+		}
+		// duplicated reconnect?
+		if (game.p1SocketId === client.id || game.p2SocketId === client.id) {
+			console.log("[GameService] duplicate reconnect ignored");
 			return;
 		}
 		// userId OK?

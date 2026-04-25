@@ -85,6 +85,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.gameService.addToQueue(client, this.server, userId);
 	}
 
+	@SubscribeMessage("leaveQueue")
+	handleLeaveQueue(@ConnectedSocket() client: AuthenticatedSocket) {
+		const userId = client.data.user.id;
+		console.log(
+			`[GameGateway] leaveQueue userId=${userId} (socket=${client.id})`,
+		);
+		this.gameService.removeFromQueue(client, this.server, userId);
+	}
+
 	@SubscribeMessage("moveUp")
 	handleMoveUp(@ConnectedSocket() client: AuthenticatedSocket) {
 		const userId = client.data.user.id;

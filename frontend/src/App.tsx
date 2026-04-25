@@ -23,7 +23,7 @@ import LegalModal, { LegalType } from "./components/LegalModal";
 import StatsDashboard from "./components/StatsDashboard";
 import GdprSettings from "./components/GdprSettings";
 import ConfirmDialog from "./components/ConfirmDialog";
-import { surrender } from "./services/gameSocket";
+import { surrender, leaveQueue } from "./services/gameSocket";
 import { getChatSocket, disconnectChatSocket } from "./services/chatSocket";
 import "./App.css";
 import "./styles/responsive.css";
@@ -89,6 +89,11 @@ function App() {
 			setPendingNavigation(target);
 			return;
 		}
+
+		if (currentPage === "online" && !gameRoomId) {
+			leaveQueue();
+		}
+
 		if (resetGame) {
 			setGameRoomId(null);
 			setGameOpponent(null);

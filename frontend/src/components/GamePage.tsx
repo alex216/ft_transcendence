@@ -48,11 +48,12 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 	// 再接続用にroomIdを保持
 	const roomIdRef = useRef<string | null>(initialRoomId ?? null);
-	// このマウントで自分のゲームが開始されたかを追跡（前のゲームのgameOverを無視するため）
-	const gameStartedRef = useRef(false);
 	// Added to handle victory in case of double disconnection and single reconnection
 	// 二重切断と単一再接続のケースでの勝敗処理を扱うために追加
 	const isPausedRef = useRef(false);
+	// avoid double reconnections
+	const hasReconnectedRef = useRef(false);
+	const hasInitializedRef = useRef(false);
 
 	// WebSocket接続とイベントハンドリング
 	useEffect(() => {
@@ -60,21 +61,22 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		const handleConnect = () => {
 			console.log("[GamePage] WebSocket接続成功");
-			if (mode === "online" && roomIdRef.current) {
+			if (!hasInitializedRef.current) {
+				hasInitializedRef.current = true;
+			}
+
+			if (
+				mode === "online" &&
+				roomIdRef.current &&
+				!hasReconnectedRef.current
+			) {
 				console.log("[GamePage] reconnectGame:", roomIdRef.current);
+
 				reconnectGame(roomIdRef.current);
-				gameStartedRef.current = true;
+				hasReconnectedRef.current = true;
 			}
 		};
 		socket.on("connect", handleConnect);
-
-		// If the socket is already connected at mount time,
-		// manually trigger the same logic as "connect"
-		// マウント時点ですでにソケットが接続済みの場合を考慮し、
-		// "connect" イベントと同じ処理を手動で実行する
-		if (socket.connected) {
-			handleConnect();
-		}
 
 		// AI対戦の場合、接続完了後にjoinAIGameを送信
 		if (mode === "ai") {
@@ -89,10 +91,10 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 
 		// ゲーム状態の更新を受信
 		const handleUpdateState = (dto: GameStateDto) => {
+			console.log("[GamePage] received updatestate");
 			setGameState(dto.state);
 			// roomIdを保存（再接続に使用）
 			roomIdRef.current = dto.roomId;
-			gameStartedRef.current = true;
 			// 一時停止解除
 			// getting the pause situation truth from the server
 			setIsPaused(dto.state.isPaused);
@@ -112,9 +114,11 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 			roomId: string;
 			reason?: string;
 		}) => {
-			// 前のゲームのgameOverを無視（updateStateを受信する前のgameOverは自分のゲームではない）
-			if (!gameStartedRef.current) return;
 			console.log("[GamePage] ゲーム終了:", data);
+			if (roomIdRef.current !== data.roomId) {
+				console.log("[GamePage] Ignored gameOver (room mismatch)");
+				return;
+			}
 			const myId = socket.id;
 			const isWinner =
 				data.winner === myId || (mode === "ai" && data.winner !== AI_SOCKET_ID);
@@ -129,6 +133,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		// 対戦相手の切断通知
 		const handlePlayerDisconnected = () => {
 			console.log("[GamePage] 対戦相手が切断");
+			console.log("[GamePage] received playerdisconnected");
 			setIsPaused(true);
 			isPausedRef.current = true;
 			setPauseMessage(t("game.opponentDisconnected"));
@@ -138,6 +143,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 		// 対戦相手の再接続通知
 		const handlePlayerReconnected = () => {
 			console.log("[GamePage] 対戦相手が再接続");
+			console.log("[GamePage] received playerReconnected");
 			setIsPaused(false);
 			isPausedRef.current = false;
 			setPauseMessage("");
@@ -260,7 +266,7 @@ function GamePage({ mode, roomId: initialRoomId, onBack }: GamePageProps) {
 									color: gameResult.isWinner ? "#00ff88" : "#ff4444",
 								}}
 							>
-								{!gameResult.winner
+								{!gameResult.winner && gameResult.reason == "both_disconnected"
 									? t("game.nobodyWin")
 									: gameResult.isWinner
 										? t("game.youWin")
