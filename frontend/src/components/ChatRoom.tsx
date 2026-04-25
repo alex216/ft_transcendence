@@ -159,7 +159,7 @@ export default function ChatRoom({
 				) : (
 					messages.map((msg, index) => (
 						<ChatMessage
-							key={msg.id ?? index}
+							key={msg.id !== undefined ? `srv-${msg.id}` : `loc-${index}`}
 							message={msg}
 							isOwnMessage={msg.sender === username}
 						/>
