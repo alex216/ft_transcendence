@@ -417,7 +417,7 @@ make reinstall
 ### Port already in use
 
 ```bash
-lsof -i :443   # Nginx
+lsof -i :8443   # Nginx
 lsof -i :3000  # Backend
 lsof -i :3001  # Frontend
 lsof -i :5432  # PostgreSQL
@@ -891,7 +891,7 @@ make reinstall
 ### ポートが使用中
 
 ```bash
-lsof -i :443   # Nginx
+lsof -i :8443   # Nginx
 lsof -i :3000  # バックエンド
 lsof -i :3001  # フロントエンド
 lsof -i :5432  # PostgreSQL

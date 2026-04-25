@@ -18,8 +18,8 @@ services:
       MODSEC_REQ_BODY_LIMIT: "10485760"
       MODSEC_REQ_BODY_NOFILES_LIMIT: "1048576"
     ports:
-      - "80:80" # HTTP → HTTPSリダイレクト用
-      - "443:443" # HTTPS
+      - "1100:1100" # HTTP → HTTPSリダイレクト用
+      - "8443:8443" # HTTPS
     volumes:
       # SSL証明書をマウント（make ssl で生成）
       - ./nginx/ssl:/etc/nginx/ssl:ro
